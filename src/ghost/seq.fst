@@ -42,11 +42,19 @@ module Tesseract.Ghost.Seq
 
    let maybe_nth sq = sq.maybe_nth
 
-   val nth: #lmnt_t: Type -> sq:seq lmnt_t -> idx:nat{idx < length sq} -> Tot lmnt_t
+   val nth: #lmnt_t: Type -> sq: seq lmnt_t -> idx: nat{idx < length sq} -> Tot lmnt_t
    let nth (lmnt_t: Type) sq idx = 
       match maybe_nth sq idx with
          | Some e ->
             e
+
+   val first: #lmnt_t: Type -> sq: seq lmnt_t{0 < length sq} -> Tot lmnt_t
+   let first (lmnt_t: Type) sq =
+      nth sq 0
+
+   val last: #lmnt_t: Type -> sq: seq lmnt_t{0 < length sq} -> Tot lmnt_t
+   let last (lmnt_t: Type) sq =
+      nth sq ((length sq) - 1)
 
    val hd: #lmnt_t: Type -> sq: seq lmnt_t{0 < length sq} -> Tot lmnt_t
    let hd (lmnt_t: Type) sq = 
@@ -85,5 +93,19 @@ module Tesseract.Ghost.Seq
             acm
          else
             _foldl__loop sq fn acm (len - 1)
+
+   val filter: 
+      #lmnt_t: Type
+      -> seq lmnt_t -> (lmnt_t -> Tot bool)
+      -> Tot (seq lmnt_t)
+   let filter (lmnt_t: Type) sq fn =
+      foldl
+         (fun (a: seq lmnt_t) e ->
+            if fn e then
+               append a e
+            else
+               a)
+         Seq.empty
+         sq
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
