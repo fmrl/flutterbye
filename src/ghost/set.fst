@@ -15,23 +15,13 @@
 
 module Tesseract.Ghost.Set
 
-   type set 'lmnt = 
-      { 
-         mem: 'lmnt -> Tot bool
-      }
+   type set_g (element_t: Type) = 
+      element_t -> Tot bool
 
-   val empty: #lmnt_t: Type -> set lmnt_t
-   let empty (lmnt_t: Type) = 
-      {
-         mem = (fun (e: lmnt_t) -> false)
-      }
+   val empty: #element_t: Type -> Tot (set_g element_t)
+   let empty (element_t: Type) = 
+      fun _ -> false
 
-   let mem m = m.mem
+   let is_mem set = set
 
-   val arbitrary: #lmnt_t: Type -> #val_t: Type -> (lmnt_t -> Tot bool) -> Tot (set lmnt_t)
-   let arbitrary fn =
-      {
-         mem = fn
-      }
-
-// $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
+// $vim-fst:32: vim:set_g sts=3 sw=3 et ft=fstar:,$

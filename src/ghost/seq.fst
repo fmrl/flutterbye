@@ -15,41 +15,54 @@
 
 module Tesseract.Ghost.Seq
 
+   type _spec_g (element_t: Type) =
+      nat -> Tot (option element_t)
+
    type _seq_g (element_t: Type) = 
       { 
-         spec: nat -> Tot (option element_t);
+         spec: _spec_g element_t;
          length: nat
       }
 
-   type bless: #element_t: Type -> _seq_g element_t -> Type =
+   type is_seq_safe: #element_t: Type -> spec: _spec_g element_t -> length: nat -> Type =
+      fun (element_t: Type) (spec: _spec_g element_t) (length: nat) ->
+         forall (index: nat).
+            ((index < length) <==> (is_Some (spec index)))
+            /\ ((index >= length) <==> (None = (spec index)))
+
+   (*type is_seq_safe: #element_t: Type -> _seq_g element_t -> Type =
       fun (element_t: Type) (seq: _seq_g element_t) ->
          forall (index: nat).
             ((index < seq.length) <==> (is_Some (seq.spec index)))
-            /\ ((index >= seq.length) <==> (None = (seq.spec index)))
+            /\ ((index >= seq.length) <==> (None = (seq.spec index)))*)
 
    type seq_g (element_t: Type) = 
-      seq: _seq_g element_t{bless seq}
+      seq: _seq_g element_t{is_seq_safe seq.spec seq.length}
+
+   val bless:
+      #element_t: Type ->
+      spec: _spec_g element_t -> length: nat{is_seq_safe spec length} -> Tot (seq_g element_t)
+   let bless spec length =
+      {
+         spec = spec;
+         length = length
+      }
 
    val empty: #element_t: Type -> Tot (seq_g element_t)
    let empty (element_t: Type) = 
-      {
-         spec = (fun _ -> None);
-         length = 0
-      }
+      bless (fun _ -> None) 0
 
    val single: 
       #element_t: Type -> 
       element_t -> Tot (seq_g element_t)
    let single lmnt =
-      {
-         spec =
-            (fun index ->
-               if 0 = index then
-                  Some lmnt
-               else
-                  None);
-         length = 1
-      }
+      bless
+         (fun index ->
+            if 0 = index then
+               Some lmnt
+            else
+               None)
+         1
 
    val length: 
       #element_t: Type -> 
@@ -86,30 +99,26 @@ module Tesseract.Ghost.Seq
       #element_t: Type -> 
          seq_g element_t -> element_t -> Tot (seq_g element_t)
    let append (element_t: Type) seq lmnt =
-      {
-         spec = 
-            (fun index -> 
-               if index = seq.length then 
-                  Some lmnt 
-               else 
-                  maybe_nth seq index);
-         length = seq.length + 1
-      }
+      bless
+         (fun index -> 
+            if index = seq.length then 
+               Some lmnt 
+            else 
+               maybe_nth seq index)
+         (seq.length + 1)
 
    val concat: 
       #element_t: Type
       -> seq_g element_t -> seq_g element_t
       -> Tot (seq_g element_t)
    let concat lhs rhs =
-      {
-         spec =
-            (fun index ->
-               if index < lhs.length then
-                  lhs.spec index
-               else
-                  rhs.spec (index - lhs.length));
-         length = lhs.length + rhs.length
-      }
+      bless
+         (fun index ->
+            if index < lhs.length then
+               lhs.spec index
+            else
+               rhs.spec (index - lhs.length))
+         (lhs.length + rhs.length)
 
    val _foldl__loop: 
       #element_t: Type -> #accum_t: Type -> 
