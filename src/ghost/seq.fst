@@ -13,10 +13,12 @@
 // 
 // ,$
 
+//@requires "map.fst"
+
 module Tesseract.Ghost.Seq
 
    type _spec_g (element_t: Type) =
-      nat -> Tot (option element_t)
+      Map.map_g nat element_t
 
    type _seq_g (element_t: Type) = 
       { 
@@ -70,14 +72,15 @@ module Tesseract.Ghost.Seq
    let length (element_t: Type) seq = 
       seq.length
 
-   let maybe_nth seq = seq.spec
+   let to_map seq = seq.spec
+   let lookup seq = seq.spec
 
    val nth: 
       #element_t: Type -> 
       seq: seq_g element_t -> index: nat{index < length seq} 
          -> Tot element_t
    let nth (element_t: Type) seq index = 
-      match maybe_nth seq index with
+      match lookup seq index with
          | Some lmnt ->
             lmnt
 
@@ -104,7 +107,7 @@ module Tesseract.Ghost.Seq
             if index = seq.length then 
                Some lmnt 
             else 
-               maybe_nth seq index)
+               lookup seq index)
          (seq.length + 1)
 
    val concat: 
