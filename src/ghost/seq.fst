@@ -15,97 +15,136 @@
 
 module Tesseract.Ghost.Seq
 
-   type _seq 'lmnt = 
+   type _seq_g (element_t: Type) = 
       { 
-         maybe_nth: nat -> Tot (option 'lmnt);
+         spec: nat -> Tot (option element_t);
          length: nat
       }
 
-   type is_safe: #lmnt_t: Type -> _seq lmnt_t -> Type =
-      fun (lmnt_t: Type)(sq: _seq lmnt_t) ->
-         forall (idx: nat).
-            ((idx < sq.length) <==> (is_Some (sq.maybe_nth idx)))
-            /\ ((idx >= sq.length) <==> (None = (sq.maybe_nth idx)))
+   type bless: #element_t: Type -> _seq_g element_t -> Type =
+      fun (element_t: Type) (seq: _seq_g element_t) ->
+         forall (index: nat).
+            ((index < seq.length) <==> (is_Some (seq.spec index)))
+            /\ ((index >= seq.length) <==> (None = (seq.spec index)))
 
-   type seq (lmnt_t: Type) = 
-      sq: _seq lmnt_t{is_safe sq}
+   type seq_g (element_t: Type) = 
+      seq: _seq_g element_t{bless seq}
 
-   val empty: #lmnt_t: Type -> Tot (seq lmnt_t)
-   let empty (lmnt_t: Type) = 
+   val empty: #element_t: Type -> Tot (seq_g element_t)
+   let empty (element_t: Type) = 
       {
-         maybe_nth = (fun _ -> (None <: option lmnt_t));
+         spec = (fun _ -> None);
          length = 0
       }
 
-   val length: #lmnt_t: Type -> seq lmnt_t -> Tot nat
-   let length (lmnt_t: Type) sq = sq.length
-
-   let maybe_nth sq = sq.maybe_nth
-
-   val nth: #lmnt_t: Type -> sq: seq lmnt_t -> idx: nat{idx < length sq} -> Tot lmnt_t
-   let nth (lmnt_t: Type) sq idx = 
-      match maybe_nth sq idx with
-         | Some e ->
-            e
-
-   val first: #lmnt_t: Type -> sq: seq lmnt_t{0 < length sq} -> Tot lmnt_t
-   let first (lmnt_t: Type) sq =
-      nth sq 0
-
-   val last: #lmnt_t: Type -> sq: seq lmnt_t{0 < length sq} -> Tot lmnt_t
-   let last (lmnt_t: Type) sq =
-      nth sq ((length sq) - 1)
-
-   val hd: #lmnt_t: Type -> sq: seq lmnt_t{0 < length sq} -> Tot lmnt_t
-   let hd (lmnt_t: Type) sq = 
-      nth sq 0
-   let fst = hd
-
-   val append: #lmnt_t: Type -> seq lmnt_t -> lmnt_t -> Tot (seq lmnt_t)
-   let append (lmnt_t: Type) sq e =
+   val single: 
+      #element_t: Type -> 
+      element_t -> Tot (seq_g element_t)
+   let single lmnt =
       {
-         maybe_nth = 
-            (fun idx -> 
-               if idx = sq.length then 
-                  Some e 
+         spec =
+            (fun index ->
+               if 0 = index then
+                  Some lmnt
+               else
+                  None);
+         length = 1
+      }
+
+   val length: 
+      #element_t: Type -> 
+      seq_g element_t -> Tot nat
+   let length (element_t: Type) seq = 
+      seq.length
+
+   let maybe_nth seq = seq.spec
+
+   val nth: 
+      #element_t: Type -> 
+      seq: seq_g element_t -> index: nat{index < length seq} 
+         -> Tot element_t
+   let nth (element_t: Type) seq index = 
+      match maybe_nth seq index with
+         | Some lmnt ->
+            lmnt
+
+   val first: 
+      #element_t: Type -> 
+         seq: seq_g element_t{0 < length seq} 
+         -> Tot element_t
+   let first (element_t: Type) seq =
+      nth seq 0
+
+   val last: 
+      #element_t: Type -> 
+         seq: seq_g element_t{0 < length seq} 
+         -> Tot element_t
+   let last (element_t: Type) seq =
+      nth seq ((length seq) - 1)
+
+   val append: 
+      #element_t: Type -> 
+         seq_g element_t -> element_t -> Tot (seq_g element_t)
+   let append (element_t: Type) seq lmnt =
+      {
+         spec = 
+            (fun index -> 
+               if index = seq.length then 
+                  Some lmnt 
                else 
-                  maybe_nth sq idx);
-         length = sq.length + 1
+                  maybe_nth seq index);
+         length = seq.length + 1
+      }
+
+   val concat: 
+      #element_t: Type
+      -> seq_g element_t -> seq_g element_t
+      -> Tot (seq_g element_t)
+   let concat lhs rhs =
+      {
+         spec =
+            (fun index ->
+               if index < lhs.length then
+                  lhs.spec index
+               else
+                  rhs.spec (index - lhs.length));
+         length = lhs.length + rhs.length
       }
 
    val _foldl__loop: 
-      #lmnt_t: Type -> #acm_t: Type 
-      -> sq:seq lmnt_t -> (acm_t -> lmnt_t -> Tot acm_t) -> acm_t -> idx:nat{idx < length sq}
-      -> Tot acm_t (decreases idx)
-   let rec _foldl__loop (lmnt_t: Type)(acm_t: Type) sq fn acm idx = 
-      if idx = 0 then
-         acm
+      #element_t: Type -> #accum_t: Type -> 
+      seq: seq_g element_t -> (accum_t -> element_t -> Tot accum_t) 
+         -> accum_t -> index: nat{index < length seq}
+         -> Tot accum_t (decreases index)
+   let rec _foldl__loop (element_t: Type) (accum_t: Type) seq fn accum index = 
+      if index = 0 then
+         accum
       else
-         _foldl__loop sq fn (fn acm (nth sq idx)) (idx - 1)
+         _foldl__loop seq fn (fn accum (nth seq index)) (index - 1)
 
    val foldl: 
-      #lmnt_t: Type -> #acm_t: Type 
-      -> (acm_t -> lmnt_t -> Tot acm_t) -> acm_t -> seq lmnt_t 
-      -> Tot acm_t
-   let rec foldl (lmnt_t: Type) (acm_t: Type) fn acm sq = 
-      let len = length sq in
+      #element_t: Type -> #accum_t: Type 
+      -> (accum_t -> element_t -> Tot accum_t) -> accum_t -> seq_g element_t 
+      -> Tot accum_t
+   let rec foldl (element_t: Type) (accum_t: Type) fn accum seq = 
+      let len = length seq in
          if 0 = len then
-            acm
+            accum
          else
-            _foldl__loop sq fn acm (len - 1)
+            _foldl__loop seq fn accum (len - 1)
 
    val filter: 
-      #lmnt_t: Type
-      -> seq lmnt_t -> (lmnt_t -> Tot bool)
-      -> Tot (seq lmnt_t)
-   let filter (lmnt_t: Type) sq fn =
+      #element_t: Type
+      -> seq_g element_t -> (element_t -> Tot bool)
+      -> Tot (seq_g element_t)
+   let filter (element_t: Type) seq fn =
       foldl
-         (fun (a: seq lmnt_t) e ->
+         (fun (a: seq_g element_t) e ->
             if fn e then
                append a e
             else
                a)
          Seq.empty
-         sq
+         seq
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
