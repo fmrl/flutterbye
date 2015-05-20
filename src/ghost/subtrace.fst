@@ -15,7 +15,7 @@
 
 //@requires "seq.fst"
 
-module Tesseract.Ghost.Subsubtrace
+module Tesseract.Ghost.Subtrace
 
    type step_g (state_t: Type) (event_t: Type) = 
       | Init: state: state_t -> step_g state_t event_t
