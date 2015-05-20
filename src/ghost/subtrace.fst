@@ -15,7 +15,7 @@
 
 //@requires "seq.fst"
 
-module Tesseract.Ghost.Trace
+module Tesseract.Ghost.Subsubtrace
 
    type step_g (state_t: Type) (event_t: Type) = 
       | Init: state: state_t -> step_g state_t event_t
@@ -24,7 +24,7 @@ module Tesseract.Ghost.Trace
    type transform_g (state_t: Type) (event_t: Type) =
       state_t -> event_t -> Tot state_t
 
-   type trace_g (state_t: Type) (event_t: Type) =
+   type subtrace_g (state_t: Type) (event_t: Type) =
       {
          event_log: Seq.seq_g event_t;
          transform: transform_g state_t event_t;
@@ -33,7 +33,7 @@ module Tesseract.Ghost.Trace
 
    val init: 
       #state_t: Type -> #event_t: Type -> 
-      transform_g state_t event_t -> state_t -> Tot (trace_g state_t event_t)
+      transform_g state_t event_t -> state_t -> Tot (subtrace_g state_t event_t)
    let init (state_t: Type) (event_t: Type) f s = 
       {
          event_log = Seq.empty;
@@ -43,9 +43,9 @@ module Tesseract.Ghost.Trace
 
    val steps:
       #state_t: Type -> #event_t: Type -> 
-      trace_g state_t event_t -> Tot (Seq.seq_g (step_g state_t event_t))
-   let steps (state_t: Type) (event_t: Type) trace =
-      let head = Seq.single (Init trace.state0) in
+      subtrace_g state_t event_t -> Tot (Seq.seq_g (step_g state_t event_t))
+   let steps (state_t: Type) (event_t: Type) subtrace =
+      let head = Seq.single (Init subtrace.state0) in
       let tail =
          Seq.foldl
             (fun (accum: Seq.seq_g (step_g state_t event_t){0 < Seq.length accum}) event ->
@@ -57,11 +57,11 @@ module Tesseract.Ghost.Trace
                         | Next s _ ->
                            s
                   in
-                     Next (trace.transform state event) event)
+                     Next (subtrace.transform state event) event)
                in
                   Seq.append accum step)
             head
-            trace.event_log
+            subtrace.event_log
       in
          Seq.concat head tail
 
