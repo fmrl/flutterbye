@@ -15,7 +15,7 @@
 
 //@requires "map.fst"
 
-module Tesseract.Ghost.Seq
+module Tesseract.Specs.Seq
 
    type _spec_g (element_t: Type) =
       Map.map_g nat element_t

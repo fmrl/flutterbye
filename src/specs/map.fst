@@ -15,7 +15,7 @@
 
 //@requires "set.fst"
 
-module Tesseract.Ghost.Map
+module Tesseract.Specs.Map
 
    type map_g (key_t: Type) (value_t: Type) = 
       key_t -> Tot (option value_t)

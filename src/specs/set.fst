@@ -13,7 +13,7 @@
 // 
 // ,$
 
-module Tesseract.Ghost.Set
+module Tesseract.Specs.Set
 
    type set_g (element_t: Type) = 
       element_t -> Tot bool
@@ -24,4 +24,4 @@ module Tesseract.Ghost.Set
 
    let is_mem set = set
 
-// $vim-fst:32: vim:set_g sts=3 sw=3 et ft=fstar:,$
+// $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$

@@ -13,9 +13,9 @@
 // 
 // ,$
 
-//@requires "subtrace.fst"
+//@requires "actor.fst"
 
-module Tesseract.Ghost.Trace
+module Tesseract.Specs.System
 
    type state_g (key_t: Type) (substate_t: Type) (subevent_t: Type) =
       {
