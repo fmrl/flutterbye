@@ -22,6 +22,11 @@ module Tesseract.Specs.Set
    let empty (element_t: Type) = 
       fun _ -> false
 
+   val is_mem: 
+      #element_t: Type 
+      -> set_g element_t 
+      -> element_t 
+      -> Tot bool
    let is_mem set = set
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
