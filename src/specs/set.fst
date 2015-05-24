@@ -15,17 +15,17 @@
 
 module Tesseract.Specs.Set
 
-   type set_g (element_t: Type) = 
-      element_t -> Tot bool
+   type set_g (item_t: Type) = 
+      item_t -> Tot bool
 
-   val empty: #element_t: Type -> Tot (set_g element_t)
-   let empty (element_t: Type) = 
+   val empty: #item_t: Type -> Tot (set_g item_t)
+   let empty (item_t: Type) = 
       fun _ -> false
 
    val is_mem: 
-      #element_t: Type 
-      -> set_g element_t 
-      -> element_t 
+      #item_t: Type 
+      -> set_g item_t 
+      -> item_t 
       -> Tot bool
    let is_mem set = set
 

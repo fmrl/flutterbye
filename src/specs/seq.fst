@@ -17,29 +17,29 @@
 
 module Tesseract.Specs.Seq
 
-   type _spec_g (element_t: Type) 
-      = Map.map_g nat element_t
+   type _spec_g (item_t: Type) 
+      = Map.map_g nat item_t
 
-   type _seq_g (element_t: Type) 
+   type _seq_g (item_t: Type) 
       = 
          { 
-            spec: _spec_g element_t;
+            spec: _spec_g item_t;
             length: nat
          }
 
-   type is_seq_safe: #element_t: Type -> spec: _spec_g element_t -> length: nat -> Type 
+   type is_seq_safe: #item_t: Type -> spec: _spec_g item_t -> length: nat -> Type 
       =
-         fun (element_t: Type) (spec: _spec_g element_t) (length: nat) ->
-            forall (index: nat).
-               ((index < length) <==> (is_Some (spec index)))
-               /\ ((index >= length) <==> (None = (spec index)))
+         fun (item_t: Type) (spec: _spec_g item_t) (length: nat) ->
+            forall (idx: nat).
+               ((idx < length) <==> (is_Some (spec idx)))
+               /\ ((idx >= length) <==> (None = (spec idx)))
 
-   type seq_g (element_t: Type) 
-      = seq: _seq_g element_t{is_seq_safe seq.spec seq.length}
+   type seq_g (item_t: Type) 
+      = seq: _seq_g item_t{is_seq_safe seq.spec seq.length}
 
    val bless:
-      #element_t: Type ->
-      spec: _spec_g element_t -> length: nat{is_seq_safe spec length} -> Tot (seq_g element_t)
+      #item_t: Type ->
+      spec: _spec_g item_t -> length: nat{is_seq_safe spec length} -> Tot (seq_g item_t)
    let bless spec length 
       =
          {
@@ -47,100 +47,100 @@ module Tesseract.Specs.Seq
             length = length
          }
 
-   val empty: #element_t: Type -> Tot (seq_g element_t)
-   let empty (element_t: Type) 
+   val empty: #item_t: Type -> Tot (seq_g item_t)
+   let empty (item_t: Type) 
       = bless (fun _ -> None) 0
 
    val single: 
-      #element_t: Type -> 
-      element_t -> Tot (seq_g element_t)
-   let single lmnt 
+      #item_t: Type -> 
+      item_t -> Tot (seq_g item_t)
+   let single item 
       =
          bless
-            (fun index ->
-               if 0 = index then
-                  Some lmnt
+            (fun idx ->
+               if 0 = idx then
+                  Some item
                else
                   None)
             1
 
    val length: 
-      #element_t: Type -> 
-      seq_g element_t -> Tot nat
-   let length (element_t: Type) seq 
+      #item_t: Type -> 
+      seq_g item_t -> Tot nat
+   let length (item_t: Type) seq 
       = seq.length
 
    let to_map seq = seq.spec
    let lookup seq = seq.spec
 
    val nth: 
-      #element_t: Type -> 
-      seq: seq_g element_t -> index: nat{index < length seq} 
-         -> Tot element_t
-   let nth (element_t: Type) seq index
+      #item_t: Type -> 
+      seq: seq_g item_t -> idx: nat{idx < length seq} 
+         -> Tot item_t
+   let nth (item_t: Type) seq idx
       = 
-         match lookup seq index with
-            | Some lmnt ->
-               lmnt
+         match lookup seq idx with
+            | Some item ->
+               item
 
    val first: 
-      #element_t: Type -> 
-         seq: seq_g element_t{0 < length seq} 
-         -> Tot element_t
-   let first (element_t: Type) seq 
+      #item_t: Type -> 
+         seq: seq_g item_t{0 < length seq} 
+         -> Tot item_t
+   let first (item_t: Type) seq 
       = nth seq 0
 
    val last: 
-      #element_t: Type -> 
-         seq: seq_g element_t{0 < length seq} 
-         -> Tot element_t
-   let last (element_t: Type) seq 
+      #item_t: Type -> 
+         seq: seq_g item_t{0 < length seq} 
+         -> Tot item_t
+   let last (item_t: Type) seq 
       = nth seq ((length seq) - 1)
 
    val append: 
-      #element_t: Type -> 
-         seq_g element_t -> element_t -> Tot (seq_g element_t)
-   let append (element_t: Type) seq lmnt 
+      #item_t: Type -> 
+         seq_g item_t -> item_t -> Tot (seq_g item_t)
+   let append (item_t: Type) seq item 
       =
          bless
-            (fun index -> 
-               if index = seq.length then 
-                  Some lmnt 
+            (fun idx -> 
+               if idx = seq.length then 
+                  Some item 
                else 
-                  lookup seq index)
+                  lookup seq idx)
             (seq.length + 1)
 
    val concat: 
-      #element_t: Type
-      -> seq_g element_t -> seq_g element_t
-      -> Tot (seq_g element_t)
+      #item_t: Type
+      -> seq_g item_t -> seq_g item_t
+      -> Tot (seq_g item_t)
    let concat lhs rhs 
       =
          bless
-            (fun index ->
-               if index < lhs.length then
-                  lhs.spec index
+            (fun idx ->
+               if idx < lhs.length then
+                  lhs.spec idx
                else
-                  rhs.spec (index - lhs.length))
+                  rhs.spec (idx - lhs.length))
             (lhs.length + rhs.length)
 
    val _foldl__loop: 
-      #element_t: Type -> #accum_t: Type -> 
-      seq: seq_g element_t -> (accum_t -> element_t -> Tot accum_t) 
-         -> accum_t -> index: nat{index < length seq}
-         -> Tot accum_t (decreases index)
-   let rec _foldl__loop (element_t: Type) (accum_t: Type) seq fn accum index 
+      #item_t: Type -> #accum_t: Type -> 
+      seq: seq_g item_t -> (accum_t -> item_t -> Tot accum_t) 
+         -> accum_t -> idx: nat{idx < length seq}
+         -> Tot accum_t (decreases idx)
+   let rec _foldl__loop (item_t: Type) (accum_t: Type) seq fn accum idx 
       = 
-         if index = 0 then
+         if idx = 0 then
             accum
          else
-            _foldl__loop seq fn (fn accum (nth seq index)) (index - 1)
+            _foldl__loop seq fn (fn accum (nth seq idx)) (idx - 1)
 
    val foldl: 
-      #element_t: Type -> #accum_t: Type 
-      -> (accum_t -> element_t -> Tot accum_t) -> accum_t -> seq_g element_t 
+      #item_t: Type -> #accum_t: Type 
+      -> (accum_t -> item_t -> Tot accum_t) -> accum_t -> seq_g item_t 
       -> Tot accum_t
-   let rec foldl (element_t: Type) (accum_t: Type) fn accum seq 
+   let rec foldl (item_t: Type) (accum_t: Type) fn accum seq 
       = 
          let len = length seq in
             if 0 = len then
@@ -149,14 +149,14 @@ module Tesseract.Specs.Seq
                _foldl__loop seq fn accum (len - 1)
 
    val filter: 
-      #element_t: Type
-      -> (element_t -> Tot bool)
-      -> seq_g element_t 
-      -> Tot (seq_g element_t)
-   let filter (element_t: Type) fn seq 
+      #item_t: Type
+      -> (item_t -> Tot bool)
+      -> seq_g item_t 
+      -> Tot (seq_g item_t)
+   let filter (item_t: Type) fn seq 
       =
          foldl
-            (fun (a: seq_g element_t) e ->
+            (fun (a: seq_g item_t) e ->
                if fn e then
                   append a e
                else
@@ -165,16 +165,16 @@ module Tesseract.Specs.Seq
             seq
 
    val map:
-      #element0_t: Type
-      -> #element1_t: Type
-      -> (element0_t -> Tot element1_t)
-      -> seq_g element0_t
-      -> Tot (seq_g element1_t)
-   let map (element0_t: Type) (element1_t: Type) fn seq0
+      #item0_t: Type
+      -> #item1_t: Type
+      -> (item0_t -> Tot item1_t)
+      -> seq_g item0_t
+      -> Tot (seq_g item1_t)
+   let map (item0_t: Type) (item1_t: Type) fn seq0
       = 
          foldl
-            (fun (accum: seq_g element1_t) element ->
-               Seq.append accum (fn element))
+            (fun (accum: seq_g item1_t) item ->
+               Seq.append accum (fn item))
             Seq.empty
             seq0
 
