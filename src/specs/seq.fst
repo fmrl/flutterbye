@@ -97,9 +97,11 @@ module Tesseract.Specs.Seq
    let last (item_t: Type) seq 
       = nth seq ((length seq) - 1)
 
-   val append: 
-      #item_t: Type -> 
-         seq_g item_t -> item_t -> Tot (seq_g item_t)
+   val append:
+      #item_t: Type 
+      -> seq_g item_t
+      -> item_t
+      -> Tot (seq_g item_t)
    let append (item_t: Type) seq item 
       =
          bless
@@ -109,6 +111,39 @@ module Tesseract.Specs.Seq
                else 
                   lookup seq idx)
             (seq.length + 1)
+
+   val insert:
+      #item_t: Type
+      -> seq: seq_g item_t 
+      -> before: nat{before <= length seq}
+      -> item_t 
+      -> Tot (seq_g item_t)
+   let insert (item_t: Type) seq before item
+      = 
+         bless
+            (fun n ->
+               if n = before then
+                  Some item
+               else if n < before then
+                  lookup seq n
+               else
+                  lookup seq (n - 1))
+            (seq.length + 1)
+
+   val remove:
+      #item_t: Type
+      -> seq: seq_g item_t{0 < length seq}
+      -> idx: nat{idx < length seq}
+      -> Tot (seq_g item_t)
+   let remove (item_t: Type) seq idx 
+      = 
+         bless
+            (fun n ->
+               if n < idx then
+                  lookup seq n
+               else
+                  lookup seq (n + 1))
+            (seq.length - 1)
 
    val concat: 
       #item_t: Type

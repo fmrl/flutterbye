@@ -13,7 +13,8 @@
 // 
 // ,$
 
-//@requires "specs/system.fst"
+//@requires "specs/history.fst"
+//@requires "specs/fifo.fst"
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
 
