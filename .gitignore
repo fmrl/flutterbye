@@ -4,3 +4,4 @@
 /.bundle/
 /bin/
 _vendor/
+/Gemfile.lock
