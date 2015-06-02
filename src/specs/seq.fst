@@ -13,12 +13,10 @@
 // 
 // ,$
 
-//@requires "map.fst"
-
 module Tesseract.Specs.Seq
 
-   type _spec_g (item_t: Type) 
-      = Map.map_g nat item_t
+   type _spec_g (item_t: Type) =
+      nat -> Tot (option item_t)
 
    type _seq_g (item_t: Type) 
       = 
