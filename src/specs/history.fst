@@ -14,6 +14,7 @@
 // ,$
 
 //@requires "seq.fst"
+//@requires "set.fst"
 
 module Tesseract.Specs.History
 
@@ -88,13 +89,13 @@ module Tesseract.Specs.History
    let is_mem (actor_id_t: Type) (message_t: Type) history actor_id
       = Set.is_mem history.known_ids actor_id
 
-   val local:
+   val local_steps:
       #actor_id_t: Type
       -> #message_t: Type
       -> history: history_g actor_id_t message_t
       -> actor_id: actor_id_t{is_mem history actor_id}
       -> Tot (Seq.seq_g (step_g actor_id_t message_t))
-   let local (actor_id_t: Type) (message_t: Type) history actor_id
+   let local_steps (actor_id_t: Type) (message_t: Type) history actor_id
       = 
          Seq.filter
             (fun step ->
@@ -105,12 +106,12 @@ module Tesseract.Specs.History
                      aid = actor_id)
             history.steps
 
-   val global:
+   val global_steps:
       #actor_id_t: Type
       -> #message_t: Type
       -> history_g actor_id_t message_t
       -> Tot (Seq.seq_g (step_g actor_id_t message_t))
-   let global (actor_id_t: Type) (message_t: Type) history
+   let global_steps (actor_id_t: Type) (message_t: Type) history
       = history.steps
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$

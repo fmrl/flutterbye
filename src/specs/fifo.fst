@@ -36,7 +36,7 @@ module Tesseract.Specs.Fifo
       -> fifo: fifo_g item_t{0 < length fifo}
       -> Tot item_t
    let peek (item_t: Type) fifo
-      = Seq.first fifo.items
+      = Seq.nth fifo.items 0
 
    val pop: 
       #item_t: Type 
