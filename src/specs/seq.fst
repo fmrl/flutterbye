@@ -18,30 +18,24 @@
 module Tesseract.Specs.Seq
 
    type _seq_g (item_t: Type) 
-      = 
-         { 
-            maybe_nth: nat -> Tot (option item_t);
-            length: nat
-         }
+      = { 
+         maybe_nth: nat -> Tot (option item_t);
+         length: nat
+      }
 
    type is_seq_safe: #item_t: Type -> seq: _seq_g item_t -> Type 
-      = fun (item_t: Type) (seq: _seq_g item_t) ->
-         forall (index: nat).
-            ((index < seq.length) <==> (is_Some (seq.maybe_nth index)))
-            /\ ((index >= seq.length) <==> (None = (seq.maybe_nth index)))
+      = fun (item_t: Type) (seq: _seq_g item_t) 
+         -> ((0 = seq.length) 
+               /\ (FunctionalExtensionality.FEq seq.maybe_nth (fun _ -> None)))
+            \/ (forall (index: nat).
+                  ((index < seq.length) <==> (is_Some (seq.maybe_nth index)))
+                  /\ ((index >= seq.length) <==> (is_None (seq.maybe_nth index))))
 
    type seq_g (item_t: Type) 
       = seq: _seq_g item_t{is_seq_safe seq}
 
    type index_g (#item_t: Type) (seq: seq_g item_t) 
       = index: nat{index < seq.length}
-
-   val length: 
-      #item_t: Type 
-      -> seq_g item_t 
-      -> Tot nat
-   let length (item_t: Type) (seq: seq_g item_t)
-      = seq.length
 
    type are_equal 
       (#item_t: Type) 
@@ -56,6 +50,13 @@ module Tesseract.Specs.Seq
          maybe_nth = (fun _ -> None);
          length = 0
       }
+
+   val length: 
+      #item_t: Type 
+      -> seq: seq_g item_t
+      -> Tot nat
+   let length (item_t: Type) (seq: seq_g item_t)
+      = seq.length
 
    val single: #item_t: Type -> item_t -> Tot (seq_g item_t)
    let single item 
