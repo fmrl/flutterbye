@@ -70,8 +70,7 @@ module Tesseract.Specs.Seq
          length = 1
       }
 
-   let to_map seq = seq.maybe_nth
-   let lookup seq = seq.maybe_nth
+   let maybe_nth seq = seq.maybe_nth
 
    val nth: 
       #item_t: Type 
@@ -80,7 +79,7 @@ module Tesseract.Specs.Seq
       -> Tot item_t
    let nth (item_t: Type) seq index
       = 
-         match lookup seq index with
+         match maybe_nth seq index with
             | Some item ->
                item
 
@@ -103,7 +102,7 @@ module Tesseract.Specs.Seq
                if index = seq.length then 
                   Some item 
                else 
-                  lookup seq index);
+                  maybe_nth seq index);
          length = (seq.length + 1)
       }
 
@@ -120,9 +119,9 @@ module Tesseract.Specs.Seq
                if n = before then
                   Some item
                else if n < before then
-                  lookup seq n
+                  maybe_nth seq n
                else
-                  lookup seq (n - 1));
+                  maybe_nth seq (n - 1));
          length = (seq.length + 1)
       }
 
@@ -136,9 +135,9 @@ module Tesseract.Specs.Seq
          maybe_nth =
             (fun n ->
                if n < index then
-                  lookup seq n
+                  maybe_nth seq n
                else
-                  lookup seq (n + 1));
+                  maybe_nth seq (n + 1));
          length = (seq.length - 1)
       }
 
