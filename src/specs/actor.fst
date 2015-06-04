@@ -13,21 +13,24 @@
 // 
 // ,$
 
-//@requires "fifo.fst"
-//@requires "history.fst"
+//@requires "seq.fst"
 //@requires "message.fst"
 
 module Tesseract.Specs.Actor
 
-   type _actor_g (actor_id_t: Type) (state_t: Type) (event_t: Type) =
-      {
-         id: actor_id_t;
+   type _actor_g 
+      (id_t: Type) 
+      (state_t: Type) 
+      (event_t: Type) 
+      = {
+         id: id_t;
          state0: state_t;
-         inbox: Fifo.fifo_g (Message.message_g actor_id_t event_t);
-         history: 
-            History.history_g 
-               actor_id_t 
-               (Message.message_g actor_id_t event_t)
+         inbox: 
+            Seq.seq_g (Message.message_g id_t event_t);
+         step: 
+            state_t 
+            -> Message.message_g id_t event_t 
+            -> Tot state_t 
       }
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$

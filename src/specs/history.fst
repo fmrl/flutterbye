@@ -18,101 +18,101 @@
 
 module Tesseract.Specs.History
 
-   type step_g (actor_id_t: Type) (message_t: Type) =
+   type event_g (context_t: Type) (message_t: Type) =
       | Spawn: 
-         actor_id: actor_id_t 
-         -> step_g actor_id_t message_t
-      | Message: 
-         actor_id: actor_id_t 
+         context: context_t 
+         -> event_g context_t message_t
+      | Step: 
+         context: context_t 
          -> message: message_t 
-         -> step_g actor_id_t message_t
+         -> event_g context_t message_t
 
-   type _history_g (actor_id_t: Type) (message_t: Type) =
+   type _history_g (context_t: Type) (message_t: Type) =
       {
-         steps: Seq.seq_g (step_g actor_id_t message_t);
-         known_ids: Set.set_g actor_id_t
+         log: Seq.seq_g (event_g context_t message_t);
+         spawned: Set.set_g context_t
       }
 
-   type invariant: 
-      #actor_id_t: Type 
+   type is_history_safe: 
+      #context_t: Type 
       -> #message_t: Type 
-      -> _history_g actor_id_t message_t 
+      -> _history_g context_t message_t 
       -> Type
       = 
          fun 
-            (actor_id_t: Type) 
+            (context_t: Type) 
             (message_t: Type) 
             (_history: 
-               _history_g actor_id_t message_t) 
+               _history_g context_t message_t) 
          ->
-            // each actor actor_id may only be spawned once.
-            (forall (actor_id: actor_id_t).
-               Set.is_mem _history.known_ids actor_id ==> 
+            // each actor id may only be spawned once.
+            (forall (context: context_t).
+               Set.is_mem _history.spawned context ==> 
                   1 =
                      Seq.foldl
                         (fun accum event ->
                            match event with
-                              | Spawn actor_id ->
+                              | Spawn context ->
                                  accum + 1
                               | _ ->
                                  accum)
                         0
-                        _history.steps)
+                        _history.log)
             // all actor ids must be in the set of known ids.
             /\ (forall n.
-                  0 <= n && n < Seq.length _history.steps && is_Spawn (Seq.nth _history.steps n)
+                  0 <= n && n < Seq.length _history.log && is_Spawn (Seq.nth _history.log n)
                   ==>
-                     Set.is_mem _history.known_ids (Spawn.actor_id (Seq.nth _history.steps n)))
+                     Set.is_mem _history.spawned (Spawn.context (Seq.nth _history.log n)))
 
-   type history_g (actor_id_t: Type) (message_t: Type) 
-      = _history: _history_g actor_id_t message_t{invariant _history}
+   type history_g (context_t: Type) (message_t: Type) 
+      = _history: _history_g context_t message_t{is_history_safe _history}
 
    val init:
-      #actor_id_t: Type 
+      #context_t: Type 
       -> #message_t: Type 
-      -> Tot (history_g actor_id_t message_t)
+      -> Tot (history_g context_t message_t)
    let init 
-      (actor_id_t: Type) 
+      (context_t: Type) 
       (message_t: Type) 
       = 
          {
-            steps = Seq.empty;
-            known_ids = Set.empty
+            log = Seq.empty;
+            spawned = Set.empty
          }
 
    val is_mem:
-      #actor_id_t: Type
+      #context_t: Type
       -> #message_t: Type
-      -> history_g actor_id_t message_t
-      -> actor_id_t
+      -> history_g context_t message_t
+      -> context_t
       -> Tot bool
-   let is_mem (actor_id_t: Type) (message_t: Type) history actor_id
-      = Set.is_mem history.known_ids actor_id
+   let is_mem (context_t: Type) (message_t: Type) history context
+      = Set.is_mem history.spawned context
 
-   val local_steps:
-      #actor_id_t: Type
+   val local_events:
+      #context_t: Type
       -> #message_t: Type
-      -> history: history_g actor_id_t message_t
-      -> actor_id: actor_id_t{is_mem history actor_id}
-      -> Tot (Seq.seq_g (step_g actor_id_t message_t))
-   let local_steps (actor_id_t: Type) (message_t: Type) history actor_id
+      -> history: history_g context_t message_t
+      -> context: context_t{is_mem history context}
+      -> Tot (Seq.seq_g (event_g context_t message_t))
+   let local_events (context_t: Type) (message_t: Type) history context
       = 
          Seq.filter
-            (fun step ->
-               match step with
+            (fun event ->
+               match event with
                   | Spawn aid ->
-                     aid = actor_id
-                  | Message aid _ ->
-                     aid = actor_id)
-            history.steps
+                     aid = context
+                  | Step aid _ ->
+                     aid = context)
+            history.log
 
-   val global_steps:
-      #actor_id_t: Type
+   val global_events:
+      #context_t: Type
       -> #message_t: Type
-      -> history_g actor_id_t message_t
-      -> Tot (Seq.seq_g (step_g actor_id_t message_t))
-   let global_steps (actor_id_t: Type) (message_t: Type) history
-      = history.steps
+      -> history_g context_t message_t
+      -> Tot (Seq.seq_g (event_g context_t message_t))
+   let global_events (context_t: Type) (message_t: Type) history
+      = history.log
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
 
