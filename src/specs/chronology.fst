@@ -24,7 +24,8 @@ module Tesseract.Specs.Chronology
          -> step_kind_t 
          -> Tot (state_t * (Seq.seq_g (region_t * step_kind_t)))
 
-   type effect_g (region_t: Type) (state_t: Type) (step_kind_t: Type) =
+   type effect_g (region_t: Type) (state_t: Type) (step_kind_t: Type) 
+      =
       | Spawn: 
          region: region_t 
          -> state0: state_t
@@ -44,13 +45,12 @@ module Tesseract.Specs.Chronology
       -> #step_kind_t: Type 
       -> _chronology_g region_t state_t step_kind_t 
       -> Type
-      = 
-         fun 
-            (region_t: Type) 
-            (state_t: Type) 
-            (step_kind_t: Type) 
-            (_chronology: 
-               _chronology_g region_t state_t step_kind_t) 
+      = fun 
+         (region_t: Type) 
+         (state_t: Type) 
+         (step_kind_t: Type) 
+         (_chronology: 
+            _chronology_g region_t state_t step_kind_t) 
          -> // an empty chronology is safe (though useless).
             0 = Seq.length _chronology
             \/ // each region may only be spawned once.
@@ -66,8 +66,15 @@ module Tesseract.Specs.Chronology
             // todo: regions may not process step effects 
             // until spawned.
 
-   type chronology_g (region_t: Type) (state_t: Type) (step_kind_t: Type) 
-      = _chronology: _chronology_g region_t state_t step_kind_t{is_chronology_safe _chronology}
+   type chronology_g 
+      (region_t: Type) 
+      (state_t: Type) 
+      (step_kind_t: Type) 
+      = _chronology: 
+         _chronology_g 
+            region_t 
+            state_t 
+            step_kind_t{is_chronology_safe _chronology}
 
    val init:
       #region_t: Type 
