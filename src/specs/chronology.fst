@@ -35,11 +35,8 @@ module Tesseract.Specs.Chronology
          -> step_kind: step_kind_t 
          -> effect_g region_t state_t step_kind_t
 
-   type _chronology_g (region_t: Type) (state_t: Type) (step_kind_t: Type) =
-      {
-         log: Seq.seq_g (effect_g region_t state_t step_kind_t);
-         spawned: Set.set_g region_t
-      }
+   type _chronology_g (region_t: Type) (state_t: Type) (step_kind_t: Type) 
+      = Seq.seq_g (effect_g region_t state_t step_kind_t)
 
    type is_chronology_safe: 
       #region_t: Type 
@@ -54,25 +51,20 @@ module Tesseract.Specs.Chronology
             (step_kind_t: Type) 
             (_chronology: 
                _chronology_g region_t state_t step_kind_t) 
-         ->
-            // each region may only be spawned once.
-            (forall (region: region_t).
-               Set.is_mem _chronology.spawned region ==> 
-                  1 =
-                     Seq.foldl
-                        (fun accum event ->
-                           match event with
-                              | Spawn region _ _ ->
-                                 accum + 1
-                              | _ ->
-                                 accum)
-                        0
-                        _chronology.log)
-            // all actor ids must be in the set of known ids.
-            /\ (forall n.
-                  0 <= n && n < Seq.length _chronology.log && is_Spawn (Seq.nth _chronology.log n)
+         -> // an empty chronology is safe (though useless).
+            0 = Seq.length _chronology
+            \/ // each region may only be spawned once.
+               (forall n.
+                  0 <= n 
+                  && n < Seq.length _chronology 
+                  && is_Spawn (Seq.nth _chronology n)
                   ==>
-                     Set.is_mem _chronology.spawned (Spawn.region (Seq.nth _chronology.log n)))
+                     (let seq' = Seq.remove _chronology n in
+                        0 = Seq.length seq'
+                        || is_None 
+                           (Seq.maybe_find is_Spawn seq' 0)))
+            // todo: regions may not process step effects 
+            // until spawned.
 
    type chronology_g (region_t: Type) (state_t: Type) (step_kind_t: Type) 
       = _chronology: _chronology_g region_t state_t step_kind_t{is_chronology_safe _chronology}
@@ -86,11 +78,7 @@ module Tesseract.Specs.Chronology
       (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
-      = 
-         {
-            log = Seq.empty;
-            spawned = Set.empty
-         }
+      = Seq.empty
 
    val is_spawned:
       #region_t: Type
@@ -99,17 +87,24 @@ module Tesseract.Specs.Chronology
       -> chronology_g region_t state_t step_kind_t
       -> region_t
       -> Tot bool
-   let is_spawned (region_t: Type) (step_kind_t: Type) chronology region
-      = Set.is_mem chronology.spawned region
+   let is_spawned 
+      (region_t: Type) 
+      (step_kind_t: Type) 
+      chronology 
+      region
+      = if 0 = Seq.length chronology then
+            false
+         else
+            is_Some (Seq.maybe_find is_Spawn chronology 0)
 
-   val region_log:
+   val filter_by_region:
       #region_t: Type
       -> #state_t: Type
       -> #step_kind_t: Type
       -> chronology: chronology_g region_t state_t step_kind_t
       -> region: region_t{is_spawned chronology region}
       -> Tot (Seq.seq_g (effect_g region_t state_t step_kind_t))
-   let region_log 
+   let filter_by_region 
       (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
@@ -122,19 +117,6 @@ module Tesseract.Specs.Chronology
                      r = region
                   | Step r _ ->
                      r = region)
-            chronology.log
-
-   val global_log:
-      #region_t: Type
-      -> #state_t: Type
-      -> #step_kind_t: Type
-      -> chronology_g region_t state_t step_kind_t
-      -> Tot (Seq.seq_g (effect_g region_t state_t step_kind_t))
-   let global_log 
-      (region_t: Type) 
-      (state_t: Type) 
-      (step_kind_t: Type) 
-      chronology
-      = chronology.log
+            chronology
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
