@@ -39,6 +39,22 @@ module Tesseract.Specs.Chronology
    type _chronology_g (region_t: Type) (state_t: Type) (step_kind_t: Type) 
       = Seq.seq_g (effect_g region_t state_t step_kind_t)
 
+   val is_spawn_effect: 
+      #region_t: Type 
+      -> #state_t: Type 
+      -> #step_kind_t: Type
+      -> region_t
+      -> effect_g region_t state_t step_kind_t
+      -> Tot bool
+   let is_spawn_effect 
+      (region_t: Type) 
+      (state_t: Type)
+      (step_kind_t: Type)
+      region
+      ffct
+      = (is_Spawn ffct)
+         && (region = Spawn.region ffct)
+
    type is_chronology_safe: 
       #region_t: Type 
       -> #state_t: Type 
@@ -49,32 +65,41 @@ module Tesseract.Specs.Chronology
          (region_t: Type) 
          (state_t: Type) 
          (step_kind_t: Type) 
-         (_chronology: 
+         (cron: 
             _chronology_g region_t state_t step_kind_t) 
          -> // an empty chronology is safe (though useless).
-            0 = Seq.length _chronology
-            \/ // each region may only be spawned once.
-               (forall n.
-                  0 <= n 
-                  && n < Seq.length _chronology 
-                  && is_Spawn (Seq.nth _chronology n)
+            (0 = Seq.length cron)
+            \/ // forall Spawn effect kinds in the sequence...
+               (forall (n: nat).
+                  (n < Seq.length cron)
+                  && (is_Spawn (Seq.nth cron n))
                   ==>
-                     (let seq' = Seq.remove _chronology n in
-                        0 = Seq.length seq'
-                        || is_None 
-                           (Seq.maybe_find is_Spawn seq' 0)))
-            // todo: regions may not process step effects 
-            // until spawned.
+                     // no other spawn effect kind is permitted
+                     // for the same region.
+                     (let seq' = Seq.remove cron n in
+                     let filter = is_spawn_effect (Spawn.region (Seq.nth cron n)) in
+                        (0 = Seq.length seq')
+                        || (is_None 
+                           (Seq.maybe_find filter seq' 0)))
+                     // regions may not react to step effects
+                     // until after their singular spawn effect.
+                     /\ (forall (i: nat).
+                           (i < n)
+                           && (is_Step (Seq.nth cron n))
+                           ==> 
+                              (Spawn.region 
+                                 (Seq.nth cron i) 
+                              <> (Seq.nth cron n))))
 
    type chronology_g 
       (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
-      = _chronology: 
+      = cron: 
          _chronology_g 
             region_t 
             state_t 
-            step_kind_t{is_chronology_safe _chronology}
+            step_kind_t{is_chronology_safe cron}
 
    val init:
       #region_t: Type 
