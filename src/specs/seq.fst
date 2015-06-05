@@ -14,22 +14,23 @@
 // ,$
 
 //@requires "fstar:ext.fst"
+//@requires "map.fst"
 
 module Tesseract.Specs.Seq
 
    type _seq_g (item_t: Type) 
       = { 
-         maybe_nth: nat -> Tot (option item_t);
+         map: Map.map_g nat item_t;
          length: nat
       }
 
    type is_seq_safe: #item_t: Type -> seq: _seq_g item_t -> Type 
       = fun (item_t: Type) (seq: _seq_g item_t) 
          -> ((0 = seq.length) 
-               /\ (FunctionalExtensionality.FEq seq.maybe_nth (fun _ -> None)))
+               /\ (FunctionalExtensionality.FEq seq.map (fun _ -> None)))
             \/ (forall (index: nat).
-                  ((index < seq.length) <==> (is_Some (seq.maybe_nth index)))
-                  /\ ((index >= seq.length) <==> (is_None (seq.maybe_nth index))))
+                  ((index < seq.length) <==> (is_Some (seq.map index)))
+                  /\ ((index >= seq.length) <==> (is_None (seq.map index))))
 
    type seq_g (item_t: Type) 
       = seq: _seq_g item_t{is_seq_safe seq}
@@ -41,13 +42,13 @@ module Tesseract.Specs.Seq
       (#item_t: Type) 
       (lhs: seq_g item_t) 
       (rhs: seq_g item_t)
-      = (FunctionalExtensionality.FEq lhs.maybe_nth rhs.maybe_nth) 
+      = (FunctionalExtensionality.FEq lhs.map rhs.map) 
          /\ (lhs.length = rhs.length)
 
    val empty: #item_t: Type -> Tot (seq_g item_t)
    let empty (item_t: Type) 
       = {
-         maybe_nth = (fun _ -> None);
+         map = (fun _ -> None);
          length = 0
       }
 
@@ -61,16 +62,12 @@ module Tesseract.Specs.Seq
    val single: #item_t: Type -> item_t -> Tot (seq_g item_t)
    let single item 
       = {
-         maybe_nth = 
-            (fun index ->
-               if 0 = index then
-                  Some item
-               else
-                  None);
+         map = Map.add Map.empty 0 item;
          length = 1
       }
 
-   let maybe_nth seq = seq.maybe_nth
+   let maybe_nth seq = seq.map
+   let to_map seq = seq.map
 
    val nth: 
       #item_t: Type 
@@ -97,7 +94,7 @@ module Tesseract.Specs.Seq
       -> Tot (seq_g item_t)
    let append (item_t: Type) seq item 
       = {
-         maybe_nth =
+         map =
             (fun index -> 
                if index = seq.length then 
                   Some item 
@@ -114,7 +111,7 @@ module Tesseract.Specs.Seq
       -> Tot (seq_g item_t)
    let insert (item_t: Type) seq before item
       = {
-         maybe_nth =
+         map =
             (fun n ->
                if n = before then
                   Some item
@@ -132,7 +129,7 @@ module Tesseract.Specs.Seq
       -> Tot (seq_g item_t)
    let remove (item_t: Type) seq index 
       = {
-         maybe_nth =
+         map =
             (fun n ->
                if n < index then
                   maybe_nth seq n
@@ -148,12 +145,12 @@ module Tesseract.Specs.Seq
       -> Tot (seq_g item_t)
    let concat lhs rhs 
       = {
-         maybe_nth =
+         map =
             (fun index ->
                if index < lhs.length then
-                  lhs.maybe_nth index
+                  maybe_nth lhs index
                else
-                  rhs.maybe_nth (index - lhs.length));
+                  maybe_nth rhs (index - lhs.length));
          length =
             (lhs.length + rhs.length)
       }
