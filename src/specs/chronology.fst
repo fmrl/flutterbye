@@ -36,17 +36,20 @@ module Tesseract.Specs.Chronology
          -> step_kind: step_kind_t 
          -> effect_g region_t state_t step_kind_t
 
-   type _chronology_g (region_t: Type) (state_t: Type) (step_kind_t: Type) 
+   type _chronology_g 
+      (region_t: Type) 
+      (state_t: Type) 
+      (step_kind_t: Type) 
       = Seq.seq_g (effect_g region_t state_t step_kind_t)
 
-   val is_spawn_effect: 
+   val is_spawn_effect_for: 
       #region_t: Type 
       -> #state_t: Type 
       -> #step_kind_t: Type
       -> region_t
       -> effect_g region_t state_t step_kind_t
       -> Tot bool
-   let is_spawn_effect 
+   let is_spawn_effect_for 
       (region_t: Type) 
       (state_t: Type)
       (step_kind_t: Type)
@@ -75,12 +78,15 @@ module Tesseract.Specs.Chronology
                   && (is_Spawn (Seq.nth cron n))
                   ==>
                      // no other spawn effect kind is permitted
-                     // for the same region.
+                     // in the same chronology for a given region.
                      (let seq' = Seq.remove cron n in
-                     let filter = is_spawn_effect (Spawn.region (Seq.nth cron n)) in
+                     let filter 
+                        = is_spawn_effect_for 
+                           (Spawn.region (Seq.nth cron n)) 
+                        in
                         (0 = Seq.length seq')
                         || (is_None 
-                           (Seq.maybe_find filter seq' 0)))
+                              (Seq.maybe_find filter seq' 0)))
                      // regions may not react to step effects
                      // until after their singular spawn effect.
                      /\ (forall (i: nat).
@@ -150,5 +156,24 @@ module Tesseract.Specs.Chronology
                   | Step r _ ->
                      r = region)
             chronology
+
+   (*val spawn:
+      #region_t: Type
+      -> #state_t: Type
+      -> #step_kind_t: Type
+      -> cron: chronology_g region_t state_t step_kind_t
+      -> region: region_t{not (is_spawned cron region)}
+      -> state_t
+      -> step_g region_t state_t step_kind_t
+      -> Tot (chronology_g region_t state_t step_kind_t)
+   let spawn
+      (region_t: Type) 
+      (state_t: Type) 
+      (step_kind_t: Type) 
+      cron 
+      region
+      state0
+      step
+      = Seq.append cron (Spawn region state0 step)*)
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
