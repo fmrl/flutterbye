@@ -77,25 +77,22 @@ module Tesseract.Specs.Chronology
                   (n < Seq.length cron)
                   && (is_Spawn (Seq.nth cron n))
                   ==>
-                     // no other spawn effect kind is permitted
-                     // in the same chronology for a given region.
-                     (let seq' = Seq.remove cron n in
-                     let filter 
-                        = is_spawn_effect_for 
-                           (Spawn.region (Seq.nth cron n)) 
-                        in
-                        (0 = Seq.length seq')
-                        || (is_None 
-                              (Seq.maybe_find filter seq' 0)))
-                     // regions may not react to step effects
-                     // until after their singular spawn effect.
-                     /\ (forall (i: nat).
-                           (i < n)
-                           && (is_Step (Seq.nth cron n))
-                           ==> 
-                              (Spawn.region 
-                                 (Seq.nth cron i) 
-                              <> (Seq.nth cron n))))
+                     (1 == Seq.length cron)
+                     \/ // no other spawn effect kind is permitted
+                        // in the same chronology for a given region.
+                        ((let seq' = Seq.remove cron n in
+                        let region = Spawn.region (Seq.nth cron n) in
+                        is_None (Seq.maybe_find (is_spawn_effect_for region) seq' 0))
+                        // regions may not react to step effects
+                        // until after their singular spawn effect.
+                        /\ (forall (i: nat).
+                              (i < n)
+                              && (is_Step (Seq.nth cron n))
+                              ==> 
+                                 (let ffct = Seq.nth cron n in 
+                                 let ffct' = Seq.nth cron i in
+                                 (Spawn.region ffct) 
+                                 <> (Spawn.region ffct')))))
 
    type chronology_g 
       (region_t: Type) 
