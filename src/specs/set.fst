@@ -15,12 +15,12 @@
 
 module Tesseract.Specs.Set
 
-   type set_g (item_t: Type) = 
-      item_t -> Tot bool
+   type set_g (item_t: Type) 
+      = item_t -> Tot bool
 
    val empty: #item_t: Type -> Tot (set_g item_t)
-   let empty (item_t: Type) = 
-      fun _ -> false
+   let empty (item_t: Type) 
+      = fun _ -> false
 
    val is_mem: 
       #item_t: Type 
@@ -28,5 +28,18 @@ module Tesseract.Specs.Set
       -> item_t 
       -> Tot bool
    let is_mem set = set
+
+   val add: 
+      #item_t: Type 
+      -> set: set_g item_t 
+      -> item: item_t{not (is_mem set item)} 
+      -> Tot (set_g item_t)
+   let add (item_t: Type) set item
+      = fun i ->
+            if i = item then
+               true
+            else
+               set i
+             
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$

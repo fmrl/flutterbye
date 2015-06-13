@@ -42,67 +42,63 @@ module Tesseract.Specs.Chronology
       (step_kind_t: Type) 
       = Seq.seq_g (effect_g region_t state_t step_kind_t)
 
-   val is_spawn_effect_for: 
+   val _domain: 
       #region_t: Type 
       -> #state_t: Type 
-      -> #step_kind_t: Type
-      -> region_t
-      -> effect_g region_t state_t step_kind_t
-      -> Tot bool
-   let is_spawn_effect_for 
-      (region_t: Type) 
+      -> #step_kind_t: Type 
+      -> _chronology_g region_t state_t step_kind_t
+      -> Tot (option (Set.set_g region_t))
+   let _domain
+      (region_t: Type)
       (state_t: Type)
       (step_kind_t: Type)
-      region
-      ffct
-      = (is_Spawn ffct)
-         && (region = Spawn.region ffct)
+      _cron
+      = let on_fold 
+         = (fun accum ffct
+            -> match accum with
+                  | None ->
+                     // an unsafe chronology continues to be unsafe.
+                     None
+                  | Some set ->
+                     // examine the next effect in the sequence.
+                     (match ffct with
+                        | Spawn region _ _ ->
+                           // if we're looking at a spawn effect associated with a region, that region must not have already set.
+                           if Set.is_mem set region then
+                              None
+                           // otherwise, note that we have encountered it.
+                           else
+                              Some (Set.add set region)
+                        | Step region _ ->
+                           // a step effect associated with a given region must be in our set of set regions.
+                           if Set.is_mem set region then
+                              accum
+                           else
+                              None))
+         in (Seq.foldl on_fold (Some Set.empty) _cron)
 
-   type is_chronology_safe: 
+   val _is_chronology_safe: 
       #region_t: Type 
       -> #state_t: Type 
       -> #step_kind_t: Type 
       -> _chronology_g region_t state_t step_kind_t 
-      -> Type
-      = fun 
-         (region_t: Type) 
-         (state_t: Type) 
-         (step_kind_t: Type) 
-         (cron: 
-            _chronology_g region_t state_t step_kind_t) 
-         -> // an empty chronology is safe (though useless).
-            (0 = Seq.length cron)
-            \/ // forall Spawn effect kinds in the sequence...
-               (forall (n: nat).
-                  (n < Seq.length cron)
-                  && (is_Spawn (Seq.nth cron n))
-                  ==>
-                     (1 == Seq.length cron)
-                     \/ // no other spawn effect kind is permitted
-                        // in the same chronology for a given region.
-                        ((let seq' = Seq.remove cron n in
-                        let region = Spawn.region (Seq.nth cron n) in
-                        is_None (Seq.maybe_find (is_spawn_effect_for region) seq' 0))
-                        // regions may not react to step effects
-                        // until after their singular spawn effect.
-                        /\ (forall (i: nat).
-                              (i < n)
-                              && (is_Step (Seq.nth cron n))
-                              ==> 
-                                 (let ffct = Seq.nth cron n in 
-                                 let ffct' = Seq.nth cron i in
-                                 (Spawn.region ffct) 
-                                 <> (Spawn.region ffct')))))
+      -> Tot bool
+   let _is_chronology_safe
+      (region_t: Type)
+      (state_t: Type)
+      (step_kind_t: Type)
+      _cron
+      = is_Some (_domain _cron)
 
    type chronology_g 
       (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
-      = cron: 
+      = _cron: 
          _chronology_g 
             region_t 
             state_t 
-            step_kind_t{is_chronology_safe cron}
+            step_kind_t{_is_chronology_safe _cron}
 
    val init:
       #region_t: Type 
@@ -115,35 +111,47 @@ module Tesseract.Specs.Chronology
       (step_kind_t: Type) 
       = Seq.empty
 
-   val is_spawned:
+   val domain: 
+      #region_t: Type 
+      -> #state_t: Type 
+      -> #step_kind_t: Type 
+      -> chronology_g region_t state_t step_kind_t
+      -> Tot (Set.set_g region_t)
+   let domain
+      (region_t: Type)
+      (state_t: Type)
+      (step_kind_t: Type)
+      cron
+      = match _domain cron with
+         | Some set ->
+            set
+
+   val is_mem:
       #region_t: Type
       -> #state_t: Type
       -> #step_kind_t: Type
       -> chronology_g region_t state_t step_kind_t
       -> region_t
       -> Tot bool
-   let is_spawned 
+   let is_mem 
       (region_t: Type) 
       (step_kind_t: Type) 
-      chronology 
+      cron 
       region
-      = if 0 = Seq.length chronology then
-            false
-         else
-            is_Some (Seq.maybe_find is_Spawn chronology 0)
+      = Set.is_mem (domain cron) region
 
-   val filter_by_region:
+   val lookup:
       #region_t: Type
       -> #state_t: Type
       -> #step_kind_t: Type
-      -> chronology: chronology_g region_t state_t step_kind_t
-      -> region: region_t{is_spawned chronology region}
+      -> cron: chronology_g region_t state_t step_kind_t
+      -> region: region_t{is_mem cron region}
       -> Tot (Seq.seq_g (effect_g region_t state_t step_kind_t))
-   let filter_by_region 
+   let lookup
       (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
-      chronology 
+      cron 
       region
       = Seq.filter
             (fun event ->
@@ -152,14 +160,14 @@ module Tesseract.Specs.Chronology
                      r = region
                   | Step r _ ->
                      r = region)
-            chronology
+            cron
 
    (*val spawn:
       #region_t: Type
       -> #state_t: Type
       -> #step_kind_t: Type
       -> cron: chronology_g region_t state_t step_kind_t
-      -> region: region_t{not (is_spawned cron region)}
+      -> region: region_t{not (is_mem cron region)}
       -> state_t
       -> step_g region_t state_t step_kind_t
       -> Tot (chronology_g region_t state_t step_kind_t)
@@ -171,6 +179,6 @@ module Tesseract.Specs.Chronology
       region
       state0
       step
-      = Seq.append cron (Spawn region state0 step)*)
+      = Seq.append cron (Spawn region state0 step) *)
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
