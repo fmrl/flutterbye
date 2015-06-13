@@ -13,6 +13,6 @@
 // 
 // ,$
 
-//@requires "specs/chronology.fst"
+//@requires "specs/tesseract.fst"
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$

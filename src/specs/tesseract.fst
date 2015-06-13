@@ -16,7 +16,7 @@
 //@requires "seq.fst"
 //@requires "set.fst"
 
-module Tesseract.Specs.Chronology
+module Tesseract.Specs.Tesseract
 
    type step_g (region_t: Type) (state_t: Type) (step_kind_t: Type)
       = region_t 
@@ -36,7 +36,7 @@ module Tesseract.Specs.Chronology
          -> step_kind: step_kind_t 
          -> effect_g region_t state_t step_kind_t
 
-   type _chronology_g 
+   type _tesseract_g 
       (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
@@ -46,18 +46,18 @@ module Tesseract.Specs.Chronology
       #region_t: Type 
       -> #state_t: Type 
       -> #step_kind_t: Type 
-      -> _chronology_g region_t state_t step_kind_t
+      -> _tesseract_g region_t state_t step_kind_t
       -> Tot (option (Set.set_g region_t))
    let _domain
       (region_t: Type)
       (state_t: Type)
       (step_kind_t: Type)
-      _cron
+      _tess
       = let on_fold 
          = (fun accum ffct
             -> match accum with
                   | None ->
-                     // an unsafe chronology continues to be unsafe.
+                     // an unsafe tesseract continues to be unsafe.
                      None
                   | Some set ->
                      // examine the next effect in the sequence.
@@ -75,36 +75,36 @@ module Tesseract.Specs.Chronology
                               accum
                            else
                               None))
-         in (Seq.foldl on_fold (Some Set.empty) _cron)
+         in (Seq.foldl on_fold (Some Set.empty) _tess)
 
-   val _is_chronology_safe: 
+   val _is_tesseract_safe: 
       #region_t: Type 
       -> #state_t: Type 
       -> #step_kind_t: Type 
-      -> _chronology_g region_t state_t step_kind_t 
+      -> _tesseract_g region_t state_t step_kind_t 
       -> Tot bool
-   let _is_chronology_safe
+   let _is_tesseract_safe
       (region_t: Type)
       (state_t: Type)
       (step_kind_t: Type)
-      _cron
-      = is_Some (_domain _cron)
+      _tess
+      = is_Some (_domain _tess)
 
-   type chronology_g 
+   type tesseract_g 
       (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
-      = _cron: 
-         _chronology_g 
+      = _tess: 
+         _tesseract_g 
             region_t 
             state_t 
-            step_kind_t{_is_chronology_safe _cron}
+            step_kind_t{_is_tesseract_safe _tess}
 
    val init:
       #region_t: Type 
       -> #state_t: Type 
       -> #step_kind_t: Type 
-      -> Tot (chronology_g region_t state_t step_kind_t)
+      -> Tot (tesseract_g region_t state_t step_kind_t)
    let init 
       (region_t: Type) 
       (state_t: Type) 
@@ -115,14 +115,14 @@ module Tesseract.Specs.Chronology
       #region_t: Type 
       -> #state_t: Type 
       -> #step_kind_t: Type 
-      -> chronology_g region_t state_t step_kind_t
+      -> tesseract_g region_t state_t step_kind_t
       -> Tot (Set.set_g region_t)
    let domain
       (region_t: Type)
       (state_t: Type)
       (step_kind_t: Type)
-      cron
-      = match _domain cron with
+      tess
+      = match _domain tess with
          | Some set ->
             set
 
@@ -130,28 +130,28 @@ module Tesseract.Specs.Chronology
       #region_t: Type
       -> #state_t: Type
       -> #step_kind_t: Type
-      -> chronology_g region_t state_t step_kind_t
+      -> tesseract_g region_t state_t step_kind_t
       -> region_t
       -> Tot bool
    let is_mem 
       (region_t: Type) 
       (step_kind_t: Type) 
-      cron 
+      tess 
       region
-      = Set.is_mem (domain cron) region
+      = Set.is_mem (domain tess) region
 
    val lookup:
       #region_t: Type
       -> #state_t: Type
       -> #step_kind_t: Type
-      -> cron: chronology_g region_t state_t step_kind_t
-      -> region: region_t{is_mem cron region}
+      -> tess: tesseract_g region_t state_t step_kind_t
+      -> region: region_t{is_mem tess region}
       -> Tot (Seq.seq_g (effect_g region_t state_t step_kind_t))
    let lookup
       (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
-      cron 
+      tess 
       region
       = Seq.filter
             (fun event ->
@@ -160,25 +160,25 @@ module Tesseract.Specs.Chronology
                      r = region
                   | Step r _ ->
                      r = region)
-            cron
+            tess
 
    (*val spawn:
       #region_t: Type
       -> #state_t: Type
       -> #step_kind_t: Type
-      -> cron: chronology_g region_t state_t step_kind_t
-      -> region: region_t{not (is_mem cron region)}
+      -> tess: tesseract_g region_t state_t step_kind_t
+      -> region: region_t{not (is_mem tess region)}
       -> state_t
       -> step_g region_t state_t step_kind_t
-      -> Tot (chronology_g region_t state_t step_kind_t)
+      -> Tot (tesseract_g region_t state_t step_kind_t)
    let spawn
       (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
-      cron 
+      tess 
       region
       state0
       step
-      = Seq.append cron (Spawn region state0 step) *)
+      = Seq.append tess (Spawn region state0 step) *)
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
