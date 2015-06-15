@@ -42,53 +42,51 @@ module Tesseract.Specs.Tesseract
       (step_kind_t: Type) 
       = Seq.seq_g (effect_g region_t state_t step_kind_t)
 
-   val _domain: 
-      #region_t: Type 
-      -> #state_t: Type 
-      -> #step_kind_t: Type 
-      -> _tesseract_g region_t state_t step_kind_t
-      -> Tot (option (Set.set_g region_t))
-   let _domain
-      (region_t: Type)
-      (state_t: Type)
-      (step_kind_t: Type)
-      _tess
-      = let on_fold 
-         = (fun accum ffct
-            -> match accum with
-                  | None ->
-                     // an unsafe tesseract continues to be unsafe.
-                     None
-                  | Some set ->
-                     // examine the next effect in the sequence.
-                     (match ffct with
-                        | Spawn region _ _ ->
-                           // if we're looking at a spawn effect associated with a region, that region must not have already set.
-                           if Set.is_mem set region then
-                              None
-                           // otherwise, note that we have encountered it.
-                           else
-                              Some (Set.add set region)
-                        | Step region _ ->
-                           // a step effect associated with a given region must be in our set of set regions.
-                           if Set.is_mem set region then
-                              accum
-                           else
-                              None))
-         in (Seq.foldl on_fold (Some Set.empty) _tess)
-
-   val _is_tesseract_safe: 
+   type _is_tesseract_safe: 
       #region_t: Type 
       -> #state_t: Type 
       -> #step_kind_t: Type 
       -> _tesseract_g region_t state_t step_kind_t 
-      -> Tot bool
-   let _is_tesseract_safe
-      (region_t: Type)
-      (state_t: Type)
-      (step_kind_t: Type)
-      _tess
-      = is_Some (_domain _tess)
+      -> Type
+      = fun
+         (region_t: Type)
+         (state_t: Type)
+         (step_kind_t: Type)
+         (_tess: _tesseract_g region_t state_t step_kind_t)
+         -> (0 = (Seq.length _tess))
+            \/ // only one spawn effect per region exists.
+               ((forall i j.
+                  (0 <= i)
+                  && (i < Seq.length _tess)
+                  && (is_Spawn (Seq.nth _tess i))
+                  && (0 <= j)
+                  && (j < Seq.length _tess)
+                  && (is_Spawn (Seq.nth _tess j))
+                  ==> ((Spawn.region (Seq.nth _tess i)) = (Spawn.region (Seq.nth _tess j))))
+               /\ // only one effect exists
+                  (1 = (Seq.length _tess))
+                  \/ // step effects for a given region is preceeded by a matching regional spawn effect.
+                     ((forall i.
+                        (0 < i)
+                        && (i < Seq.length _tess)
+                        && (is_Step (Seq.nth _tess i))
+                        ==> (exists j.
+                              (0 <= j)
+                              && (j < i)
+                              && (j < Seq.length _tess) // todo: seems that a trasitivity lemma for < would be useful here.
+                              && (is_Spawn (Seq.nth _tess j))
+                              && ((Step.region (Seq.nth _tess i)) = (Spawn.region (Seq.nth _tess j))))) 
+                     /\ // spawn effects cannot be preceeded by matching step effects.
+                        (exists i.
+                           (0 < i)
+                           && (i < Seq.length _tess)
+                           && (is_Spawn (Seq.nth _tess i))
+                           ==> (forall j.
+                                 (0 <= j)
+                                 && (j < i)
+                                 && (j < Seq.length _tess) // todo: transitive <?
+                                 && (is_Step (Seq.nth _tess j))
+                                 && ((Spawn.region (Seq.nth _tess i)) <> (Step.region (Seq.nth _tess j)))))))
 
    type tesseract_g 
       (region_t: Type) 
@@ -122,9 +120,19 @@ module Tesseract.Specs.Tesseract
       (state_t: Type)
       (step_kind_t: Type)
       tess
-      = match _domain tess with
-         | Some set ->
-            set
+      = let on_fold 
+         = (fun (spawned: Set.set_g region_t) (ffct: effect_g region_t state_t step_kind_t)
+            -> // examine the next effect in the sequence.
+               match ffct with
+                  | Spawn region _ _ ->
+                     // the spawn effect always introduces new regions and shouldn't already be a member of the spawned set.
+                     assert (not (Set.is_mem spawned region));
+                     Set.add spawned region
+                  | Step region _ ->
+                     // a step effect associated with a given region must be in our set of spawned regions.
+                     assert (Set.is_mem spawned region);
+                     spawned)
+         in (Seq.foldl on_fold Set.empty tess)
 
    val is_mem:
       #region_t: Type
