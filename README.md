@@ -3,7 +3,7 @@ tesser|act
 
 this is the official repository for **tesseract**, an experimental actor system runtime.
 
-emphasizing the experimental neture of the project, development is performed entirely on other branches. please see the *wip-presentable* branch for the most recent presentable snapshot of the project.
+this is an early work in progress and development is performed entirely on branches. please see the *wip-presentable* branch for the most recent presentable snapshot of the project.
 
 license
 -------
