@@ -206,5 +206,41 @@ module Tesseract.Specs.Tesseract
          (__spawn_safety_property tess region state0 step);
          Seq.append tess (Spawn region state0 step)
 
+   val __step_safety_property:
+      #region_t: Type 
+      -> #state_t: Type 
+      -> #step_kind_t: Type 
+      -> tess: tesseract_g region_t state_t step_kind_t 
+      -> region: region_t{is_mem tess region}
+      -> step_kind: step_kind_t
+      -> Lemma
+         (ensures (_is_tesseract_safe (Seq.append tess (Step region step_kind))))
+   let __step_safety_property 
+      (region_t: Type) 
+      (state_t: Type) 
+      (step_kind_t: Type) 
+      tess 
+      region
+      step_kind
+      = admit ()
+
+   val step:
+      #region_t: Type
+      -> #state_t: Type
+      -> #step_kind_t: Type
+      -> tess: tesseract_g region_t state_t step_kind_t
+      -> region: region_t{is_mem tess region}
+      -> step_kind_t
+      -> Tot (tesseract_g region_t state_t step_kind_t)
+   let step
+      (region_t: Type) 
+      (state_t: Type) 
+      (step_kind_t: Type) 
+      tess 
+      region
+      step_kind
+      = 
+         (__step_safety_property tess region step_kind);
+         Seq.append tess (Step region step_kind)
       
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
