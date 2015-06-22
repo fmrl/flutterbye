@@ -162,7 +162,7 @@ module Tesseract.Specs.Seq
       #item_t: Type 
       -> #accum_t: Type 
       -> seq: seq_g item_t 
-      -> (accum_t -> index_g seq -> Tot accum_t) 
+      -> (accum_t -> (index_g seq * item_t) -> Tot accum_t) 
       -> accum_t 
       -> index: index_g seq
       -> Tot accum_t (decreases index)
@@ -170,33 +170,21 @@ module Tesseract.Specs.Seq
       =  if index = 0 then
             accum
          else
-            _foldl__loop seq fold (fold accum index) (index - 1)
+            _foldl__loop seq fold (fold accum (index, Seq.nth seq index)) (index - 1)
 
-   val _foldl: 
+   val foldl: 
       #item_t: Type 
       -> #accum_t: Type 
       -> seq: seq_g item_t 
-      -> (accum_t -> index_g seq -> Tot accum_t) 
+      -> (accum_t -> (index_g seq * item_t) -> Tot accum_t) 
       -> accum_t 
       -> Tot accum_t
-   let rec _foldl (item_t: Type) (accum_t: Type) seq fold accum 
+   let foldl (item_t: Type) (accum_t: Type) seq fold accum 
       =  let len = length seq in
          if len = 0 then
             accum
          else
             _foldl__loop seq fold accum (len - 1)
-
-   val foldl: 
-      #item_t: Type 
-      -> #accum_t: Type 
-      -> (accum_t -> item_t -> Tot accum_t) 
-      -> accum_t 
-      -> seq_g item_t 
-      -> Tot accum_t
-   let rec foldl (item_t: Type) (accum_t: Type) fold accum seq 
-      =  let len = length seq in
-         let adaptor  = (fun accum index -> fold accum (nth seq index)) in
-         _foldl seq adaptor accum 
 
    val filter: 
       #item_t: Type
@@ -204,14 +192,16 @@ module Tesseract.Specs.Seq
       -> seq_g item_t 
       -> Tot (seq_g item_t)
    let filter (item_t: Type) pred seq 
-      =  _foldl
+      = 
+         foldl
             seq
-            (fun (accum: seq_g item_t) index ->
-               let item = nth seq index in
-                  if pred item then
-                     append accum item
-                  else
-                     accum)
+            (fun (accum: seq_g item_t) pair ->
+               match pair with
+                  (_, item) ->
+                     if pred item then
+                        append accum item
+                     else
+                        accum)
             empty
 
    val map:
@@ -221,10 +211,13 @@ module Tesseract.Specs.Seq
       -> seq_g item0_t
       -> Tot (seq_g item1_t)
    let map (item0_t: Type) (item1_t: Type) xform seq0
-      =  _foldl
+      =  
+         foldl
             seq0
-            (fun (accum: seq_g item1_t) index ->
-               append accum (xform (nth seq0 index)))
+            (fun (accum: seq_g item1_t) pair ->
+               match pair with
+                  (_, item) ->
+                     append accum (xform item))
             empty
 
    val maybe_find:
@@ -232,22 +225,25 @@ module Tesseract.Specs.Seq
       -> (item_t -> Tot bool)
       -> seq: seq_g item_t
       -> index_g seq
-      -> Tot (option nat)
+      -> Tot (option (index_g seq))
    let maybe_find (item_t: Type) pred seq start
-      =  _foldl
+      =  
+         foldl
             seq
-            (fun (accum: option nat) index ->
-               if index >= start then
-                  match accum with
-                     | None ->
-                        if pred (nth seq index) then
-                           Some index
-                        else
-                           accum
-                     | _ ->
-                        accum
-               else
-                  accum)
+            (fun (accum: option (index_g seq)) pair ->
+               match pair with
+                  (index, item) ->
+                     if index >= start then
+                        match accum with
+                           | None ->
+                              if pred item then
+                                 Some index
+                              else
+                                 accum
+                           | _ ->
+                              accum
+                     else
+                        accum)
             None
 
    val find:
@@ -255,22 +251,10 @@ module Tesseract.Specs.Seq
       -> pred: (item_t -> Tot bool)
       -> seq: seq_g item_t
       -> start: index_g seq{is_Some (maybe_find pred seq start)}
-      -> Tot (option nat)
+      -> Tot (index_g seq)
    let find (item_t: Type) pred seq start
-      =  _foldl
-            seq
-            (fun (accum: option nat) index ->
-               if index >= start then
-                  match accum with
-                     | None ->
-                        if pred (nth seq index) then
-                           Some index
-                        else
-                           accum
-                     | _ ->
-                        accum
-               else
-                  accum)
-            None
+      = match maybe_find pred seq start with
+         Some index ->
+            index
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$

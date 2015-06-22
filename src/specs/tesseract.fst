@@ -57,28 +57,28 @@ module Tesseract.Specs.Tesseract
       (step_kind_t: Type)
       _tess
       = let on_fold 
-         = (fun accum ffct
+         = (fun accum (pair: (Seq.index_g _tess * effect_g region_t state_t step_kind_t))
             -> match accum with
                   | None ->
                      // an unsafe tesseract continues to be unsafe.
                      None
                   | Some set ->
                      // examine the next effect in the sequence.
-                     (match ffct with
-                        | Spawn region _ _ ->
+                     (match pair with
+                        | (_, Spawn region _ _) ->
                            // if we're looking at a spawn effect associated with a region, that region must not have already set.
                            if Set.is_mem set region then
                               None
                            // otherwise, note that we have encountered it.
                            else
                               Some (Set.add set region)
-                        | Step region _ ->
+                        | (_, Step region _) ->
                            // a step effect associated with a given region must be in our set of set regions.
                            if Set.is_mem set region then
                               accum
                            else
                               None))
-         in (Seq.foldl on_fold (Some Set.empty) _tess)
+         in (Seq.foldl _tess on_fold (Some Set.empty))
 
    val _is_tesseract_safe: 
       #region_t: Type 
