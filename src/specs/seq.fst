@@ -162,7 +162,7 @@ module Tesseract.Specs.Seq
       #item_t: Type 
       -> #accum_t: Type 
       -> seq: seq_g item_t 
-      -> (accum_t -> (index_g seq * item_t) -> Tot accum_t) 
+      -> (accum_t -> index_g seq -> Tot accum_t) 
       -> accum_t 
       -> index: index_g seq
       -> Tot accum_t (decreases index)
@@ -170,13 +170,13 @@ module Tesseract.Specs.Seq
       =  if index = 0 then
             accum
          else
-            _foldl__loop seq fold (fold accum (index, Seq.nth seq index)) (index - 1)
+            _foldl__loop seq fold (fold accum index) (index - 1)
 
    val foldl: 
       #item_t: Type 
       -> #accum_t: Type 
       -> seq: seq_g item_t 
-      -> (accum_t -> (index_g seq * item_t) -> Tot accum_t) 
+      -> (accum_t -> index: index_g seq -> Tot accum_t) 
       -> accum_t 
       -> Tot accum_t
    let foldl (item_t: Type) (accum_t: Type) seq fold accum 
@@ -195,13 +195,12 @@ module Tesseract.Specs.Seq
       = 
          foldl
             seq
-            (fun (accum: seq_g item_t) pair ->
-               match pair with
-                  (_, item) ->
-                     if pred item then
-                        append accum item
-                     else
-                        accum)
+            (fun (accum: seq_g item_t) index ->
+               let item = nth seq index in
+                  if pred item then
+                     append accum item
+                  else
+                     accum)
             empty
 
    val map:
@@ -214,10 +213,8 @@ module Tesseract.Specs.Seq
       =  
          foldl
             seq0
-            (fun (accum: seq_g item1_t) pair ->
-               match pair with
-                  (_, item) ->
-                     append accum (xform item))
+            (fun (accum: seq_g item1_t) index ->
+               append accum (xform (nth seq0 index)))
             empty
 
    val maybe_find:
@@ -230,20 +227,19 @@ module Tesseract.Specs.Seq
       =  
          foldl
             seq
-            (fun (accum: option (index_g seq)) pair ->
-               match pair with
-                  (index, item) ->
-                     if index >= start then
-                        match accum with
-                           | None ->
-                              if pred item then
-                                 Some index
-                              else
-                                 accum
-                           | _ ->
+            (fun (accum: option (index_g seq)) index ->
+               if index >= start then
+                  match accum with
+                     | None ->
+                        let item = nth seq index in
+                           if pred item then
+                              Some index
+                           else
                               accum
-                     else
-                        accum)
+                     | _ ->
+                        accum
+               else
+                  accum)
             None
 
    val find:
