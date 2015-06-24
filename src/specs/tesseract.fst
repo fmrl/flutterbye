@@ -57,7 +57,7 @@ module Tesseract.Specs.Tesseract
       (step_kind_t: Type)
       _tess
       = let on_fold 
-         = (fun accum index 
+         = (fun accum (index: Seq.index_g _tess)
             -> match accum with
                   | None ->
                      // an unsafe tesseract continues to be unsafe.
