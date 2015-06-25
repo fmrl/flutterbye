@@ -253,4 +253,19 @@ module Tesseract.Specs.Seq
          Some index ->
             index
 
+   (*val slice:
+      #item_t: Type
+      -> seq: seq_g item_t
+      -> start: index_g seq
+      -> end_: nat{start <= end_ && end_ < Seq.length seq}
+      -> Tot (seq_g item_t)
+   let slice seq start end_
+      = {
+         map = 
+            (fun i -> 
+               seq.map (i + start));
+         length = end_ - start
+      }*)
+
+
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
