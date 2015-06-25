@@ -86,12 +86,14 @@ module Tesseract.Specs.Tesseract
       -> #step_kind_t: Type 
       -> _tesseract_g region_t state_t step_kind_t 
       -> Tot bool
-   let _is_tesseract_safe 
+   let rec _is_tesseract_safe 
       (region_t: Type)
       (state_t: Type)
       (step_kind_t: Type)
       (_tess: _tesseract_g region_t state_t step_kind_t)
-      = is_Some (_domain _tess)
+      = (0 = Seq.length _tess)
+         || ((is_Some (_domain _tess))
+            && (_is_tesseract_safe (Seq.slice _tess 0 ((Seq.length _tess - 1)))))
 
    type tesseract_g 
       (region_t: Type) 
@@ -165,26 +167,6 @@ module Tesseract.Specs.Tesseract
                      r = region)
             tess
 
-   val __spawn_safety_property:
-      #region_t: Type 
-      -> #state_t: Type 
-      -> #step_kind_t: Type 
-      -> tess: tesseract_g region_t state_t step_kind_t 
-      -> region: region_t{not (is_mem tess region)}
-      -> state0: state_t
-      -> step: step_g region_t state_t step_kind_t
-      -> Lemma
-         (ensures (_is_tesseract_safe (Seq.append tess (Spawn region state0 step))))
-   let __spawn_safety_property 
-      (region_t: Type) 
-      (state_t: Type) 
-      (step_kind_t: Type) 
-      tess 
-      region
-      state0
-      step
-      = admit ()
-
    val spawn:
       #region_t: Type
       -> #state_t: Type
@@ -202,27 +184,7 @@ module Tesseract.Specs.Tesseract
       region
       state0
       step
-      = 
-         (__spawn_safety_property tess region state0 step);
-         Seq.append tess (Spawn region state0 step)
-
-   val __step_safety_property:
-      #region_t: Type 
-      -> #state_t: Type 
-      -> #step_kind_t: Type 
-      -> tess: tesseract_g region_t state_t step_kind_t 
-      -> region: region_t{is_mem tess region}
-      -> step_kind: step_kind_t
-      -> Lemma
-         (ensures (_is_tesseract_safe (Seq.append tess (Step region step_kind))))
-   let __step_safety_property 
-      (region_t: Type) 
-      (state_t: Type) 
-      (step_kind_t: Type) 
-      tess 
-      region
-      step_kind
-      = admit ()
+      = Seq.append tess (Spawn region state0 step)
 
    val step:
       #region_t: Type
@@ -239,8 +201,6 @@ module Tesseract.Specs.Tesseract
       tess 
       region
       step_kind
-      = 
-         (__step_safety_property tess region step_kind);
-         Seq.append tess (Step region step_kind)
+      = Seq.append tess (Step region step_kind)
       
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
