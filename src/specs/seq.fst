@@ -27,7 +27,7 @@ module Tesseract.Specs.Seq
          length: nat
       }
 
-   type is_seq_safe: #item_t: Type -> seq: _seq_g item_t -> Type 
+   type _is_seq_safe: #item_t: Type -> seq: _seq_g item_t -> Type 
       = fun (item_t: Type) (seq: _seq_g item_t) 
          -> ((0 = seq.length) 
                /\ (FunctionalExtensionality.FEq seq.map (fun _ -> None)))
@@ -36,7 +36,7 @@ module Tesseract.Specs.Seq
                   /\ ((index >= seq.length) <==> (is_None (seq.map index))))
 
    type seq_g (item_t: Type) 
-      = seq: _seq_g item_t{is_seq_safe seq}
+      = seq: _seq_g item_t{_is_seq_safe seq}
 
    type index_g (#item_t: Type) (seq: seq_g item_t) 
       = index: nat{index < seq.length}
@@ -253,19 +253,38 @@ module Tesseract.Specs.Seq
          Some index ->
             index
 
-   (*val slice:
+   val _slice:
+      #item_t: Type
+      -> seq: seq_g item_t
+      -> start: index_g seq
+      -> end_: nat{start <= end_ && end_ < Seq.length seq}
+      -> Tot (_seq_g item_t)
+   let _slice seq start end_
+      = {
+         map = 
+            (fun i -> 
+               seq.map (i + start));
+         length = end_ - start
+      }
+
+   val __slice_safety_properties:
+      #item_t: Type
+      -> seq: seq_g item_t
+      -> start: index_g seq
+      -> end_: nat{start <= end_ && end_ < Seq.length seq}
+      -> Lemma
+         (ensures (_is_seq_safe (_slice seq start end_)))
+   let __slice_safety_properties seq start end_
+      = admit ()
+
+   val slice:
       #item_t: Type
       -> seq: seq_g item_t
       -> start: index_g seq
       -> end_: nat{start <= end_ && end_ < Seq.length seq}
       -> Tot (seq_g item_t)
    let slice seq start end_
-      = {
-         map = 
-            (fun i -> 
-               seq.map (i + start));
-         length = end_ - start
-      }*)
-
+      = __slice_safety_properties seq start end_;
+         _slice seq start end_
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
