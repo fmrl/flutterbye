@@ -21,43 +21,42 @@
 
 module Tesseract.Specs.Tesseract
 
-   type step_g (region_t: Type) (state_t: Type) (step_kind_t: Type)
+   type region_t = nat
+
+   type step_g (state_t: Type) (step_kind_t: Type)
       = region_t 
          -> state_t
          -> step_kind_t 
          -> Tot (state_t * (Seq.seq_g (region_t * step_kind_t)))
 
-   type effect_g (region_t: Type) (state_t: Type) (step_kind_t: Type) 
+   type effect_g (state_t: Type) (step_kind_t: Type) 
       =
       | Spawn: 
          region: region_t 
          -> state0: state_t
-         -> step: step_g region_t state_t step_kind_t
-         -> effect_g region_t state_t step_kind_t
+         -> step: step_g state_t step_kind_t
+         -> effect_g state_t step_kind_t
       | Step: 
          region: region_t 
          -> step_kind: step_kind_t 
-         -> effect_g region_t state_t step_kind_t
+         -> effect_g state_t step_kind_t
 
-   type _event_log_g 
-      (region_t: Type) 
+   type _effect_log_g 
       (state_t: Type) 
       (step_kind_t: Type) 
-      = Seq.seq_g (effect_g region_t state_t step_kind_t)
+      = Seq.seq_g (effect_g state_t step_kind_t)
 
    val _domain: 
-      #region_t: Type 
-      -> #state_t: Type 
+      #state_t: Type 
       -> #step_kind_t: Type 
-      -> _event_log_g region_t state_t step_kind_t
+      -> _effect_log_g state_t step_kind_t
       -> Tot (option (Set.set_g region_t))
    let _domain
-      (region_t: Type)
       (state_t: Type)
       (step_kind_t: Type)
       _log
       = let on_fold 
-         = (fun accum (index: Seq.index_g _log)
+         = (fun (accum: option (Set.set_g region_t)) (index: Seq.index_g _log)
             -> match accum with
                   | None ->
                      // an unsafe tesseract continues to be unsafe.
@@ -80,85 +79,76 @@ module Tesseract.Specs.Tesseract
                               None))
          in (Seq.foldl _log on_fold (Some Set.empty))
 
-   val __event_log_safety: 
-      #region_t: Type 
-      -> #state_t: Type 
+   val __effect_log_safety: 
+      #state_t: Type 
       -> #step_kind_t: Type 
-      -> _event_log_g region_t state_t step_kind_t 
+      -> _effect_log_g state_t step_kind_t 
       -> Tot bool
-   let rec __event_log_safety
-      (region_t: Type)
+   let rec __effect_log_safety
       (state_t: Type)
       (step_kind_t: Type)
-      (_log: _event_log_g region_t state_t step_kind_t)
+      (_log: _effect_log_g state_t step_kind_t)
       = (0 = Seq.length _log)
          || ((is_Some (_domain _log))
-            && (__event_log_safety (Seq.slice _log 0 ((Seq.length _log - 1)))))
+            && (__effect_log_safety (Seq.slice _log 0 ((Seq.length _log - 1)))))
 
    type _tesseract_g 
-      (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
       = {
-         event_log: _event_log_g region_t state_t step_kind_t
+         effect_log: _effect_log_g state_t step_kind_t;
+         next_rid: region_t
       }
 
    type TesseractSafety: 
-      #region_t: Type 
-      -> #state_t: Type 
+      #state_t: Type 
       -> #step_kind_t: Type 
-      -> _tesseract_g region_t state_t step_kind_t 
+      -> _tesseract_g state_t step_kind_t 
       -> Type
    = fun 
-      (region_t: Type)
       (state_t: Type)
       (step_kind_t: Type)
-      (_tess: _tesseract_g region_t state_t step_kind_t)
-      -> b2t (__event_log_safety _tess.event_log)
+      (_tess: _tesseract_g state_t step_kind_t)
+      -> b2t (__effect_log_safety _tess.effect_log)
+      // todo: safety for next_rid is unspecified. should delimit contents of domain.
 
    type tesseract_g 
-      (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
       = _tess: 
          _tesseract_g 
-            region_t 
             state_t 
             step_kind_t{TesseractSafety _tess}
 
    val init:
-      #region_t: Type 
-      -> #state_t: Type 
+      #state_t: Type 
       -> #step_kind_t: Type 
-      -> Tot (tesseract_g region_t state_t step_kind_t)
+      -> Tot (tesseract_g state_t step_kind_t)
    let init 
-      (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
       = {
-            event_log = Seq.empty
+            effect_log = Seq.empty;
+            next_rid = 0
       }
 
    val domain: 
-      #region_t: Type 
-      -> #state_t: Type 
+      #state_t: Type 
       -> #step_kind_t: Type 
-      -> tesseract_g region_t state_t step_kind_t
+      -> tesseract_g state_t step_kind_t
       -> Tot (Set.set_g region_t)
    let domain
-      (region_t: Type)
       (state_t: Type)
       (step_kind_t: Type)
       tess
-      = match _domain tess.event_log with
+      = match _domain tess.effect_log with
          | Some d ->
             d
 
    val is_mem:
-      #region_t: Type
-      -> #state_t: Type
+      #state_t: Type
       -> #step_kind_t: Type
-      -> tesseract_g region_t state_t step_kind_t
+      -> tesseract_g state_t step_kind_t
       -> region_t
       -> Tot bool
    let is_mem 
@@ -169,38 +159,34 @@ module Tesseract.Specs.Tesseract
       = Set.is_mem (domain tess) region
 
    val lookup:
-      #region_t: Type
-      -> #state_t: Type
+      #state_t: Type
       -> #step_kind_t: Type
-      -> tess: tesseract_g region_t state_t step_kind_t
+      -> tess: tesseract_g state_t step_kind_t
       -> region: region_t{is_mem tess region}
-      -> Tot (Seq.seq_g (effect_g region_t state_t step_kind_t))
+      -> Tot (Seq.seq_g (effect_g state_t step_kind_t))
    let lookup
-      (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
       tess 
       region
       = Seq.filter
-            (fun event ->
-               match event with
+            (fun ffct ->
+               match ffct with
                   | Spawn r _ _ ->
                      r = region
                   | Step r _ ->
                      r = region)
-            tess.event_log
+            tess.effect_log
 
    val spawn:
-      #region_t: Type
-      -> #state_t: Type
+      #state_t: Type
       -> #step_kind_t: Type
-      -> tess: tesseract_g region_t state_t step_kind_t
+      -> tess: tesseract_g state_t step_kind_t
       -> region: region_t{not (is_mem tess region)}
       -> state_t
-      -> step_g region_t state_t step_kind_t
-      -> Tot (tesseract_g region_t state_t step_kind_t)
+      -> step_g state_t step_kind_t
+      -> Tot (tesseract_g state_t step_kind_t)
    let spawn
-      (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
       tess 
@@ -208,28 +194,26 @@ module Tesseract.Specs.Tesseract
       state0
       step
       = {
-         event_log = Seq.append tess.event_log (Spawn region state0 step)
+         effect_log = Seq.append tess.effect_log (Spawn region state0 step);
+         next_rid = tess.next_rid + 1
       }
 
    val step:
-      #region_t: Type
-      -> #state_t: Type
+      #state_t: Type
       -> #step_kind_t: Type
-      -> tess: tesseract_g region_t state_t step_kind_t
+      -> tess: tesseract_g state_t step_kind_t
       -> region: region_t{is_mem tess region}
       -> step_kind_t
-      -> Tot (tesseract_g region_t state_t step_kind_t)
+      -> Tot (tesseract_g state_t step_kind_t)
    let step
-      (region_t: Type) 
       (state_t: Type) 
       (step_kind_t: Type) 
       tess 
       region
       step_kind
       = {
-         event_log = Seq.append tess.event_log (Step region step_kind)
+         effect_log = Seq.append tess.effect_log (Step region step_kind);
+         next_rid = tess.next_rid + 1
       }
 
-
-      
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
