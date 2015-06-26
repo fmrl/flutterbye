@@ -90,7 +90,7 @@ module Tesseract.Specs.Tesseract
       (_log: _effect_log_g state_t step_kind_t)
       = (0 = Seq.length _log)
          || ((is_Some (_domain _log))
-            && (__effect_log_safety (Seq.slice _log 0 ((Seq.length _log - 1)))))
+            && (__effect_log_safety (Seq.slice _log 0 (Seq.length _log - 1))))
 
    type _tesseract_g 
       (state_t: Type) 
