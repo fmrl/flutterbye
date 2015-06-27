@@ -90,6 +90,22 @@ module Tesseract.Specs.Seq
    let last (item_t: Type) seq 
       = (length seq) - 1
 
+   val prepend:
+      #item_t: Type 
+      -> item_t
+      -> seq_g item_t
+      -> Tot (seq_g item_t)
+   let prepend (item_t: Type) item seq 
+      = {
+         map =
+            (fun index -> 
+               if index = 0 then 
+                  Some item 
+               else 
+                  maybe_nth seq (index - 1));
+         length = (seq.length + 1)
+      }
+
    val append:
       #item_t: Type 
       -> seq_g item_t
