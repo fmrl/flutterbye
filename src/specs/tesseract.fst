@@ -95,10 +95,7 @@ module Tesseract.Specs.Tesseract
    type _tesseract_g 
       (state_t: Type) 
       (step_kind_t: Type) 
-      = {
-         effect_log: _effect_log_g state_t step_kind_t;
-         next_rid: region_t
-      }
+      = { effect_log: _effect_log_g state_t step_kind_t; }
 
    type TesseractSafety: 
       #state_t: Type 
@@ -110,7 +107,6 @@ module Tesseract.Specs.Tesseract
       (step_kind_t: Type)
       (_tess: _tesseract_g state_t step_kind_t)
       -> b2t (__effect_log_safety _tess.effect_log)
-      // todo: safety for next_rid is unspecified. should delimit contents of domain.
 
    type tesseract_g 
       (state_t: Type) 
@@ -127,10 +123,7 @@ module Tesseract.Specs.Tesseract
    let init 
       (state_t: Type) 
       (step_kind_t: Type) 
-      = {
-            effect_log = Seq.empty;
-            next_rid = 0
-      }
+      = { effect_log = Seq.empty; }
 
    val domain: 
       #state_t: Type 
@@ -178,6 +171,17 @@ module Tesseract.Specs.Tesseract
                      r = region)
             tess.effect_log
 
+   val spawn_count:
+      #state_t: Type
+      -> #step_kind_t: Type
+      -> tess: tesseract_g state_t step_kind_t
+      -> Tot (region_t)
+   let spawn_count
+      (state_t: Type)
+      (step_kind_t: Type)
+      tess
+      = Seq.count is_Spawn tess.effect_log 
+
    val spawn:
       #state_t: Type
       -> #step_kind_t: Type
@@ -193,10 +197,7 @@ module Tesseract.Specs.Tesseract
       region
       state0
       step
-      = {
-         effect_log = Seq.append tess.effect_log (Spawn region state0 step);
-         next_rid = tess.next_rid + 1
-      }
+      = { effect_log = Seq.append tess.effect_log (Spawn region state0 step); }
 
    val step:
       #state_t: Type
@@ -211,9 +212,6 @@ module Tesseract.Specs.Tesseract
       tess 
       region
       step_kind
-      = {
-         effect_log = Seq.append tess.effect_log (Step region step_kind);
-         next_rid = tess.next_rid + 1
-      }
+      = { effect_log = Seq.append tess.effect_log (Step region step_kind); }
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$

@@ -203,6 +203,22 @@ module Tesseract.Specs.Seq
                      accum)
             empty
 
+   val count: 
+      #item_t: Type
+      -> (item_t -> Tot bool)
+      -> seq_g item_t 
+      -> Tot nat
+   let count (item_t: Type) pred seq 
+      = 
+         foldl
+            seq
+            (fun (accum: nat) index ->
+               if pred (nth seq index) then
+                  accum + 1
+               else
+                  accum)
+            0
+
    val map:
       #item0_t: Type
       -> #item1_t: Type
