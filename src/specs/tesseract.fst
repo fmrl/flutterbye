@@ -21,13 +21,13 @@
 
 module Tesseract.Specs.Tesseract
 
-   type region_t = nat
+   type region_id_t = nat
 
    type step_g (state_t: Type) (step_kind_t: Type)
-      = region_t 
+      = region_id_t 
          -> state_t
          -> step_kind_t 
-         -> Tot (state_t * (Seq.seq_g (region_t * step_kind_t)))
+         -> Tot (state_t * (Seq.seq_g (region_id_t * step_kind_t)))
 
    type effect_g (state_t: Type) (step_kind_t: Type) 
       =
@@ -36,7 +36,7 @@ module Tesseract.Specs.Tesseract
          -> step: step_g state_t step_kind_t
          -> effect_g state_t step_kind_t
       | Step: 
-         region: region_t
+         region_id: region_id_t
          -> step_kind: step_kind_t 
          -> effect_g state_t step_kind_t
 
@@ -66,9 +66,9 @@ module Tesseract.Specs.Tesseract
                            (match Seq.nth _log index with
                               | Spawn _ _ ->
                                  Some (count + 1)
-                              | Step region _ ->
-                                 // a step effect associated with a given region must be in our set of set regions.
-                                 if region < count then
+                              | Step region_id _ ->
+                                 // a step effect must be associated with a region id that is smaller than the number of spawn effects encountered so far.
+                                 if region_id < count then
                                     accum
                                  else
                                     None))
@@ -112,7 +112,7 @@ module Tesseract.Specs.Tesseract
       #state_t: Type
       -> #step_kind_t: Type
       -> tess: tesseract_g state_t step_kind_t
-      -> Tot (region_t)
+      -> Tot (region_id_t)
    let regions
       (state_t: Type)
       (step_kind_t: Type)
@@ -123,26 +123,26 @@ module Tesseract.Specs.Tesseract
       #state_t: Type
       -> #step_kind_t: Type
       -> tesseract_g state_t step_kind_t
-      -> region_t
+      -> region_id_t
       -> Tot bool
    let is_region 
-      (region_t: Type) 
+      (region_id_t: Type) 
       (step_kind_t: Type) 
       tess 
-      region
-      = region < regions tess
+      region_id
+      = region_id < regions tess
 
    val find_spawn:
       #state_t: Type
       -> #step_kind_t: Type
       -> tess: tesseract_g state_t step_kind_t
-      -> region: region_t{is_region tess region}
+      -> region_id: region_id_t{is_region tess region_id}
       -> Tot (Seq.index_g tess.effect_log)
    let find_spawn
       (state_t: Type) 
       (step_kind_t: Type) 
       tess 
-      region
+      region_id
       =  let log = tess.effect_log in
          let f 
             = fun (accum: (either nat (Seq.index_g log))) (index: Seq.index_g log)
@@ -151,7 +151,7 @@ module Tesseract.Specs.Tesseract
                         // examine the next effect in the sequence.
                         (match Seq.nth log index with
                            | Spawn _ _ ->
-                              if count = region then
+                              if count = region_id then
                                  Inr index
                               else
                                  Inl (count + 1)
@@ -167,17 +167,17 @@ module Tesseract.Specs.Tesseract
       #state_t: Type
       -> #step_kind_t: Type
       -> tess: tesseract_g state_t step_kind_t
-      -> region: region_t{is_region tess region}
+      -> region_id: region_id_t{is_region tess region_id}
       -> Tot (_effect_log_g state_t step_kind_t)
    let lookup
       (state_t: Type) 
       (step_kind_t: Type) 
       tess 
-      region
-      =  let start = find_spawn tess region in
+      region_id
+      =  let start = find_spawn tess region_id in
          let pred =
             (fun item ->
-               is_Step item && region = Step.region item) in
+               is_Step item && region_id = Step.region_id item) in
          let result = Seq.prepend (Seq.nth tess.effect_log start) (Seq.filter pred tess.effect_log) in
             // assert (__region_effect_log_safety result);
             result
@@ -186,7 +186,7 @@ module Tesseract.Specs.Tesseract
       #state_t: Type
       -> #step_kind_t: Type
       -> tess: tesseract_g state_t step_kind_t
-      -> region: region_t{not (is_region tess region)}
+      -> region_id: region_id_t{not (is_region tess region_id)}
       -> state_t
       -> step_g state_t step_kind_t
       -> Tot (tesseract_g state_t step_kind_t)
@@ -194,7 +194,7 @@ module Tesseract.Specs.Tesseract
       (state_t: Type) 
       (step_kind_t: Type) 
       tess 
-      region
+      region_id
       state0
       step
       = { effect_log = Seq.append tess.effect_log (Spawn state0 step); }
@@ -203,15 +203,15 @@ module Tesseract.Specs.Tesseract
       #state_t: Type
       -> #step_kind_t: Type
       -> tess: tesseract_g state_t step_kind_t
-      -> region: region_t{is_region tess region}
+      -> region_id: region_id_t{is_region tess region_id}
       -> step_kind_t
       -> Tot (tesseract_g state_t step_kind_t)
    let step
       (state_t: Type) 
       (step_kind_t: Type) 
       tess 
-      region
+      region_id
       step_kind
-      = { effect_log = Seq.append tess.effect_log (Step region step_kind); }
+      = { effect_log = Seq.append tess.effect_log (Step region_id step_kind); }
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
