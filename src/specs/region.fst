@@ -20,6 +20,12 @@
 
 module Tesseract.Specs.Region
 
+   type _region_g 'state 'step_kind
+      = {
+         id: Effects.region_id_t;
+         effect_log: Effects._log_g 'state 'step_kind
+      }
+
    val __region_safety: 
       #state_t: Type 
       -> #step_kind_t: Type 
@@ -32,7 +38,7 @@ module Tesseract.Specs.Region
       _log
       region_id
       =  // empty regions don't exist.
-         (0 < Seq.length _log) 
+         (1 < Seq.length _log) 
          // the first effect must be a spawn effect.
          && (Effects.is_Spawn (Seq.nth _log 0))
          && ((1 = Seq.length _log)
@@ -65,27 +71,21 @@ module Tesseract.Specs.Region
    type region_g 
       (state_t: Type) 
       (step_kind_t: Type) 
-      (region_id: Effects.region_id_t)
-      = _log: 
-            Effects._log_g 
+      = _region: 
+            _region_g
                state_t 
-               step_kind_t{__region_safety _log region_id}
+               step_kind_t{__region_safety _region.effect_log _region.id}
 
-   (*val state0:
+   val state0:
       #state_t: Type
-      -> step_kind_t: Type
-      -> (region_id: Effects.region_id_t 
-         -> region_g state_t step_kind_t region_id)
+      -> #step_kind_t: Type
+      -> region_g state_t step_kind_t
       -> Tot state_t
    let state0  
       (state_t: Type) 
       (step_kind_t: Type) 
       region
-      =  let spawn = Seq.nth region 0 in
-            Effects.Spawn.state0 spawn*)
-
-         
-
-
+      =  let spawn = Seq.nth region.effect_log 0 in
+            Effects.Spawn.state0 spawn
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
