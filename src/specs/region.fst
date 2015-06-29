@@ -76,6 +76,17 @@ module Tesseract.Specs.Region
                state_t 
                step_kind_t{__region_safety _region.effect_log _region.id}
 
+   val spawn:
+      #state_t: Type
+      -> #step_kind_t: Type
+      -> region_g state_t step_kind_t
+      -> Tot (ffct: Effects.effect_g state_t step_kind_t{Effects.is_Spawn ffct})
+   let spawn  
+      (state_t: Type) 
+      (step_kind_t: Type) 
+      region
+      =  Seq.nth region.effect_log 0
+
    val state0:
       #state_t: Type
       -> #step_kind_t: Type
@@ -85,7 +96,17 @@ module Tesseract.Specs.Region
       (state_t: Type) 
       (step_kind_t: Type) 
       region
-      =  let spawn = Seq.nth region.effect_log 0 in
-            Effects.Spawn.state0 spawn
+      = Effects.Spawn.state0 (spawn region)
+
+   val step:
+      #state_t: Type
+      -> #step_kind_t: Type
+      -> region_g state_t step_kind_t
+      -> Tot (Effects.step_g state_t step_kind_t)
+   let step  
+      (state_t: Type) 
+      (step_kind_t: Type) 
+      region
+      = Effects.Spawn.step (spawn region)
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
