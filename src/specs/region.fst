@@ -29,14 +29,14 @@ module Tesseract.Specs.Region
    val __region_safety: 
       #state_t: Type 
       -> #step_kind_t: Type 
-      -> Effects._log_g state_t step_kind_t 
       -> Effects.region_id_t
+      -> Effects._log_g state_t step_kind_t 
       -> Tot bool
    let rec __region_safety
       (state_t: Type)
       (step_kind_t: Type)
-      _log
       region_id
+      _log
       =  // empty regions don't exist.
          (1 < Seq.length _log) 
          // the first effect must be a spawn effect.
@@ -62,11 +62,11 @@ module Tesseract.Specs.Region
                (Seq.foldl tail f true))
                // inductive on items 1..n.
                && (__region_safety 
+                     region_id
                      (Seq.slice 
                         _log 
                         0 
-                        (Seq.length _log - 1))
-                     region_id))
+                        (Seq.length _log - 1))))
 
    type region_g 
       (state_t: Type) 
@@ -74,7 +74,7 @@ module Tesseract.Specs.Region
       = _region: 
             _region_g
                state_t 
-               step_kind_t{__region_safety _region.effect_log _region.id}
+               step_kind_t{__region_safety _region.id _region.effect_log}
 
    val spawn:
       #state_t: Type
@@ -85,7 +85,7 @@ module Tesseract.Specs.Region
       (state_t: Type) 
       (step_kind_t: Type) 
       region
-      =  Seq.nth region.effect_log 0
+      = Seq.nth region.effect_log 0
 
    val state0:
       #state_t: Type
@@ -108,5 +108,21 @@ module Tesseract.Specs.Region
       (step_kind_t: Type) 
       region
       = Effects.Spawn.step (spawn region)
+
+   val make:
+      #state_t: Type
+      -> #step_kind_t: Type
+      -> region_id: Effects.region_id_t
+      -> _log: Effects._log_g state_t step_kind_t{__region_safety region_id _log}
+      -> Tot (region_g state_t step_kind_t)
+   let make
+      (state_t: Type) 
+      (step_kind_t: Type) 
+      region_id
+      log
+      = {
+         id = region_id;
+         effect_log = log
+      }
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$

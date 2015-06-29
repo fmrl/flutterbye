@@ -17,6 +17,7 @@
 // ,$
 
 //@requires "effects.fst"
+//@requires "region.fst"
 
 module Tesseract.Specs.Tesseract
 
@@ -138,12 +139,12 @@ module Tesseract.Specs.Tesseract
             Inr index ->
                index
  
-   val lookup:
+   (*val lookup:
       #state_t: Type
       -> #step_kind_t: Type
       -> tess: tesseract_g state_t step_kind_t
       -> region_id: Effects.region_id_t{is_region tess region_id}
-      -> Tot (Effects._log_g state_t step_kind_t)
+      -> Tot bool//(Region.region_g state_t step_kind_t)
    let lookup
       (state_t: Type) 
       (step_kind_t: Type) 
@@ -153,9 +154,10 @@ module Tesseract.Specs.Tesseract
          let pred =
             (fun item ->
                Effects.is_Step item && region_id = Effects.Step.region_id item) in
-         let result = Seq.prepend (Seq.nth tess.effect_log start) (Seq.filter pred tess.effect_log) in
-            // assert (__region_effect_log_safety result);
-            result
+         let log = Seq.prepend (Seq.nth tess.effect_log start) (Seq.filter pred tess.effect_log) in
+         //assert (Region.__region_safety region_id log);
+         false
+         //Region.make region_id log*)
 
    val spawn:
       #state_t: Type
