@@ -1,3 +1,7 @@
+(*--build-config
+   other-files:ext.fst src/specs/set.fst src/specs/map.fst src/specs/seq.fst src/specs/tesseract.fst
+--*)
+
 // $legal:614:
 // 
 // Copyright 2015 Michael Lowell Roberts
@@ -15,7 +19,5 @@
 // limitations under the License.
 // 
 // ,$
-
-//@requires "specs/tesseract.fst"
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
