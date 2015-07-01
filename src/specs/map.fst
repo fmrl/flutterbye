@@ -1,3 +1,7 @@
+(*--build-config
+   other-files:src/specs/set.fst
+--*)
+
 // $legal:614:
 // 
 // Copyright 2015 Michael Lowell Roberts
@@ -15,8 +19,6 @@
 // limitations under the License.
 // 
 // ,$
-
-//@requires "set.fst"
 
 module Tesseract.Specs.Map
 

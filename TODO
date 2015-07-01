@@ -1,0 +1,4 @@
+- build-options:other-files searches the current directory of the process, not the directory the source file is located in.
+   - when fixed, need to remove "src/" prefixes added to root.fst as a workaround.
+- need to re-think rake integration with f* in light of build-options
+

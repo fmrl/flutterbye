@@ -37,7 +37,7 @@ module Rake::FStar
 
       def generate_tasks(files)
          task :verify => files do |t|
-            sh "jdepp -a -Dfstar=#{self.lib_path} #{t.prerequisites.join(" ")} -- #{self.exe_path}"
+            sh "#{self.exe_path} --use_build_config #{t.prerequisites.join(" ")}"
          end
       end
 
