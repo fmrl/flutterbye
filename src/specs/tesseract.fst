@@ -33,7 +33,7 @@ module Tesseract.Specs.Tesseract
       (_log: Effects._log_g state_t step_kind_t)
       = (0 = Seq.length _log)
          || (let f
-               = (fun (accum: option nat) (index: Seq.index_g _log)
+               = (fun (accum: option nat) (index: Seq.Index _log)
                   -> match accum with
                         | None ->
                            // an unsafe tesseract continues to be unsafe.
@@ -114,7 +114,7 @@ module Tesseract.Specs.Tesseract
       -> #step_kind_t: Type
       -> tess: tesseract_g state_t step_kind_t
       -> region_id: Effects.region_id_t{is_region tess region_id}
-      -> Tot (Seq.index_g tess.effect_log)
+      -> Tot (Seq.Index tess.effect_log)
    let find_spawn
       (state_t: Type)
       (step_kind_t: Type)
@@ -122,7 +122,7 @@ module Tesseract.Specs.Tesseract
       region_id
       =  let log = tess.effect_log in
          let f
-            = fun (accum: (either nat (Seq.index_g log))) (index: Seq.index_g log)
+            = fun (accum: (either nat (Seq.Index log))) (index: Seq.Index log)
                -> (match accum with
                      | Inl count ->
                         // examine the next effect in the sequence.

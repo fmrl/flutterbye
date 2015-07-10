@@ -51,7 +51,7 @@ module Tesseract.Specs.Region
                // region
                (let tail = Seq.remove _log 0 in
                let f 
-                  = fun (safe: bool) (index: Seq.index_g tail)
+                  = fun (safe: bool) (index: Seq.Index tail)
                      -> (if safe then
                            (match Seq.nth tail index with
                               | Effects.Spawn _ _ ->

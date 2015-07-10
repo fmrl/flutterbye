@@ -30,7 +30,7 @@ module Tesseract.Specs.Effects
       = region_id_t 
          -> state_t
          -> step_kind_t 
-         -> Tot (state_t * (Seq.seq_g (region_id_t * step_kind_t)))
+         -> Tot (state_t * (Seq.State (region_id_t * step_kind_t)))
 
    type effect_g (state_t: Type) (step_kind_t: Type) 
       =
@@ -46,6 +46,6 @@ module Tesseract.Specs.Effects
    type _log_g 
       (state_t: Type) 
       (step_kind_t: Type) 
-      = Seq.seq_g (effect_g state_t step_kind_t)
+      = Seq.State (effect_g state_t step_kind_t)
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$

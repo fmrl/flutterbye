@@ -3,322 +3,269 @@
 --*)
 
 // $legal:614:
-// 
+//
 // Copyright 2015 Michael Lowell Roberts
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// 
+//
 // ,$
 
 
 module Tesseract.Specs.Seq
+   open FunctionalExtensionality
 
-   type _seq_g (item_t: Type) 
-      = { 
-         map: Map.map_g nat item_t;
-         length: nat
-      }
+   type _State 'item =
+      | MkSeq:
+         length: nat -> mapping: Map.map_g nat 'item -> _State 'item
 
-   type _is_seq_safe: #item_t: Type -> seq: _seq_g item_t -> Type 
-      = fun (item_t: Type) (seq: _seq_g item_t) 
-         -> ((0 = seq.length) 
-               /\ (FunctionalExtensionality.FEq seq.map (fun _ -> None)))
-            \/ (forall (index: nat).
-                  ((index < seq.length) <==> (is_Some (seq.map index)))
-                  /\ ((index >= seq.length) <==> (is_None (seq.map index))))
+   type SeqSafety: #item: Type -> seq: _State item -> Type =
+      fun 'item (seq: _State 'item) ->
+         ((0 = MkSeq.length seq) /\ (FEq (MkSeq.mapping seq) (fun _ -> None)))
+         \/ (forall (index: nat).
+               ((index < (MkSeq.length seq)) <==> (is_Some ((MkSeq.mapping seq) index)))
+               /\ ((index >= (MkSeq.length seq)) <==> (is_None ((MkSeq.mapping seq) index))))
 
-   type seq_g (item_t: Type) 
-      = seq: _seq_g item_t{_is_seq_safe seq}
+   type State 'item = seq: _State 'item{SeqSafety seq}
 
-   type index_g (#item_t: Type) (seq: seq_g item_t) 
-      = index: nat{index < seq.length}
-
-   type are_equal 
-      (#item_t: Type) 
-      (lhs: seq_g item_t) 
-      (rhs: seq_g item_t)
-      = (FunctionalExtensionality.FEq lhs.map rhs.map) 
-         /\ (lhs.length = rhs.length)
-
-   val empty: #item_t: Type -> Tot (seq_g item_t)
-   let empty (item_t: Type) 
-      = {
-         map = (fun _ -> None);
-         length = 0
-      }
-
-   val length: 
-      #item_t: Type 
-      -> seq: seq_g item_t
+   val length:
+      #item: Type
+      -> seq: State item
       -> Tot nat
-   let length (item_t: Type) (seq: seq_g item_t)
-      = seq.length
+   let length 'item (seq: State 'item) = MkSeq.length seq
 
-   val single: #item_t: Type -> item_t -> Tot (seq_g item_t)
-   let single item 
-      = {
-         map = Map.add Map.empty 0 item;
-         length = 1
-      }
+   let to_map seq = MkSeq.mapping seq
 
-   let maybe_nth seq = seq.map
-   let to_map seq = seq.map
+   type Index (#item_t: Type) (seq: State item_t) =
+      index: nat{index < (length seq)}
 
-   val nth: 
-      #item_t: Type 
-      -> seq: seq_g item_t 
-      -> index: index_g seq
-      -> Tot item_t
-   let nth (item_t: Type) seq index
-      = 
-         match maybe_nth seq index with
-            | Some item ->
-               item
+   type Equals 'item (lhs: State 'item) (rhs: State 'item) =
+      (FEq (to_map lhs) (to_map rhs))
+      /\ ((length lhs) = (length rhs))
 
-   val last: 
-      #item_t: Type 
-      -> seq: seq_g item_t{0 < length seq} 
-      -> Tot (index_g seq)
-   let last (item_t: Type) seq 
-      = (length seq) - 1
+   val empty: #item: Type -> Tot (State item)
+   let empty 'item = MkSeq 0 (fun _ -> None)
 
-   val prepend:
-      #item_t: Type 
-      -> item_t
-      -> seq_g item_t
-      -> Tot (seq_g item_t)
-   let prepend (item_t: Type) item seq 
-      = {
-         map =
-            (fun index -> 
-               if index = 0 then 
-                  Some item 
-               else 
-                  maybe_nth seq (index - 1));
-         length = (seq.length + 1)
-      }
+   val single: 'item -> Tot (State 'item)
+   let single item = MkSeq 1 (Map.add Map.empty 0 item)
 
-   val append:
-      #item_t: Type 
-      -> seq_g item_t
-      -> item_t
-      -> Tot (seq_g item_t)
-   let append (item_t: Type) seq item 
-      = {
-         map =
-            (fun index -> 
-               if index = seq.length then 
-                  Some item 
-               else 
-                  maybe_nth seq index);
-         length = (seq.length + 1)
-      }
+   let maybe_nth seq = to_map seq
+
+   val nth:
+      #item: Type
+      -> seq: State item
+      -> index: Index seq
+      -> Tot item
+   let nth 'item seq index =
+      match maybe_nth seq index with
+         | Some item ->
+            item
+
+   val last: (seq: State 'item{0 < length seq}) -> Tot (Index seq)
+   let last seq = (length seq) - 1
+
+   val prepend: 'item -> State 'item -> Tot (State 'item)
+   let prepend item seq =
+      MkSeq
+         ((length seq) + 1)
+         (fun index ->
+            if index = 0 then
+               Some item
+            else
+               maybe_nth seq (index - 1))
+
+   val append: State 'item -> 'item -> Tot (State 'item)
+   let append seq item =
+      MkSeq
+         ((length seq) + 1)
+         (fun index ->
+            if index = (length seq) then
+               Some item
+            else
+               maybe_nth seq index)
 
    val insert:
-      #item_t: Type
-      -> seq: seq_g item_t 
-      -> before: nat{before <= length seq}
-      -> item_t 
-      -> Tot (seq_g item_t)
-   let insert (item_t: Type) seq before item
-      = {
-         map =
-            (fun n ->
-               if n = before then
-                  Some item
-               else if n < before then
-                  maybe_nth seq n
-               else
-                  maybe_nth seq (n - 1));
-         length = (seq.length + 1)
-      }
+      seq: State 'item
+      -> ante: nat{ante <= length seq}
+      -> 'item
+      -> Tot (State 'item)
+   let insert seq ante item =
+      MkSeq
+         ((length seq) + 1)
+         (fun n ->
+            if n = ante then
+               Some item
+            else if n < ante then
+               maybe_nth seq n
+            else
+               maybe_nth seq (n - 1))
 
    val remove:
       #item_t: Type
-      -> seq: seq_g item_t{0 < length seq}
-      -> index: index_g seq
-      -> Tot (seq_g item_t)
-   let remove (item_t: Type) seq index 
-      = {
-         map =
-            (fun n ->
-               if n < index then
-                  maybe_nth seq n
-               else
-                  maybe_nth seq (n + 1));
-         length = (seq.length - 1)
-      }
+      -> seq: State item_t{0 < length seq}
+      -> index: Index seq
+      -> Tot (State item_t)
+   let remove (item_t: Type) seq index =
+      MkSeq
+         ((length seq) - 1)
+         (fun n ->
+            if n < index then
+               maybe_nth seq n
+            else
+               maybe_nth seq (n + 1))
 
-   val concat: 
-      #item_t: Type
-      -> seq_g item_t 
-      -> seq_g item_t
-      -> Tot (seq_g item_t)
-   let concat lhs rhs 
-      = {
-         map =
-            (fun index ->
-               if index < lhs.length then
-                  maybe_nth lhs index
-               else
-                  maybe_nth rhs (index - lhs.length));
-         length =
-            (lhs.length + rhs.length)
-      }
+   val concat: State 'item -> State 'item -> Tot (State 'item)
+   let concat lhs rhs =
+      MkSeq
+         ((length lhs) + (length rhs))
+         (fun index ->
+            if index < (length lhs) then
+               maybe_nth lhs index
+            else
+               maybe_nth rhs (index - (length lhs)))
 
-   val _foldl__loop: 
-      #item_t: Type 
-      -> #accum_t: Type 
-      -> seq: seq_g item_t 
-      -> (accum_t -> index_g seq -> Tot accum_t) 
-      -> accum_t 
-      -> index: index_g seq
-      -> Tot accum_t (decreases index)
-   let rec _foldl__loop (item_t: Type) (accum_t: Type) seq fold accum index 
-      =  if index = 0 then
-            accum
-         else
-            _foldl__loop seq fold (fold accum index) (index - 1)
+   val _foldl__loop:
+      #item: Type
+      -> #accum: Type
+      -> seq: State item
+      -> (accum -> Index seq -> Tot accum)
+      -> accum
+      -> index: Index seq
+      -> Tot accum (decreases index)
+   let rec _foldl__loop 'item 'accum seq fold accum index =
+      if index = 0 then
+         accum
+      else
+         _foldl__loop seq fold (fold accum index) (index - 1)
 
-   val foldl: 
-      #item_t: Type 
-      -> #accum_t: Type 
-      -> seq: seq_g item_t 
-      -> (accum_t -> index: index_g seq -> Tot accum_t) 
-      -> accum_t 
-      -> Tot accum_t
-   let foldl (item_t: Type) (accum_t: Type) seq fold accum 
-      =  let len = length seq in
+   val foldl:
+      #item: Type
+      -> #accum: Type
+      -> seq: State item
+      -> (accum -> index: Index seq -> Tot accum)
+      -> accum
+      -> Tot accum
+   let foldl 'item 'accum seq fold accum =
+      let len = length seq in
          if len = 0 then
             accum
          else
             _foldl__loop seq fold accum (len - 1)
 
-   val filter: 
-      #item_t: Type
-      -> (item_t -> Tot bool)
-      -> seq_g item_t 
-      -> Tot (seq_g item_t)
-   let filter (item_t: Type) pred seq 
-      = 
-         foldl
-            seq
-            (fun (accum: seq_g item_t) index ->
-               let item = nth seq index in
-                  if pred item then
-                     append accum item
-                  else
-                     accum)
-            empty
-
-   val count: 
-      #item_t: Type
-      -> (item_t -> Tot bool)
-      -> seq_g item_t 
-      -> Tot nat
-   let count (item_t: Type) pred seq 
-      = 
-         foldl
-            seq
-            (fun (accum: nat) index ->
-               if pred (nth seq index) then
-                  accum + 1
+   val filter:
+      #item: Type
+      -> (item -> Tot bool)
+      -> State item
+      -> Tot (State item)
+   let filter 'item pred seq =
+      foldl
+         seq
+         (fun (accum: State 'item) index ->
+            let item = nth seq index in
+               if pred item then
+                  append accum item
                else
                   accum)
-            0
+         empty
+
+   val count: ('item -> Tot bool) -> State 'item -> Tot nat
+   let count pred seq =
+      foldl
+         seq
+         (fun (accum: nat) index ->
+            if pred (nth seq index) then
+               accum + 1
+            else
+               accum)
+         0
 
    val map:
-      #item0_t: Type
-      -> #item1_t: Type
-      -> (item0_t -> Tot item1_t)
-      -> seq_g item0_t
-      -> Tot (seq_g item1_t)
-   let map (item0_t: Type) (item1_t: Type) xform seq0
-      =  
-         foldl
-            seq0
-            (fun (accum: seq_g item1_t) index ->
-               append accum (xform (nth seq0 index)))
-            empty
+      #from_item: Type
+      -> #to_item: Type
+      -> (from_item -> Tot to_item)
+      -> State from_item
+      -> Tot (State to_item)
+   let map 'from_item 'to_item xform from_seq =
+      foldl
+         from_seq
+         (fun (accum: State 'to_item) index ->
+            append accum (xform (nth from_seq index)))
+         empty
 
    val maybe_find:
-      #item_t: Type
-      -> (item_t -> Tot bool)
-      -> seq: seq_g item_t
-      -> index_g seq
-      -> Tot (option (index_g seq))
-   let maybe_find (item_t: Type) pred seq start
-      =  
-         foldl
-            seq
-            (fun (accum: option (index_g seq)) index ->
-               if index >= start then
-                  match accum with
-                     | None ->
-                        let item = nth seq index in
-                           if pred item then
-                              Some index
-                           else
-                              accum
-                     | _ ->
-                        accum
-               else
-                  accum)
-            None
+      #item: Type
+      -> (item -> Tot bool)
+      -> seq: State item
+      -> Index seq
+      -> Tot (option (Index seq))
+   let maybe_find 'item pred seq start =
+      foldl
+         seq
+         (fun (accum: option (Index seq)) index ->
+            if index >= start then
+               match accum with
+                  | None ->
+                     let item = nth seq index in
+                        if pred item then
+                           Some index
+                        else
+                           accum
+                  | _ ->
+                     accum
+            else
+               accum)
+         None
 
    val find:
-      #item_t: Type
-      -> pred: (item_t -> Tot bool)
-      -> seq: seq_g item_t
-      -> start: index_g seq{is_Some (maybe_find pred seq start)}
-      -> Tot (index_g seq)
-   let find (item_t: Type) pred seq start
-      = match maybe_find pred seq start with
+      #item: Type
+      -> pred: (item -> Tot bool)
+      -> seq: State item
+      -> start: Index seq{is_Some (maybe_find pred seq start)}
+      -> Tot (Index seq)
+   let find 'item pred seq start =
+      match maybe_find pred seq start with
          Some index ->
             index
 
    val _slice:
-      #item_t: Type
-      -> seq: seq_g item_t
-      -> start: index_g seq
-      -> end_: nat{start <= end_ && end_ < Seq.length seq}
-      -> Tot (_seq_g item_t)
-   let _slice seq start end_
-      = {
-         map = 
-            (fun i -> 
-               seq.map (i + start));
-         length = end_ - start
-      }
+      #item: Type
+      -> seq: State item
+      -> start: Index seq
+      -> stop: nat{start <= stop && stop < length seq}
+      -> Tot (_State item)
+   let _slice seq start stop =
+      MkSeq
+         (stop - start)
+         (fun i ->
+            (to_map seq) (i + start))
 
-   val __slice_safety_properties:
-      #item_t: Type
-      -> seq: seq_g item_t
-      -> start: index_g seq
-      -> end_: nat{start <= end_ && end_ < Seq.length seq}
+   val __slice_safety:
+      #item: Type
+      -> seq: State item
+      -> start: Index seq
+      -> stop: nat{start <= stop && stop < length seq}
       -> Lemma
-         (ensures (_is_seq_safe (_slice seq start end_)))
-   let __slice_safety_properties seq start end_
+         (ensures (SeqSafety (_slice seq start stop)))
+   let __slice_safety seq start stop
       = admit ()
 
    val slice:
-      #item_t: Type
-      -> seq: seq_g item_t
-      -> start: index_g seq
-      -> end_: nat{start <= end_ && end_ < Seq.length seq}
-      -> Tot (seq_g item_t)
-   let slice seq start end_
-      = __slice_safety_properties seq start end_;
-         _slice seq start end_
+      #item: Type
+      -> seq: State item
+      -> start: Index seq
+      -> stop: nat{start <= stop && stop < length seq}
+      -> Tot (State item)
+   let slice seq start stop
+      = __slice_safety seq start stop;
+         _slice seq start stop
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$
