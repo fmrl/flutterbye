@@ -3,46 +3,57 @@
 --*)
 
 // $legal:614:
-// 
+//
 // Copyright 2015 Michael Lowell Roberts
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// 
+//
 // ,$
-
-//@requires "effects.fst"
 
 module Tesseract.Specs.Region
 
-   type _region_g 'state 'step_kind
+   type _region_g 'state 'step
       = {
          id: Effects.region_id_t;
-         effect_log: Effects._log_g 'state 'step_kind
+         effect_log: Effects._log_g 'state 'step
       }
 
-   val __region_safety: 
-      #state_t: Type 
-      -> #step_kind_t: Type 
+   val __region_event_log_recursion:
+      log: Effects._log_g 'state 'step
+      -> Lemma
+         (ensures True)
+         (decreases (Seq.length log))
+   let rec __region_event_log_recursion log =
+      let length = Seq.length log in
+         if 1 >= length then
+            ()
+         else
+            __region_event_log_recursion (Seq.slice log 0 (length - 1))
+
+   val __region_safety:
+      #state_t: Type
+      -> #step_kind_t: Type
       -> Effects.region_id_t
-      -> Effects._log_g state_t step_kind_t 
+      -> _log: Effects._log_g state_t step_kind_t
       -> Tot bool
    let rec __region_safety
       (state_t: Type)
       (step_kind_t: Type)
       region_id
       _log
-      =  // empty regions don't exist.
-         (1 < Seq.length _log) 
+      =  __region_event_log_recursion _log;
+         // empty regions don't exist.
+         (1 < Seq.length _log)
          // the first effect must be a spawn effect.
          && (Effects.is_Spawn (Seq.nth _log 0))
          && ((1 = Seq.length _log)
@@ -50,7 +61,7 @@ module Tesseract.Specs.Region
                // only of step effects for the specified
                // region
                (let tail = Seq.remove _log 0 in
-               let f 
+               let f
                   = fun (safe: bool) (index: Seq.Index tail)
                      -> (if safe then
                            (match Seq.nth tail index with
@@ -63,21 +74,14 @@ module Tesseract.Specs.Region
                                     false)
                            else
                               false) in
-               (Seq.foldl tail f true))
-               // inductive on items 1..n.
-               && (__region_safety 
-                     region_id
-                     (Seq.slice 
-                        _log 
-                        0 
-                        (Seq.length _log - 1))))
+               (Seq.foldl tail f true)))
 
-   type region_g 
-      (state_t: Type) 
-      (step_kind_t: Type) 
-      = _region: 
+   type region_g
+      (state_t: Type)
+      (step_kind_t: Type)
+      = _region:
             _region_g
-               state_t 
+               state_t
                step_kind_t{__region_safety _region.id _region.effect_log}
 
    val spawn:
@@ -85,9 +89,9 @@ module Tesseract.Specs.Region
       -> #step_kind_t: Type
       -> region_g state_t step_kind_t
       -> Tot (ffct: Effects.effect_g state_t step_kind_t{Effects.is_Spawn ffct})
-   let spawn  
-      (state_t: Type) 
-      (step_kind_t: Type) 
+   let spawn
+      (state_t: Type)
+      (step_kind_t: Type)
       region
       = Seq.nth region.effect_log 0
 
@@ -96,9 +100,9 @@ module Tesseract.Specs.Region
       -> #step_kind_t: Type
       -> region_g state_t step_kind_t
       -> Tot state_t
-   let state0  
-      (state_t: Type) 
-      (step_kind_t: Type) 
+   let state0
+      (state_t: Type)
+      (step_kind_t: Type)
       region
       = Effects.Spawn.state0 (spawn region)
 
@@ -107,9 +111,9 @@ module Tesseract.Specs.Region
       -> #step_kind_t: Type
       -> region_g state_t step_kind_t
       -> Tot (Effects.step_g state_t step_kind_t)
-   let step  
-      (state_t: Type) 
-      (step_kind_t: Type) 
+   let step
+      (state_t: Type)
+      (step_kind_t: Type)
       region
       = Effects.Spawn.step (spawn region)
 
@@ -120,8 +124,8 @@ module Tesseract.Specs.Region
       -> _log: Effects._log_g state_t step_kind_t{__region_safety region_id _log}
       -> Tot (region_g state_t step_kind_t)
    let make
-      (state_t: Type) 
-      (step_kind_t: Type) 
+      (state_t: Type)
+      (step_kind_t: Type)
       region_id
       log
       = {

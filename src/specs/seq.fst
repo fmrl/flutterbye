@@ -20,7 +20,6 @@
 //
 // ,$
 
-
 module Tesseract.Specs.Seq
    open FunctionalExtensionality
 
@@ -32,8 +31,10 @@ module Tesseract.Specs.Seq
       fun 'item (seq: _State 'item) ->
          ((0 = MkSeq.length seq) /\ (FEq (MkSeq.mapping seq) (fun _ -> None)))
          \/ (forall (index: nat).
-               ((index < (MkSeq.length seq)) <==> (is_Some ((MkSeq.mapping seq) index)))
-               /\ ((index >= (MkSeq.length seq)) <==> (is_None ((MkSeq.mapping seq) index))))
+               ((index < (MkSeq.length seq))
+                  <==> (is_Some ((MkSeq.mapping seq) index)))
+               /\ ((index >= (MkSeq.length seq))
+                  <==> (is_None ((MkSeq.mapping seq) index))))
 
    type State 'item = seq: _State 'item{SeqSafety seq}
 
@@ -236,36 +237,20 @@ module Tesseract.Specs.Seq
          Some index ->
             index
 
-   val _slice:
-      #item: Type
-      -> seq: State item
-      -> start: Index seq
-      -> stop: nat{start <= stop && stop < length seq}
-      -> Tot (_State item)
-   let _slice seq start stop =
-      MkSeq
-         (stop - start)
-         (fun i ->
-            (to_map seq) (i + start))
-
-   val __slice_safety:
-      #item: Type
-      -> seq: State item
-      -> start: Index seq
-      -> stop: nat{start <= stop && stop < length seq}
-      -> Lemma
-         (ensures (SeqSafety (_slice seq start stop)))
-   let __slice_safety seq start stop
-      = admit ()
-
    val slice:
       #item: Type
       -> seq: State item
       -> start: Index seq
-      -> stop: nat{start <= stop && stop < length seq}
+      -> stop: nat{start <= stop && stop <= length seq}
       -> Tot (State item)
-   let slice seq start stop
-      = __slice_safety seq start stop;
-         _slice seq start stop
+   let slice seq start stop =
+      let length' = (stop - start) in
+         MkSeq
+            length'
+            (fun i ->
+               if i < length' then
+                  (to_map seq) (i + start)
+               else
+                  None)
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$

@@ -22,35 +22,41 @@
 
 module Tesseract.Specs.Tesseract
 
-   val __effect_log_safety:
-      #state_t: Type
-      -> #step_kind_t: Type
-      -> Effects._log_g state_t step_kind_t
-      -> Tot bool
-   let rec __effect_log_safety
-      (state_t: Type)
-      (step_kind_t: Type)
-      (_log: Effects._log_g state_t step_kind_t)
-      = (0 = Seq.length _log)
-         || (let f
-               = (fun (accum: option nat) (index: Seq.Index _log)
-                  -> match accum with
-                        | None ->
-                           // an unsafe tesseract continues to be unsafe.
-                           None
-                        | Some count ->
-                           // examine the next effect in the sequence.
-                           (match Seq.nth _log index with
-                              | Effects.Spawn _ _ ->
-                                 Some (count + 1)
-                              | Effects.Step region_id _ ->
-                                 // a step effect must be associated with a region id that is smaller than the number of spawn effects encountered so far.
-                                 if region_id < count then
-                                    accum
-                                 else
-                                    None))
-               in (is_Some (Seq.foldl _log f (Some 0)))
-            && (__effect_log_safety (Seq.slice _log 0 (Seq.length _log - 1))))
+   val __tesseract_effect_log_recursion:
+      log: Effects._log_g 'state 'step
+      -> Lemma
+         (ensures True)
+         (decreases (Seq.length log))
+   let rec __tesseract_effect_log_recursion log =
+      let length = Seq.length log in
+         if 0 = length then
+            ()
+         else
+            __tesseract_effect_log_recursion (Seq.slice log 0 (length - 1))
+
+   val __effect_log_safety: Effects._log_g 'state 'step -> Tot bool
+   let rec __effect_log_safety _log =
+      __tesseract_effect_log_recursion log;
+      (0 = Seq.length _log)
+      || (let f
+            = (fun (accum: option nat) (index: Seq.Index _log)
+               -> match accum with
+                     | None ->
+                        // an unsafe tesseract continues to be unsafe.
+                        None
+                     | Some count ->
+                        // examine the next effect in the sequence.
+                        (match Seq.nth _log index with
+                           | Effects.Spawn _ _ ->
+                              Some (count + 1)
+                           | Effects.Step region_id _ ->
+                              // a step effect must be associated with a region id that is smaller than the number of spawn effects encountered so far.
+                              if region_id < count then
+                                 accum
+                              else
+                                 None))
+            in (is_Some (Seq.foldl _log f (Some 0)))
+         && (__effect_log_safety (Seq.slice _log 0 (Seq.length _log - 1))))
 
    type _tesseract_g
       (state_t: Type)
