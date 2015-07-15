@@ -1,5 +1,5 @@
 (*--build-config
-   other-files:ext.fst src/specs/set.fst src/specs/map.fst src/specs/seq.fst src/specs/effects.fst src/specs/region.fst
+   other-files:ext.fst set.fst map.fst seq.fst effects.fst region.fst
 --*)
 
 // $legal:614:
