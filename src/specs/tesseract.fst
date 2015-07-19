@@ -25,7 +25,8 @@ module Tesseract.Specs.Tesseract
    val __tesseract_effect_log_recursion:
       log: Effects._log_g 'state 'step
       -> Lemma
-         (ensures True)
+         // workaround: see https://github.com/FStarLang/FStar/issues/280
+         (ensures (True))
          (decreases (Seq.length log))
    let rec __tesseract_effect_log_recursion log =
       let length = Seq.length log in
