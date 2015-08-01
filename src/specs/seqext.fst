@@ -1,6 +1,6 @@
 (*--build-config
    options:--admit_fsi Seq;
-   other-files:ext.fst seq.fsi
+   other-files:ext.fst seq.fsi primitives.fst
 --*)
 
 // $legal:614:
@@ -22,27 +22,46 @@
 // ,$
 
 module Tesseract.Specs.SeqExt
+   open Tesseract.Specs.Primitives
    open Seq
 
-   val __filter_loop:
-      ('a -> Tot bool) ->
-      s: seq 'a{length s > 0} ->
-      i: nat{i < length s} ->
-      b: seq 'a ->
-      Tot (seq 'a)
-         (decreases (length s - i))
-   let rec __filter_loop p s i b =
+   val __filter__recursion:
+      a: Type
+      -> b: Type
+      -> ((a -> Tot bool)
+         -> s: seq a{length s > 0}
+         -> i: nat{i < length s}
+         -> m: seq a
+         -> Tot b)
+      -> (seq a -> Tot b)
+      -> (a -> Tot bool)
+      -> s: seq a{length s > 0}
+      -> i: nat{i < length s}
+      -> m: seq a
+      -> Tot b
+   let __filter__recursion 'a 'b y w p s i m =
       let z = length s - 1 in
       let a = index s i in
-      let b' =
+      let m' =
          if p a then
-            append (create 1 a) b
+            append (create 1 a) m
          else
-            b in
+            m in
       if i = z then
-         b'
+         w m'
       else
-         __filter_loop p s (i + 1) b'
+         y p s (i + 1) m'
+
+   val __filter_loop:
+      a: Type
+      -> (a -> Tot bool)
+      -> s: seq a{length s > 0}
+      -> i: nat{i < length s}
+      -> m: seq a
+      -> Tot (seq a)
+         (decreases (length s - i))
+   let rec __filter__loop 'a (p: ('a -> Tot bool)) (s: seq 'a{length s > 0}) (i: nat{i < length s}) (m: seq 'a) =
+      __filter__recursion 'a (seq 'a) (__filter__loop 'a) id
 
    val filter:
       p: ('a -> Tot bool) ->
@@ -52,29 +71,30 @@ module Tesseract.Specs.SeqExt
       if length s = 0 then
          createEmpty
       else
-         __filter_loop p s 0 createEmpty
+         let rec loop = __filter__recursion loop id in
+         loop p s 0 createEmpty
 
    val __lemma_filter_loop__length:
       p: ('a -> Tot bool) ->
       s: seq 'a{length s > 0} ->
       i: nat{i < length s} ->
-      b: seq 'a ->
+      m: seq 'a ->
       Lemma
-         (requires (length b <= i))
-         (ensures (length (__filter_loop p s i b) <= length s))
+         (requires (length m <= i))
+         (ensures (length (__filter__recursion p s i m) <= length s))
          (decreases (length s - i))
-   let rec __lemma_filter_loop__length p s i b =
+   let rec __lemma_filter_loop__length p s i m =
       let z = length s - 1 in
       let a = index s i in
-      let b' =
+      let m' =
          if p a then
-            append (create 1 a) b
+            append (create 1 a) m
          else
-            b in
+            m in
       if i = z then
          ()
       else
-         __lemma_filter_loop__length p s (i + 1) b'
+         __lemma_filter_loop__length p s (i + 1) m'
 
    val __lemma_filter__length:
       p: ('a -> Tot bool) ->
@@ -92,26 +112,26 @@ module Tesseract.Specs.SeqExt
       p: ('a -> Tot bool) ->
       s: seq 'a{length s > 0} ->
       i: nat{i < length s} ->
-      b: seq 'a ->
+      m: seq 'a ->
       Lemma
-         (requires forall j. 0 <= j && j < length b ==> p (index b j))
+         (requires forall j. 0 <= j && j < length m ==> p (index m j))
          (ensures
             forall j.
-               0 <= j && j < length (__filter_loop p s i b)
-               ==> p (index (__filter_loop p s i b) j))
+               0 <= j && j < length (__filter__recursion p s i m)
+               ==> p (index (__filter__recursion p s i m) j))
          (decreases (length s - i))
-   let rec __lemma_filter_loop__selection p s i b =
+   let rec __lemma_filter_loop__selection p s i m =
       let z = length s - 1 in
       let a = index s i in
-      let b' =
+      let m' =
          if p a then
-            append (create 1 a) b
+            append (create 1 a) m
          else
-            b in
+            m in
       if i = z then
          ()
       else
-         __lemma_filter_loop__selection p s (i + 1) b'
+         __lemma_filter_loop__selection p s (i + 1) m'
 
    val __lemma_filter__selection:
       p: ('a -> Tot bool) ->
@@ -127,3 +147,28 @@ module Tesseract.Specs.SeqExt
          ()
       else
          __lemma_filter_loop__selection p s 0 createEmpty
+
+   (*val reverse:
+      s: seq 'a
+      -> Tot (seq 'a)
+   let reverse s =
+      if length s = 0 then
+         createEmpty
+      else
+         fold_right s (__reverse__foldr s) createEmpty
+
+   val __lemma_involutive__reverse:
+      s: seq 'a
+      -> Lemma
+         (ensures Eq s (reverse (reverse s)))
+   let __lemma_involutive__reverse s =
+      // todo: prove me.
+      admit ()
+
+   val insert:
+      s: seq 'a
+      -> i: nat{i <= length seq}
+      -> 'a
+      -> Tot (seq 'a)
+   let insert s i a =
+      append*)
