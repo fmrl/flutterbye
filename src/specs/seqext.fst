@@ -25,11 +25,15 @@ module Tesseract.Specs.SeqExt
    open Seq
 
    val __filter_loop:
-      ('a -> Tot bool) ->
-      s: seq 'a{length s > 0} ->
-      i: nat{i < length s} ->
-      b: seq 'a ->
-      Tot (seq 'a)
+      // predicate; if false, then the element is discarded from the sequence.
+      ('a -> Tot bool)
+      // input sequence
+      -> s: seq 'a{length s > 0}
+      // index of element being reduced
+      -> i: nat{i < length s}
+      // accumulator; in this case, the output sequence.
+      -> b: seq 'a
+      -> Tot (seq 'a)
          (decreases (length s - i))
    let rec __filter_loop p s i b =
       let z = length s - 1 in
@@ -45,9 +49,12 @@ module Tesseract.Specs.SeqExt
          __filter_loop p s (i + 1) b'
 
    val filter:
-      p: ('a -> Tot bool) ->
-      s: seq 'a ->
-      Tot (seq 'a)
+      // predicate; if false, then the element is discarded from the sequence.
+      ('a -> Tot bool)
+      // input sequence
+      -> seq 'a
+      // output sequence
+      -> Tot (seq 'a)
    let filter p s =
       if length s = 0 then
          createEmpty
