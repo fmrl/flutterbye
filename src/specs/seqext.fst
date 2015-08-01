@@ -32,21 +32,21 @@ module Tesseract.Specs.SeqExt
       // index of element being reduced
       -> i: nat{i < length s}
       // accumulator; in this case, the output sequence.
-      -> b: seq 'a
+      -> c: seq 'a
       -> Tot (seq 'a)
          (decreases (length s - i))
-   let rec __filter_loop p s i b =
+   let rec __filter_loop p s i c =
       let z = length s - 1 in
       let a = index s i in
-      let b' =
+      let c' =
          if p a then
-            append (create 1 a) b
+            append (create 1 a) c
          else
-            b in
+            c in
       if i = z then
-         b'
+         c'
       else
-         __filter_loop p s (i + 1) b'
+         __filter_loop p s (i + 1) c'
 
    val filter:
       // predicate; if false, then the element is discarded from the sequence.
@@ -65,23 +65,23 @@ module Tesseract.Specs.SeqExt
       p: ('a -> Tot bool) ->
       s: seq 'a{length s > 0} ->
       i: nat{i < length s} ->
-      b: seq 'a ->
+      c: seq 'a ->
       Lemma
-         (requires (length b <= i))
-         (ensures (length (__filter_loop p s i b) <= length s))
+         (requires (length c <= i))
+         (ensures (length (__filter_loop p s i c) <= length s))
          (decreases (length s - i))
-   let rec __lemma_filter_loop__length p s i b =
+   let rec __lemma_filter_loop__length p s i c =
       let z = length s - 1 in
       let a = index s i in
-      let b' =
+      let c' =
          if p a then
-            append (create 1 a) b
+            append (create 1 a) c
          else
-            b in
+            c in
       if i = z then
          ()
       else
-         __lemma_filter_loop__length p s (i + 1) b'
+         __lemma_filter_loop__length p s (i + 1) c'
 
    val __lemma_filter__length:
       p: ('a -> Tot bool) ->
@@ -99,26 +99,26 @@ module Tesseract.Specs.SeqExt
       p: ('a -> Tot bool) ->
       s: seq 'a{length s > 0} ->
       i: nat{i < length s} ->
-      b: seq 'a ->
+      c: seq 'a ->
       Lemma
-         (requires forall j. 0 <= j && j < length b ==> p (index b j))
+         (requires forall j. 0 <= j && j < length c ==> p (index c j))
          (ensures
             forall j.
-               0 <= j && j < length (__filter_loop p s i b)
-               ==> p (index (__filter_loop p s i b) j))
+               0 <= j && j < length (__filter_loop p s i c)
+               ==> p (index (__filter_loop p s i c) j))
          (decreases (length s - i))
-   let rec __lemma_filter_loop__selection p s i b =
+   let rec __lemma_filter_loop__selection p s i c =
       let z = length s - 1 in
       let a = index s i in
-      let b' =
+      let c' =
          if p a then
-            append (create 1 a) b
+            append (create 1 a) c
          else
-            b in
+            c in
       if i = z then
          ()
       else
-         __lemma_filter_loop__selection p s (i + 1) b'
+         __lemma_filter_loop__selection p s (i + 1) c'
 
    val __lemma_filter__selection:
       p: ('a -> Tot bool) ->
