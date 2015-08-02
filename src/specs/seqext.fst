@@ -1,6 +1,6 @@
 (*--build-config
    options:--admit_fsi Seq;
-   other-files:ext.fst seq.fsi
+   other-files:seq.fsi seqext.fsi
 --*)
 
 // $legal:614:
@@ -48,13 +48,6 @@ module Tesseract.Specs.SeqExt
       else
          __filter_loop p s (i + 1) c'
 
-   val filter:
-      // predicate; if false, then the element is discarded from the sequence.
-      ('a -> Tot bool)
-      // input sequence
-      -> seq 'a
-      // output sequence
-      -> Tot (seq 'a)
    let filter p s =
       if length s = 0 then
          createEmpty
@@ -83,31 +76,25 @@ module Tesseract.Specs.SeqExt
       else
          __lemma_filter_loop__length p s (i + 1) c'
 
-   val __lemma_filter__length:
-      p: ('a -> Tot bool) ->
-      s: seq 'a ->
-      Lemma
-         (requires True)
-         (ensures length (filter p s) <= length s)
-   let __lemma_filter__length p s =
+   let lemma_filter__length p s =
       if length s = 0 then
          ()
       else
          __lemma_filter_loop__length p s 0 createEmpty
 
-   val __lemma_filter_loop__selection:
+   val __lemma_filter_loop__contents:
       p: ('a -> Tot bool) ->
       s: seq 'a{length s > 0} ->
       i: nat{i < length s} ->
       c: seq 'a ->
       Lemma
-         (requires forall j. 0 <= j && j < length c ==> p (index c j))
+         (requires (forall j. 0 <= j && j < length c ==> p (index c j)))
          (ensures
-            forall j.
+            (forall j.
                0 <= j && j < length (__filter_loop p s i c)
-               ==> p (index (__filter_loop p s i c) j))
+               ==> p (index (__filter_loop p s i c) j)))
          (decreases (length s - i))
-   let rec __lemma_filter_loop__selection p s i c =
+   let rec __lemma_filter_loop__contents p s i c =
       let z = length s - 1 in
       let a = index s i in
       let c' =
@@ -118,85 +105,27 @@ module Tesseract.Specs.SeqExt
       if i = z then
          ()
       else
-         __lemma_filter_loop__selection p s (i + 1) c'
+         __lemma_filter_loop__contents p s (i + 1) c'
 
-   val __lemma_filter__selection:
-      p: ('a -> Tot bool) ->
-      s: seq 'a ->
-      Lemma
-         (requires True)
-         (ensures
-            forall i.
-               0 <= i && i < length (filter p s)
-               ==> p (index (filter p s) i))
-   let __lemma_filter__selection p s =
+   let lemma_filter__contents p s =
       if length s = 0 then
          ()
       else
-         __lemma_filter_loop__selection p s 0 createEmpty
+         __lemma_filter_loop__contents p s 0 createEmpty
 
-   val insert:
-      s: seq 'a
-      -> i: nat{i <= length s}
-      -> 'a
-      -> Tot (seq 'a)
    let insert s i a =
       let l = slice s 0 i in
       let c = create 1 a in
       let r = slice s i (length s) in
       append (append l c) r
 
-   val __lemma_insert__length:
-      s: seq 'a
-      -> i: nat{i <= length s}
-      -> a: 'a
-      -> Lemma
-         (ensures length (insert s i a) = length s + 1)
-   let __lemma_insert__order s i a =
-      ()
+   let lemma_insert__length s i a = ()
+   let lemma_insert__contents s i a = ()
 
-   val __lemma_insert__contents:
-      s: seq 'a
-      -> i: nat{i <= length s}
-      -> a: 'a
-      -> Lemma
-         (ensures
-            index (insert s i a) i = a
-            /\ (forall j. 0 <= j && j < i
-               ==> index (insert s i a) j = index s j)
-            /\ (forall j. i < j && j < length (insert s i a)
-               ==> index (insert s i a) j = index s (j - 1)))
-   let __lemma_insert__contents s i a =
-      ()
-
-   val remove:
-      s: seq 'a{length s > 0}
-      -> i: nat{i < length s}
-      -> 'a
-      -> Tot (seq 'a)
    let remove s i a =
       let l = slice s 0 i in
       let r = slice s (i + 1) (length s) in
       append l r
 
-   val __lemma_remove__length:
-      s: seq 'a{length s > 0}
-      -> i: nat{i < length s}
-      -> a: 'a
-      -> Lemma
-         (ensures length (remove s i a) = length s - 1)
-   let __lemma_remove__order s i a =
-      ()
-
-   val __lemma_remove__contents:
-      s: seq 'a{length s > 0}
-      -> i: nat{i < length s}
-      -> a: 'a
-      -> Lemma
-         (ensures
-            (forall j. 0 <= j && j < i
-               ==> index (remove s i a) j = index s j)
-            /\ (forall j. i <= j && j < length (remove s i a)
-               ==> index (remove s i a) j = index s (j + 1)))
-   let __lemma_remove__contents s i a =
-      ()
+   let lemma_remove__length s i a = ()
+   let lemma_remove__contents s i a = ()
