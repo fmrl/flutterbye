@@ -19,7 +19,7 @@
 //
 // ,$
 
-module Tesseract.Specs.Primitives
+module Tesseract.Specs.Prelude
    open Seq
 
 val id: 'a -> Tot 'a
