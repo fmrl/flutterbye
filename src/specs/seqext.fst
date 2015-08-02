@@ -168,3 +168,35 @@ module Tesseract.Specs.SeqExt
                ==> index (insert s i a) j = index s (j - 1)))
    let __lemma_insert__contents s i a =
       ()
+
+   val remove:
+      s: seq 'a{length s > 0}
+      -> i: nat{i < length s}
+      -> 'a
+      -> Tot (seq 'a)
+   let remove s i a =
+      let l = slice s 0 i in
+      let r = slice s (i + 1) (length s) in
+      append l r
+
+   val __lemma_remove__length:
+      s: seq 'a{length s > 0}
+      -> i: nat{i < length s}
+      -> a: 'a
+      -> Lemma
+         (ensures length (remove s i a) = length s - 1)
+   let __lemma_remove__order s i a =
+      ()
+
+   val __lemma_remove__contents:
+      s: seq 'a{length s > 0}
+      -> i: nat{i < length s}
+      -> a: 'a
+      -> Lemma
+         (ensures
+            (forall j. 0 <= j && j < i
+               ==> index (remove s i a) j = index s j)
+            /\ (forall j. i <= j && j < length (remove s i a)
+               ==> index (remove s i a) j = index s (j + 1)))
+   let __lemma_remove__contents s i a =
+      ()
