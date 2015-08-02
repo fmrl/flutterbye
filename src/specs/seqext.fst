@@ -134,3 +134,37 @@ module Tesseract.Specs.SeqExt
          ()
       else
          __lemma_filter_loop__selection p s 0 createEmpty
+
+   val insert:
+      s: seq 'a
+      -> i: nat{i <= length s}
+      -> 'a
+      -> Tot (seq 'a)
+   let insert s i a =
+      let l = slice s 0 i in
+      let c = create 1 a in
+      let r = slice s i (length s) in
+      append (append l c) r
+
+   val __lemma_insert__length:
+      s: seq 'a
+      -> i: nat{i <= length s}
+      -> a: 'a
+      -> Lemma
+         (ensures length (insert s i a) = length s + 1)
+   let __lemma_insert__order s i a =
+      ()
+
+   val __lemma_insert__contents:
+      s: seq 'a
+      -> i: nat{i <= length s}
+      -> a: 'a
+      -> Lemma
+         (ensures
+            index (insert s i a) i = a
+            /\ (forall j. 0 <= j && j < i
+               ==> index (insert s i a) j = index s j)
+            /\ (forall j. i < j && j < length (insert s i a)
+               ==> index (insert s i a) j = index s (j - 1)))
+   let __lemma_insert__contents s i a =
+      ()
