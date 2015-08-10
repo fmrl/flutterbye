@@ -24,6 +24,29 @@
 module Tesseract.Specs.SeqExt
    open Seq
 
+   val __mem__loop:
+      s: seq 'a
+      -> i: nat{i < length s}
+      -> 'a
+      -> bool
+      -> Tot bool
+         (decreases (length s - i))
+   let rec __mem__loop s i a c =
+      let z = length s - 1 in
+      let c' = c || (a = index s i) in
+      if z = i then
+         c'
+      else
+         __mem__loop s (i + 1) a c'
+
+   let mem s a =
+      if length s = 0 then
+         false
+      else
+         __mem__loop s 0 a false
+
+   let lemma_mem__mem s a = ()
+
    val __filter_loop:
       // predicate; if false, then the element is discarded from the sequence.
       ('a -> Tot bool)

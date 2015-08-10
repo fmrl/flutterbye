@@ -24,6 +24,22 @@
 module Tesseract.Specs.SeqExt
    open Seq
 
+   val mem: seq 'a -> 'a -> Tot bool
+
+   val lemma_mem__mem:
+      s: seq 'a
+      -> a: 'a
+      -> Lemma
+         (requires True)
+         (ensures
+            ((mem s a)
+               ==>
+                  (exists i.
+                     (0 <= i && i < length s)
+                     ==>
+                        (index s i = a))))
+         [SMTPat (mem s a)]
+
    val filter:
       // predicate; if false, then the element is discarded from the sequence.
       ('a -> Tot bool)
