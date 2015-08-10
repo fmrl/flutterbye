@@ -63,7 +63,7 @@ module Tesseract.Specs.SeqExt
       let a = index s i in
       let c' =
          if p a then
-            append (create 1 a) c
+            append c (create 1 a)
          else
             c in
       if i = z then
@@ -91,7 +91,7 @@ module Tesseract.Specs.SeqExt
       let a = index s i in
       let c' =
          if p a then
-            append (create 1 a) c
+            append c (create 1 a)
          else
             c in
       if i = z then
@@ -122,7 +122,7 @@ module Tesseract.Specs.SeqExt
       let a = index s i in
       let c' =
          if p a then
-            append (create 1 a) c
+            append c (create 1 a)
          else
             c in
       if i = z then
