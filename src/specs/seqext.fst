@@ -105,19 +105,19 @@ module Tesseract.Specs.SeqExt
       else
          __lemma_filter_loop__length p s 0 createEmpty
 
-   val __lemma_filter_loop__contents:
-      p: ('a -> Tot bool) ->
-      s: seq 'a{length s > 0} ->
-      i: nat{i < length s} ->
-      c: seq 'a ->
-      Lemma
+   val __lemma_filter__loop__admission:
+      p: ('a -> Tot bool)
+      -> s: seq 'a{length s > 0}
+      -> i: nat{i < length s}
+      -> c: seq 'a
+      -> k: nat
+      -> Lemma
          (requires (forall j. 0 <= j && j < length c ==> p (index c j)))
          (ensures
-            (forall j.
-               0 <= j && j < length (__filter_loop p s i c)
-               ==> p (index (__filter_loop p s i c) j)))
+            (k < length (__filter_loop p s i c)
+            ==> p (index (__filter_loop p s i c) k)))
          (decreases (length s - i))
-   let rec __lemma_filter_loop__contents p s i c =
+   let rec __lemma_filter__loop__admission p s i c k =
       let z = length s - 1 in
       let a = index s i in
       let c' =
@@ -128,13 +128,13 @@ module Tesseract.Specs.SeqExt
       if i = z then
          ()
       else
-         __lemma_filter_loop__contents p s (i + 1) c'
+         __lemma_filter__loop__admission p s (i + 1) c' k
 
-   let lemma_filter__contents p s =
+   let lemma_filter__admission p s k =
       if length s = 0 then
          ()
       else
-         __lemma_filter_loop__contents p s 0 createEmpty
+         __lemma_filter__loop__admission p s 0 createEmpty k
 
    let insert s i a =
       let l = slice s 0 i in
