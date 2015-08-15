@@ -91,75 +91,42 @@ module Tesseract.Specs.SeqExt
 
    val __mem__loop:
       s: seq 'a
-      -> i: nat{i < length s}
+      -> i: nat{i <= length s}
       -> 'a
       -> bool
       -> Tot bool
          (decreases (length s - i))
    let rec __mem__loop s i a c =
-      let z = length s - 1 in
-      let c' = c || (a = index s i) in
-      if z = i then
-         c'
-      else
+      if i < length s then
+         let c' = c || (a = index s i) in
          __mem__loop s (i + 1) a c'
+      else
+         c
+
+   val __lemma_mem__index__loop:
+      s: seq 'a
+      -> i: nat{i < length s}
+      -> j: nat{j <= length s}
+      -> c: bool
+      -> Lemma
+         (requires (j > i ==> c))
+         (ensures (__mem__loop s j (index s i) c))
+         (decreases (length s - j))
+   let rec __lemma_mem__index__loop s i j c =
+      if j < length s then
+         let c' = c || (index s i = index s j) in
+         __lemma_mem__index__loop s i (j + 1) c'
+      else
+         ()
 
    let mem s a =
-      if length s = 0 then
-         false
-      else
-         __mem__loop s 0 a false
-
+      __mem__loop s 0 a false
    let lemma_mem__mem s a = ()
+   let lemma_mem__index s i =
+      __lemma_mem__index__loop s i 0 false
 
    let lemma_mem__append s0 s1 =
        admit ()
-
-   (* val __lemma_mem__index__loop:
-    s: seq 'a
-    -> i: nat{i < length s}
-    -> Lemma
-       (requires (forall j. 0 <= j && j < i ==> mem s (index s j)))
-       (ensures (forall j. 0 <= j && j <= i ==> mem s (index s j)))
-       (decreases (length s - i))
-    let rec __lemma_mem__index__loop s i =
-       let z = length s - 1 in
-       if z = i then
-          ()
-       else
-          __lemma_mem__index__loop s i *)
-
-   val __lemma_mem__index__loop:
-   s: seq 'a{length s > 0}
-   -> i: nat{i < length s}
-   -> a: 'a{a = index s i}
-   -> j: nat{j < length s}
-   -> c: bool
-   -> Lemma
-      (requires (j > i ==> c))
-      (ensures (j >= i ==> __mem__loop s j a c))
-      (decreases (length s - j))
-   let rec __lemma_mem__index__loop s i a j c =
-      let z = length s - 1 in
-      let c' = c || (a = index s j) in
-      if z = j then
-         ()
-      else
-         __lemma_mem__index__loop s i a (j + 1) c'
-
-   // hypothesis: this lemma isn't working because __mem__loop needs to be unrolled completely in order to prove this.
-   // validated. limiting the length of the sequence and setting the fuel to be > length verifies the lemma.
-   // solution: use map to implement mem.
-#set-options "--initial_fuel 100 --max_fuel 100"
-   val lemma_mem__index:
-      s:seq 'a{length s > 0}
-      -> i:nat{i < length s}
-      -> Lemma
-         (requires (True))
-         (ensures (mem s (index s i)))
-         [SMTPat (index s i)]
-   let lemma_mem__index s i =
-      __lemma_mem__index__loop s i (index s i) 0 false
 
    val __filter__loop:
       // predicate; if false, then the element is discarded from the sequence.

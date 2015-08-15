@@ -95,6 +95,17 @@ module Tesseract.Specs.SeqExt
                         (index s i = a))))
          [SMTPat (mem s a)]
 
+   val lemma_mem__index:
+      s:seq 'a{length s > 0}
+      -> i:nat{i < length s}
+      -> Lemma
+         (requires (True))
+            // bug: if the parenthesis is dropped from the preceeding
+            // expression, f* will silently fail to build the definition if
+            // included as a dependency.
+         (ensures (mem s (index s i)))
+         [SMTPat (mem s (index s i))]
+
    val lemma_mem__append:
       s0: seq 'a
       -> s1: seq 'a
