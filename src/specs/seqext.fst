@@ -91,15 +91,15 @@ module Tesseract.Specs.SeqExt
 
    val __mem__loop:
       s: seq 'a
-      -> i: nat{i <= length s}
       -> 'a
+      -> i: nat{i <= length s}
       -> bool
       -> Tot bool
          (decreases (length s - i))
-   let rec __mem__loop s i a c =
+   let rec __mem__loop s a i c =
       if i < length s then
-         let c' = c || (a = index s i) in
-         __mem__loop s (i + 1) a c'
+         let c' = c || a = index s i in
+         __mem__loop s a (i + 1) c'
       else
          c
 
@@ -110,23 +110,32 @@ module Tesseract.Specs.SeqExt
       -> c: bool
       -> Lemma
          (requires (j > i ==> c))
-         (ensures (__mem__loop s j (index s i) c))
+         (ensures (__mem__loop s (index s i) j c))
          (decreases (length s - j))
    let rec __lemma_mem__index__loop s i j c =
       if j < length s then
-         let c' = c || (index s i = index s j) in
+         let c' = c || index s i = index s j in
          __lemma_mem__index__loop s i (j + 1) c'
       else
          ()
 
    let mem s a =
-      __mem__loop s 0 a false
-   let lemma_mem__mem s a = ()
+      __mem__loop s a 0 false
+   let lemma_mem__mem s a =
+      ()
    let lemma_mem__index s i =
       __lemma_mem__index__loop s i 0 false
 
-   let lemma_mem__append s0 s1 =
-       admit ()
+   val lemma_mem__append:
+      s0: seq 'a
+      -> s1: seq 'a
+      -> a: 'a
+      -> Lemma
+         (requires (True))
+         (ensures ((mem s0 a \/ mem s1 a) <==> mem (append s0 s1) a))
+         [SMTPat (mem (append s0 s1) a)]
+   let lemma_mem__append s0 s1 a =
+      admit ()
 
    val __filter__loop:
       // predicate; if false, then the element is discarded from the sequence.

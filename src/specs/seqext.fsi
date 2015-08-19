@@ -60,9 +60,6 @@ module Tesseract.Specs.SeqExt
       -> s: seq 'a
       -> Lemma
          (requires (True))
-            // bug: if the parenthesis is dropped from the preceeding
-            // expression, f* will silently fail to build the definition if
-            // included as a dependency.
          (ensures (length (map f s) = length s))
          [SMTPat (length (map f s))]
 
@@ -72,9 +69,6 @@ module Tesseract.Specs.SeqExt
       -> i: nat{i < length s}
       -> Lemma
          (requires (True))
-            // bug: if the parenthesis is dropped from the preceeding
-            // expression, f* will silently fail to build the definition if
-            // included as a dependency.
          (ensures (index (map f s) i = f (index s i)))
          [SMTPat (index (map f s) i)]
 
@@ -83,9 +77,6 @@ module Tesseract.Specs.SeqExt
       -> a: 'a
       -> Lemma
          (requires (True))
-            // bug: if the parenthesis is dropped from the preceeding
-            // expression, f* will silently fail to build the definition if
-            // included as a dependency.
          (ensures
             ((mem s a)
                ==>
@@ -100,31 +91,14 @@ module Tesseract.Specs.SeqExt
       -> i:nat{i < length s}
       -> Lemma
          (requires (True))
-            // bug: if the parenthesis is dropped from the preceeding
-            // expression, f* will silently fail to build the definition if
-            // included as a dependency.
          (ensures (mem s (index s i)))
          [SMTPat (mem s (index s i))]
-
-   val lemma_mem__append:
-      s0: seq 'a
-      -> s1: seq 'a
-      -> Lemma
-         (requires (True))
-            // bug: if the parenthesis is dropped from the preceeding
-            // expression, f* will silently fail to build the definition if
-            // included as a dependency.
-         (ensures (exists a. (mem s0 a || mem s1 a) <==> mem (append s0 s1) a))
-         [SMTPat (append s0 s1)]
 
    val lemma_filter__length:
       p: ('a -> Tot bool)
       -> s: seq 'a
       -> Lemma
          (requires (True))
-            // bug: if the parenthesis is dropped from the preceeding
-            // expression, f* will silently fail to build the definition if
-            // included as a dependency.
          (ensures (length (filter p s) <= length s))
          [SMTPat (length (filter p s))]
 
@@ -134,9 +108,6 @@ module Tesseract.Specs.SeqExt
       -> i: nat{i < length (filter p s)}
       -> Lemma
          (requires (True))
-            // bug: if the parenthesis is dropped from the preceeding
-            // expression, f* will silently fail to build the definition if
-            // included as a dependency.
          (ensures (p (index (filter p s) i)))
          [SMTPat (index (filter p s) i)]
 
@@ -146,9 +117,6 @@ module Tesseract.Specs.SeqExt
       -> a: 'a
       -> Lemma
          (requires (True))
-            // bug: if the parenthesis is dropped from the preceeding
-            // expression, f* will silently fail to build the definition if
-            // included as a dependency.
          (ensures (length (insert s i a) = length s + 1))
          [SMTPat (length (insert s i a))]
 
@@ -158,15 +126,13 @@ module Tesseract.Specs.SeqExt
       -> a: 'a
       -> Lemma
          (requires (True))
-            // bug: if the parenthesis is dropped from the preceeding
-            // expression, f* will silently fail to build the definition if
-            // included as a dependency.
          (ensures
             (index (insert s i a) i = a
             /\ (forall j. 0 <= j && j < i
                ==> index (insert s i a) j = index s j)
             /\ (forall j. i < j && j < length (insert s i a)
                ==> index (insert s i a) j = index s (j - 1))))
+         // todo: need trigger.
 
    val lemma_remove__length:
       s: seq 'a{length s > 0}
@@ -174,9 +140,6 @@ module Tesseract.Specs.SeqExt
       -> a: 'a
       -> Lemma
          (requires (True))
-            // bug: if the parenthesis is dropped from the preceeding
-            // expression, f* will silently fail to build the definition if
-            // included as a dependency.
          (ensures (length (remove s i a) = length s - 1))
          [SMTPat (length (remove s i a))]
 
@@ -186,11 +149,9 @@ module Tesseract.Specs.SeqExt
       -> a: 'a
       -> Lemma
          (requires (True))
-            // bug: if the parenthesis is dropped from the preceeding
-            // expression, f* will silently fail to build the definition if
-            // included as a dependency.
          (ensures
             ((forall j. 0 <= j && j < i
                ==> index (remove s i a) j = index s j)
             /\ (forall j. i <= j && j < length (remove s i a)
                ==> index (remove s i a) j = index s (j + 1))))
+         // todo: need trigger
