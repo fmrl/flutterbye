@@ -93,12 +93,16 @@ module Tesseract.Specs.SeqExt
       s: seq 'a
       -> 'a
       -> i: nat{i <= length s}
-      -> bool
-      -> Tot bool
+      -> c: nat{c <= length s}
+      -> Tot (c': nat{c' <= length s})
          (decreases (length s - i))
    let rec __mem__loop s a i c =
       if i < length s then
-         let c' = c || a = index s i in
+         let c' =
+            if c = length s && (a = index s i) then
+               i
+            else
+               c in
          __mem__loop s a (i + 1) c'
       else
          c
@@ -107,24 +111,28 @@ module Tesseract.Specs.SeqExt
       s: seq 'a
       -> i: nat{i < length s}
       -> j: nat{j <= length s}
-      -> c: bool
+      -> c: nat{c <= length s}
       -> Lemma
-         (requires (j > i ==> c))
-         (ensures (__mem__loop s (index s i) j c))
+         (requires (j > i ==> c < length s))
+         (ensures ((__mem__loop s (index s i) j c) < length s))
          (decreases (length s - j))
    let rec __lemma_mem__index__loop s i j c =
       if j < length s then
-         let c' = c || index s i = index s j in
+         let c' =
+            if c = length s && (index s j = index s i) then
+               j
+            else
+               c in
          __lemma_mem__index__loop s i (j + 1) c'
       else
          ()
 
    let mem s a =
-      __mem__loop s a 0 false
+      __mem__loop s a 0 (length s) < length s
    let lemma_mem__mem s a =
       ()
    let lemma_mem__index s i =
-      __lemma_mem__index__loop s i 0 false
+      __lemma_mem__index__loop s i 0 (length s)
 
    val lemma_mem__append:
       s0: seq 'a
