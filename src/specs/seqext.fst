@@ -1,6 +1,6 @@
 (*--build-config
    options:--admit_fsi Seq;
-   other-files:seq.fsi seqext.fsi
+   other-files:seq.fsi seqext.fsi alt/option.fst
 --*)
 
 // $legal:614:
@@ -89,50 +89,72 @@ module Tesseract.Specs.SeqExt
    let lemma_map__map f s i =
       __lemma_map__loop__map f s createEmpty
 
-   val __mem__loop:
+   val __find__loop:
       s: seq 'a
       -> 'a
       -> i: nat{i <= length s}
       -> c: nat{c <= length s}
       -> Tot (c': nat{c' <= length s})
          (decreases (length s - i))
-   let rec __mem__loop s a i c =
+   let rec __find__loop s a i c =
       if i < length s then
          let c' =
             if c = length s && (a = index s i) then
                i
             else
                c in
-         __mem__loop s a (i + 1) c'
+         __find__loop s a (i + 1) c'
       else
          c
 
-   val __lemma_mem__index__loop:
+   val __lemma_find__index__loop:
       s: seq 'a
       -> i: nat{i < length s}
       -> j: nat{j <= length s}
       -> c: nat{c <= length s}
       -> Lemma
          (requires (j > i ==> c < length s))
-         (ensures ((__mem__loop s (index s i) j c) < length s))
+         (ensures ((__find__loop s (index s i) j c) < length s))
          (decreases (length s - j))
-   let rec __lemma_mem__index__loop s i j c =
+   let rec __lemma_find__index__loop s i j c =
       if j < length s then
          let c' =
             if c = length s && (index s j = index s i) then
                j
             else
                c in
-         __lemma_mem__index__loop s i (j + 1) c'
+         __lemma_find__index__loop s i (j + 1) c'
       else
          ()
 
+   val find:
+      s: seq 'a
+      -> a: 'a
+      -> Tot (o: option nat{is_Some o ==> (Alt.Option.get o) < length s})
+   let find s a =
+      let l = length s in
+      let i = __find__loop s a 0 l in
+      if i = length s then
+         None
+      else
+         Some i
+
+   (*val lemma_find__index:
+      s: seq 'a
+      -> i: nat{i < length s}
+      -> Lemma
+         (requires (True))
+         (ensures (is_Some (find s (index s i)) && i = (Alt.Option.get (find s (index s i)))))
+         [SMTPat (find s (index s i))]
+   let lemma_find__index s i =
+      __lemma_find__index__loop s i 0 (length s)*)
+
    let mem s a =
-      __mem__loop s a 0 (length s) < length s
+      is_Some (find s a)
    let lemma_mem__mem s a =
       ()
    let lemma_mem__index s i =
-      __lemma_mem__index__loop s i 0 (length s)
+      __lemma_find__index__loop s i 0 (length s)
 
    val lemma_mem__append:
       s0: seq 'a
