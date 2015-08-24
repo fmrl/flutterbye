@@ -93,14 +93,14 @@ module Tesseract.Specs.SeqExt
       s: seq 'a
       -> 'a
       -> i: nat{i <= length s}
-      -> c: nat{c <= length s}
-      -> Tot (c': nat{c' <= length s})
+      -> c: option nat
+      -> Tot (c': option nat)
          (decreases (length s - i))
    let rec __find__loop s a i c =
       if i < length s then
          let c' =
-            if c = length s && (a = index s i) then
-               i
+            if is_None c && (a = index s i) then
+               Some i
             else
                c in
          __find__loop s a (i + 1) c'
@@ -109,52 +109,65 @@ module Tesseract.Specs.SeqExt
 
    val __lemma_find__index__loop:
       s: seq 'a
-      -> i: nat{i < length s}
-      -> j: nat{j <= length s}
-      -> c: nat{c <= length s}
+      -> a: 'a
+      -> i: nat{i <= length s}
+      -> c: option nat
       -> Lemma
-         (requires (j > i ==> c < length s))
-         (ensures ((__find__loop s (index s i) j c) < length s))
-         (decreases (length s - j))
-   let rec __lemma_find__index__loop s i j c =
-      if j < length s then
+         (requires
+            ((is_None c ==>
+               (forall j.
+                  0 <= j && j < i ==> index s j <> a))
+            /\ (is_Some c ==>
+                  ((Alt.Option.get c) < length s
+                  && a = index s (Alt.Option.get c)))))
+         (ensures
+            ((is_None (__find__loop s a i c) ==>
+               (forall j.
+                  0 <= j && j < length s ==> index s j <> a))
+            /\ (is_Some (__find__loop s a i c) ==>
+                  ((Alt.Option.get (__find__loop s a i c)) < length s
+                  && a = index s (Alt.Option.get (__find__loop s a i c))))))
+         (decreases (length s - i))
+   let rec __lemma_find__index__loop s a i c =
+      if i < length s then
          let c' =
-            if c = length s && (index s j = index s i) then
-               j
+            if is_None c && a = index s i then
+               Some i
             else
                c in
-         __lemma_find__index__loop s i (j + 1) c'
+         __lemma_find__index__loop s a (i + 1) c'
       else
          ()
 
    val find:
       s: seq 'a
-      -> a: 'a
-      -> Tot (o: option nat{is_Some o ==> (Alt.Option.get o) < length s})
+      -> 'a
+      -> Tot (option nat)
    let find s a =
-      let l = length s in
-      let i = __find__loop s a 0 l in
-      if i = length s then
-         None
-      else
-         Some i
+      __find__loop s a 0 None
 
-   (*val lemma_find__index:
+   val lemma_find__index:
       s: seq 'a
-      -> i: nat{i < length s}
+      -> a: 'a
       -> Lemma
          (requires (True))
-         (ensures (is_Some (find s (index s i)) && i = (Alt.Option.get (find s (index s i)))))
-         [SMTPat (find s (index s i))]
-   let lemma_find__index s i =
-      __lemma_find__index__loop s i 0 (length s)*)
+         (ensures
+            ((is_None (find s a) ==>
+               (forall j.
+                  0 <= j && j < length s ==> index s j <> a))
+            /\ (is_Some (find s a) ==>
+                  ((Alt.Option.get (find s a)) < length s
+                  && a = index s (Alt.Option.get (find s a))))))
+         [SMTPat (find s a)]
+   let lemma_find__index s a =
+      __lemma_find__index__loop s a 0 None
 
    let mem s a =
       is_Some (find s a)
    let lemma_mem__mem s a =
       ()
    let lemma_mem__index s i =
-      __lemma_find__index__loop s i 0 (length s)
+      __lemma_find__index__loop s (index s i) 0 None
 
    val lemma_mem__append:
       s0: seq 'a
@@ -232,7 +245,7 @@ module Tesseract.Specs.SeqExt
       -> c: seq 'a
       -> k: nat
       -> Lemma
-         (requires (forall j. 0 <= j && j < length c ==> p (index c j)))
+         (requires (forall i. 0 <= i && i < length c ==> p (index c i)))
          (ensures
             (k < length (__filter__loop p s i c)
             ==> p (index (__filter__loop p s i c) k)))
@@ -263,11 +276,11 @@ module Tesseract.Specs.SeqExt
       -> c: seq 'a
       -> Lemma
          (requires
-            (forall j.
-               (0 <= j && j < length c) ==> (mem s (index c j))))
+            (forall i.
+               (0 <= i && i < length c) ==> (mem s (index c i))))
          (ensures
-            (forall j.
-               (0 <= j && j < length (__filter__loop p s i c)) ==> (mem s (index (__filter__loop p s i c) j))))
+            (forall i.
+               (0 <= i && i < length (__filter__loop p s i c)) ==> (mem s (index (__filter__loop p s i c) i))))
          (decreases (length s - i))
    let rec __lemma_filter__loop__mem p s i c =
       let z = length s - 1 in
