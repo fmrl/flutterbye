@@ -72,20 +72,6 @@ module Tesseract.Specs.SeqExt
          (ensures (index (map f s) i = f (index s i)))
          [SMTPat (index (map f s) i)]
 
-   val lemma_mem__mem:
-      s: seq 'a
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures
-            ((mem s a)
-               ==>
-                  (exists i.
-                     (0 <= i && i < length s)
-                     ==>
-                        (index s i = a))))
-         [SMTPat (mem s a)]
-
    val lemma_mem__index:
       s:seq 'a{length s > 0}
       -> i:nat{i < length s}

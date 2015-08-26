@@ -164,10 +164,65 @@ module Tesseract.Specs.SeqExt
 
    let mem s a =
       is_Some (find s a)
+
+   val lemma_mem__mem:
+      s: seq 'a
+      -> a: 'a
+      -> Lemma
+         (requires (True))
+         (ensures
+            ((mem s a)
+               <==>
+                  (exists i.
+                     0 <= i
+                     && i < length s
+                     && index s i = a)))
+         [SMTPat (mem s a)]
    let lemma_mem__mem s a =
       ()
+
    let lemma_mem__index s i =
       __lemma_find__index__loop s (index s i) 0 None
+
+   val lemma_mem__slice:
+      s0: seq 'a
+      -> a: 'a
+      -> s1: seq 'a
+      -> j: nat{j <= length s1}
+      -> i: nat{0 <= i && i <= j}
+      -> Lemma
+         (requires (mem s0 a))
+         (ensures (Eq s0 (slice s1 i j) ==> mem s1 a))
+         [SMTPat (mem (slice s1 i j) a)]
+   let lemma_mem__slice s0 a s1 j i =
+      ()
+
+   val __lemma_mem__append1:
+      s0: seq 'a
+      -> s1: seq 'a
+      -> a: 'a
+      -> Lemma
+         (requires (True))
+         (ensures (mem s0 a ==> mem (append s0 s1) a))
+   let __lemma_mem__append1 s0 s1 a =
+      ()
+
+   val __lemma_mem__append2:
+      s0: seq 'a
+      -> s1: seq 'a
+      -> a: 'a
+      -> Lemma
+         (requires (True))
+         (ensures (mem s1 a ==> mem (append s0 s1) a))
+   let __lemma_mem__append2 s0 s1 a =
+      if mem s1 a then
+         let s' = append s0 s1 in
+         let i = length s0 in
+         let j = length s' in
+         let s1' = slice s' i j in
+         lemma_mem__slice s1' a s' j i
+      else
+         ()
 
    val lemma_mem__append:
       s0: seq 'a
@@ -175,10 +230,11 @@ module Tesseract.Specs.SeqExt
       -> a: 'a
       -> Lemma
          (requires (True))
-         (ensures ((mem s0 a \/ mem s1 a) <==> mem (append s0 s1) a))
+         (ensures (mem s0 a || mem s1 a <==> mem (append s0 s1) a))
          [SMTPat (mem (append s0 s1) a)]
    let lemma_mem__append s0 s1 a =
-      admit ()
+      __lemma_mem__append1 s0 s1 a;
+      __lemma_mem__append2 s0 s1 a
 
    val __filter__loop:
       // predicate; if false, then the element is discarded from the sequence.
