@@ -1,6 +1,6 @@
 (*--build-config
    options:--admit_fsi Seq;
-   other-files:seq.fsi seqext.fsi alt/option.fst
+   other-files:seq.fsi alt/option.fst seqext.fsi
 --*)
 
 // $legal:614:
@@ -139,51 +139,20 @@ module Tesseract.Specs.SeqExt
       else
          ()
 
-   val find:
-      s: seq 'a
-      -> 'a
-      -> Tot (option nat)
    let find s a =
       __find__loop s a 0 None
-
-   val lemma_find__index:
-      s: seq 'a
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures
-            ((is_None (find s a) ==>
-               (forall j.
-                  0 <= j && j < length s ==> index s j <> a))
-            /\ (is_Some (find s a) ==>
-                  ((Alt.Option.get (find s a)) < length s
-                  && a = index s (Alt.Option.get (find s a))))))
-         [SMTPat (find s a)]
    let lemma_find__index s a =
       __lemma_find__index__loop s a 0 None
 
    let mem s a =
       is_Some (find s a)
-
-   val lemma_mem__mem:
-      s: seq 'a
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures
-            ((mem s a)
-               <==>
-                  (exists i.
-                     0 <= i
-                     && i < length s
-                     && index s i = a)))
-         [SMTPat (mem s a)]
    let lemma_mem__mem s a =
       ()
 
    let lemma_mem__index s i =
       __lemma_find__index__loop s (index s i) 0 None
 
+   // todo: breaks f* if moved to seqext.fsi.
    val lemma_mem__slice:
       s0: seq 'a
       -> a: 'a
@@ -224,14 +193,6 @@ module Tesseract.Specs.SeqExt
       else
          ()
 
-   val lemma_mem__append:
-      s0: seq 'a
-      -> s1: seq 'a
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures (mem s0 a || mem s1 a <==> mem (append s0 s1) a))
-         [SMTPat (mem (append s0 s1) a)]
    let lemma_mem__append s0 s1 a =
       __lemma_mem__append1 s0 s1 a;
       __lemma_mem__append2 s0 s1 a
@@ -343,15 +304,6 @@ module Tesseract.Specs.SeqExt
                c in
          __lemma_filter__loop__mem p s (i + 1) c'
 
-   val lemma_filter__mem:
-      p: ('a -> Tot bool) ->
-      s: seq 'a ->
-      Lemma
-         (requires (True))
-         (ensures
-            (forall i.
-               0 <= i && i < length (filter p s)
-               ==> mem s (index (filter p s) i)))
    let lemma_filter__mem p s =
       __lemma_filter__loop__mem p s 0 createEmpty
 

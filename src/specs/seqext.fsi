@@ -1,6 +1,6 @@
 (*--build-config
    options:--admit_fsi Seq;
-   other-files:seq.fsi
+   other-files:seq.fsi alt/option.fst
 --*)
 
 // $legal:614:
@@ -31,6 +31,8 @@ module Tesseract.Specs.SeqExt
       -> s: seq 'a
       // output sequence
       -> Tot (seq 'b)
+
+   val find: s: seq 'a -> 'a -> Tot (option nat)
 
    val mem: seq 'a -> 'a -> Tot bool
 
@@ -72,6 +74,45 @@ module Tesseract.Specs.SeqExt
          (ensures (index (map f s) i = f (index s i)))
          [SMTPat (index (map f s) i)]
 
+   val lemma_find__index:
+      s: seq 'a
+      -> a: 'a
+      -> Lemma
+         (requires (True))
+         (ensures
+            ((is_None (find s a) ==>
+               (forall j.
+                  0 <= j && j < length s ==> index s j <> a))
+            /\ (is_Some (find s a) ==>
+                  ((Alt.Option.get (find s a)) < length s
+                  && a = index s (Alt.Option.get (find s a))))))
+         [SMTPat (find s a)]
+
+   val lemma_mem__mem:
+      s: seq 'a
+      -> a: 'a
+      -> Lemma
+         (requires (True))
+         (ensures
+            ((mem s a)
+               <==>
+                  (exists i.
+                     0 <= i
+                     && i < length s
+                     && index s i = a)))
+         [SMTPat (mem s a)]
+
+   val lemma_mem__slice:
+      s0: seq 'a
+      -> a: 'a
+      -> s1: seq 'a
+      -> j: nat{j <= length s1}
+      -> i: nat{0 <= i && i <= j}
+      -> Lemma
+         (requires (mem s0 a))
+         (ensures (Eq s0 (slice s1 i j) ==> mem s1 a))
+         [SMTPat (mem (slice s1 i j) a)]
+
    val lemma_mem__index:
       s:seq 'a{length s > 0}
       -> i:nat{i < length s}
@@ -79,6 +120,15 @@ module Tesseract.Specs.SeqExt
          (requires (True))
          (ensures (mem s (index s i)))
          [SMTPat (mem s (index s i))]
+
+   val lemma_mem__append:
+      s0: seq 'a
+      -> s1: seq 'a
+      -> a: 'a
+      -> Lemma
+         (requires (True))
+         (ensures (mem s0 a || mem s1 a <==> mem (append s0 s1) a))
+         [SMTPat (mem (append s0 s1) a)]
 
    val lemma_filter__length:
       p: ('a -> Tot bool)
@@ -96,6 +146,16 @@ module Tesseract.Specs.SeqExt
          (requires (True))
          (ensures (p (index (filter p s) i)))
          [SMTPat (index (filter p s) i)]
+
+   val lemma_filter__mem:
+      p: ('a -> Tot bool) ->
+      s: seq 'a ->
+      Lemma
+         (requires (True))
+         (ensures
+            (forall i.
+               0 <= i && i < length (filter p s)
+               ==> mem s (index (filter p s) i)))
 
    val lemma_insert__length:
       s: seq 'a
