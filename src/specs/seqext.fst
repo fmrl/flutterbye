@@ -240,119 +240,110 @@ module Tesseract.Specs.SeqExt
       // predicate; if false, then the element is discarded from the sequence.
       ('a -> Tot bool)
       // input sequence
-      -> s: seq 'a{length s > 0}
-      // index of element being reduced
-      -> i: nat{i < length s}
+      -> s: seq 'a
+      // index of element being reduced with (length s) as representing
+      // the base case.
+      -> i: nat{i <= length s}
       // accumulator; in this case, the output sequence.
       -> c: seq 'a
       -> Tot (seq 'a)
          (decreases (length s - i))
    let rec __filter__loop p s i c =
-      let z = length s - 1 in
-      let a = index s i in
-      let c' =
-         if p a then
-            append c (create 1 a)
-         else
-            c in
-      if i = z then
-         c'
+      if i = length s then
+         c
       else
+         let a = index s i in
+         let c' =
+            if p a then
+               append c (create 1 a)
+            else
+               c in
          __filter__loop p s (i + 1) c'
 
    let filter p s =
-      if length s = 0 then
-         createEmpty
-      else
-         __filter__loop p s 0 createEmpty
+      __filter__loop p s 0 createEmpty
 
    val __lemma_filter__loop__length:
       p: ('a -> Tot bool) ->
-      s: seq 'a{length s > 0} ->
-      i: nat{i < length s} ->
+      s: seq 'a ->
+      i: nat{i <= length s} ->
       c: seq 'a ->
       Lemma
          (requires (length c <= i))
          (ensures (length (__filter__loop p s i c) <= length s))
          (decreases (length s - i))
    let rec __lemma_filter__loop__length p s i c =
-      let z = length s - 1 in
-      let a = index s i in
-      let c' =
-         if p a then
-            append c (create 1 a)
-         else
-            c in
-      if i = z then
+      if i = length s then
          ()
       else
+         let a = index s i in
+         let c' =
+            if p a then
+               append c (create 1 a)
+            else
+               c in
          __lemma_filter__loop__length p s (i + 1) c'
 
    let lemma_filter__length p s =
-      if length s = 0 then
-         ()
-      else
-         __lemma_filter__loop__length p s 0 createEmpty
+      __lemma_filter__loop__length p s 0 createEmpty
 
    val __lemma_filter__loop__admission:
       p: ('a -> Tot bool)
-      -> s: seq 'a{length s > 0}
-      -> i: nat{i < length s}
+      -> s: seq 'a
+      -> i: nat{i <= length s}
+      // accumulator-- in this case, a filtered sequence being constructed.
       -> c: seq 'a
-      -> k: nat
+      // free variable (forall)
+      -> j: nat
       -> Lemma
-         (requires (forall i. 0 <= i && i < length c ==> p (index c i)))
+         (requires
+            (forall k.
+               0 <= k && k < length c ==> p (index c k)))
          (ensures
-            (k < length (__filter__loop p s i c)
-            ==> p (index (__filter__loop p s i c) k)))
+            (j < length (__filter__loop p s i c)
+            ==> p (index (__filter__loop p s i c) j)))
          (decreases (length s - i))
-   let rec __lemma_filter__loop__admission p s i c k =
-      let z = length s - 1 in
-      let a = index s i in
-      let c' =
-         if p a then
-            append c (create 1 a)
-         else
-            c in
-      if i = z then
+   let rec __lemma_filter__loop__admission p s i c j =
+      if i = length s then
          ()
       else
-         __lemma_filter__loop__admission p s (i + 1) c' k
+         let a = index s i in
+         let c' =
+            if p a then
+               append c (create 1 a)
+            else
+               c in
+         __lemma_filter__loop__admission p s (i + 1) c' j
 
-   let lemma_filter__admission p s k =
-      if length s = 0 then
-         ()
-      else
-         __lemma_filter__loop__admission p s 0 createEmpty k
+   let lemma_filter__admission p s i =
+      __lemma_filter__loop__admission p s 0 createEmpty i
 
    val __lemma_filter__loop__mem:
       p: ('a -> Tot bool)
-      -> s: seq 'a{length s > 0}
-      -> i: nat{i < length s}
+      -> s: seq 'a
+      -> i: nat{i <= length s}
       -> c: seq 'a
       -> Lemma
          (requires
-            (forall i.
-               (0 <= i && i < length c) ==> (mem s (index c i))))
+            (forall j.
+               (0 <= j && j < length c) ==> (mem s (index c j))))
          (ensures
-            (forall i.
-               (0 <= i && i < length (__filter__loop p s i c)) ==> (mem s (index (__filter__loop p s i c) i))))
+            (forall j.
+               (0 <= j && j < length (__filter__loop p s i c)) ==> (mem s (index (__filter__loop p s i c) j))))
          (decreases (length s - i))
    let rec __lemma_filter__loop__mem p s i c =
-      let z = length s - 1 in
-      let a = index s i in
-      //lemma_mem__mem s a;
-      let c' =
-         if p a then
-            append c (create 1 a)
-         else
-            c in
-      if i = z then
+      if i = length s then
          ()
       else
-         admit ()//__lemma_filter__loop__mem p s (i + 1) c'
+         let a = index s i in
+         let c' =
+            if p a then
+               append c (create 1 a)
+            else
+               c in
+         __lemma_filter__loop__mem p s (i + 1) c'
 
-   (*val lemma_filter__mem:
+   val lemma_filter__mem:
       p: ('a -> Tot bool) ->
       s: seq 'a ->
       Lemma
@@ -362,10 +353,7 @@ module Tesseract.Specs.SeqExt
                0 <= i && i < length (filter p s)
                ==> mem s (index (filter p s) i)))
    let lemma_filter__mem p s =
-      if length s = 0 then
-         ()
-      else
-         __lemma_filter__loop__mem p s 0 createEmpty *)
+      __lemma_filter__loop__mem p s 0 createEmpty
 
    let insert s i a =
       let l = slice s 0 i in
