@@ -1,7 +1,7 @@
-tesser|act
-==========
+bdbdbdbd
+========
 
-this is the official repository for **tesseract**, an experimental actor system runtime.
+this is the official repository for **bdbdbdbd**, an experimental actor system runtime.
 
 this is an early work in progress and development is performed entirely on branches. please see the *wip-presentable* branch for the most recent presentable snapshot of the project.
 
