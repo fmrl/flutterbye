@@ -137,14 +137,6 @@ module Tesseract.Specs.SeqExt
          (ensures (mem s0 a || mem s1 a <==> mem (append s0 s1) a))
          [SMTPat (mem (append s0 s1) a)]
 
-   val lemma_filter__length:
-      p: ('a -> Tot bool)
-      -> s: seq 'a
-      -> Lemma
-         (requires (True))
-         (ensures (length (filter p s) <= length s))
-         [SMTPat (length (filter p s))]
-
    val lemma_filter__admission:
       p: ('a -> Tot bool)
       -> s: seq 'a
