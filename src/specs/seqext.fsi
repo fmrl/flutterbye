@@ -43,6 +43,13 @@ module Tesseract.Specs.SeqExt
       -> seq 'a // input sequence
       -> Tot (seq 'a) // output sequence
 
+   val count:
+      ('a -> Tot bool)
+         // predicate; if false, then the element is discarded from the
+         // sequence.
+      -> seq 'a // input sequence
+      -> Tot nat
+
    val insert:
       s: seq 'a
       -> i: nat{i <= length s}
@@ -156,6 +163,14 @@ module Tesseract.Specs.SeqExt
             (forall i.
                0 <= i && i < length (filter p s)
                ==> mem s (index (filter p s) i)))
+
+   val lemma_count__length:
+      p: ('a -> Tot bool)
+      -> s: seq 'a
+      -> Lemma
+         (requires (True))
+         (ensures (count p s <= length s))
+         [SMTPat (count p s)]
 
    val lemma_insert__length:
       s: seq 'a

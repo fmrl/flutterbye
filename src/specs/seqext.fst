@@ -245,6 +245,13 @@ module Tesseract.Specs.SeqExt
                c in
          __lemma_filter__loop__length p s (i + 1) c'
 
+   val lemma_filter__length:
+      p: ('a -> Tot bool)
+      -> s: seq 'a
+      -> Lemma
+         (requires (True))
+         (ensures (length (filter p s) <= length s))
+         [SMTPat (length (filter p s))]
    let lemma_filter__length p s =
       __lemma_filter__loop__length p s 0 createEmpty
 
@@ -306,6 +313,12 @@ module Tesseract.Specs.SeqExt
 
    let lemma_filter__mem p s =
       __lemma_filter__loop__mem p s 0 createEmpty
+
+   let count p s =
+      length (filter p s)
+
+   let lemma_count__length p s =
+      lemma_filter__length p s
 
    let insert s i a =
       let l = slice s 0 i in
