@@ -1,5 +1,5 @@
 (*--build-config
-   options:--admit_fsi Seq;
+   options:--admit_fsi FStar.Seq;
    other-files:seq.fsi alt/option.fst
 --*)
 
@@ -22,7 +22,7 @@
 // ,$
 
 module Tesseract.Specs.SeqExt
-   open Seq
+   open FStar.Seq
 
    val map:
       // high-order mapping function
