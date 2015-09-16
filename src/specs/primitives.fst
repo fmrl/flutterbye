@@ -27,17 +27,28 @@ module Tesseract.Specs.Primitives
    type Chronology 'arg 'state =
       | MkCron:
          react:(Reaction 'arg 'state)
-         -> s0:'state
+         -> state0:'state
          -> log:(seq (Effect 'arg 'state))
          -> Chronology 'arg 'state
 
-   let empty f s0 a =
-      let e0 = {
-         rid = 0;
-         knd = Spawn;
-         arg = a
+   let empty react state0 arg =
+      let effect0 = {
+         region_id = 0;
+         effect_kind = Spawn;
+         arg = arg
       } in
-      MkCron f s0 (create 1 e0)
+      MkCron react state0 (create 1 effect0)
+
+   let length cron =
+      length (Chronology.log cron)
+
+   let event cron i =
+      index (Chronology.log cron) i
+
+   let first cron =
+      let evt = index cron 0 in
+      assert (evt.effect_kind = Spawn);
+      evt.region_id
 
 (*type ChronologyInvariant__region_id_order:
       #arg:Type

@@ -29,14 +29,14 @@ module Tesseract.Specs.Primitives
       | Influence
 
    type Effect 'arg = {
-         rid:nat;          // region id
-         knd:EffectKind;   // kind
-         arg:'arg          // argument
+         region_id:nat;
+         effect_kind:EffectKind;
+         arg:'arg
       }
 
    type Reaction 'arg 'state =
-      evt:(Event 'arg)  // event
-      -> st:'state      // current state
+      effect:(Effect 'arg)
+      -> state:'state
       -> Tot ('state * '(seq (Effect 'arg)))
                         // (consequential effects * new state)
 
@@ -48,9 +48,11 @@ module Tesseract.Specs.Primitives
       -> 'arg
       -> Chronology 'arg 'state
 
-   val length: Chronology 'arg 'state -> Tot (nat)
+   val length: Chronology 'arg 'state -> Tot nat
 
-   val width: Chronology 'arg 'state -> Tot (nat)
+   val width: Chronology 'arg 'state -> Tot nat
+
+   val first: Chronology 'arg 'state -> Tot nat
 
    val event:
       c:Chronology 'arg 'state
