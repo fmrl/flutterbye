@@ -117,7 +117,7 @@ module Monarch.Specs.SeqExt
       -> a: 'a
       -> s1: seq 'a
       -> j: nat{j <= length s1}
-      -> i: nat{0 <= i && i <= j}
+      -> i: nat{i <= j}
       -> Lemma
          (requires (mem s0 a))
          (ensures (Eq s0 (slice s1 i j) ==> mem s1 a))
