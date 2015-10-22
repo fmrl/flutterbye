@@ -1,6 +1,6 @@
 (*--build-config
    options:--admit_fsi FStar.Seq;
-   other-files:seq.fsi alt/option.fst seqext.fsi
+   other-files:seq.fsi seqext.fsi
 --*)
 
 // $legal:614:
@@ -23,6 +23,12 @@
 
 module Monarch.Specs.SeqExt
    open FStar.Seq
+
+   // todo: this isn't working when used from Alt.Option
+   let option_get o =
+      match o with
+         | Some a ->
+            a
 
    val __map__loop:
       // mapping function
@@ -118,15 +124,15 @@ module Monarch.Specs.SeqExt
                (forall j.
                   0 <= j && j < i ==> index s j <> a))
             /\ (is_Some c ==>
-                  ((Alt.Option.get c) < length s
-                  && a = index s (Alt.Option.get c)))))
+                  ((option_get c) < length s
+                  && a = index s (option_get c)))))
          (ensures
             ((is_None (__find__loop s a i c) ==>
                (forall j.
                   0 <= j && j < length s ==> index s j <> a))
             /\ (is_Some (__find__loop s a i c) ==>
-                  ((Alt.Option.get (__find__loop s a i c)) < length s
-                  && a = index s (Alt.Option.get (__find__loop s a i c))))))
+                  ((option_get (__find__loop s a i c)) < length s
+                  && a = index s (option_get (__find__loop s a i c))))))
          (decreases (length s - i))
    let rec __lemma_find__index__loop s a i c =
       if i < length s then
@@ -152,17 +158,6 @@ module Monarch.Specs.SeqExt
    let lemma_mem__index s i =
       __lemma_find__index__loop s (index s i) 0 None
 
-   // todo: breaks f* if moved to seqext.fsi.
-   val lemma_mem__slice:
-      s0: seq 'a
-      -> a: 'a
-      -> s1: seq 'a
-      -> j: nat{j <= length s1}
-      -> i: nat{0 <= i && i <= j}
-      -> Lemma
-         (requires (mem s0 a))
-         (ensures (Eq s0 (slice s1 i j) ==> mem s1 a))
-         [SMTPat (mem (slice s1 i j) a)]
    let lemma_mem__slice s0 a s1 j i =
       ()
 

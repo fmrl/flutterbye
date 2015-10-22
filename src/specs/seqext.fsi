@@ -24,6 +24,9 @@
 module Monarch.Specs.SeqExt
    open FStar.Seq
 
+   // todo: this isn't working when used from Alt.Option
+   val option_get: o: option 'a{is_Some o} -> Tot 'a
+
    val map:
       // high-order mapping function
       ('a -> Tot 'b)
@@ -91,8 +94,8 @@ module Monarch.Specs.SeqExt
                (forall j.
                   0 <= j && j < length s ==> index s j <> a))
             /\ (is_Some (find s a) ==>
-                  ((Alt.Option.get (find s a)) < length s
-                  && a = index s (Alt.Option.get (find s a))))))
+                  ((option_get (find s a)) < length s
+                  && a = index s (option_get (find s a))))))
          [SMTPat (find s a)]
 
    val lemma_mem__mem:
@@ -127,6 +130,18 @@ module Monarch.Specs.SeqExt
          (requires (True))
          (ensures (mem s (index s i)))
          [SMTPat (mem s (index s i))]
+
+   // todo: breaks f* if moved to seqext.fsi.
+   val lemma_mem__slice:
+      s0: seq 'a
+      -> a: 'a
+      -> s1: seq 'a
+      -> j: nat{j <= length s1}
+      -> i: nat{0 <= i && i <= j}
+      -> Lemma
+         (requires (mem s0 a))
+         (ensures (Eq s0 (slice s1 i j) ==> mem s1 a))
+         [SMTPat (mem (slice s1 i j) a)]
 
    val lemma_mem__append:
       s0: seq 'a
