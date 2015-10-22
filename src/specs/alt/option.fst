@@ -1,7 +1,7 @@
 (*--build-config
 --*)
 
-module Tesseract.Specs.Alt.Option
+module Monarch.Specs.Alt.Option
 
    val get: o: option 'a{is_Some o} -> Tot 'a
    let get o =

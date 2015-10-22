@@ -21,7 +21,7 @@
 //
 // ,$
 
-module Tesseract.Specs.SeqExt
+module Monarch.Specs.SeqExt
    open FStar.Seq
 
    val __map__loop:

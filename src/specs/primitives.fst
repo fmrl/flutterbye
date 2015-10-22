@@ -21,7 +21,7 @@
 //
 // ,$
 
-module Tesseract.Specs.Primitives
+module Monarch.Specs.Primitives
    open Seq
 
    type Chronology 'arg 'state =
