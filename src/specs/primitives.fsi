@@ -21,7 +21,7 @@
 //
 // ,$
 
-module Monarch.Specs.Primitives
+module Flutterbye.Specs.Primitives
    open Seq
 
    type EffectKind =

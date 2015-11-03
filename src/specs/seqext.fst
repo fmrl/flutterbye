@@ -21,7 +21,7 @@
 //
 // ,$
 
-module Monarch.Specs.SeqExt
+module Flutterbye.Specs.SeqExt
    open FStar.Seq
 
    // todo: this isn't working when used from Alt.Option
