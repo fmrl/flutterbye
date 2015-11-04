@@ -1,6 +1,6 @@
 (*--build-config
-   options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Find;
-   other-files:seq.fsi seqext.fsi ../Flutterbye.Seq.Find.fsi
+   options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Find --admit_fsi Flutterbye.Seq.Mem;
+   other-files:seq.fsi ../Flutterbye.Seq.Find.fsi ../Flutterbye.Seq.Mem.fsi seqext.fsi 
 --*)
 
 // $legal:614:
@@ -24,48 +24,7 @@
 module Flutterbye.Specs.SeqExt
    open FStar.Seq
    open Flutterbye.Seq.Find
-
-   let mem s a =
-      is_Some (find s a)
-   let lemma_mem__mem s a =
-      ()
-
-   let lemma_mem__index s i =
-      Flutterbye.Seq.Find.lemma__result s (index s i)
-
-   let lemma_mem__slice s0 a s1 j i =
-      ()
-
-   val __lemma_mem__append1:
-      s0: seq 'a
-      -> s1: seq 'a
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures (mem s0 a ==> mem (append s0 s1) a))
-   let __lemma_mem__append1 s0 s1 a =
-      ()
-
-   val __lemma_mem__append2:
-      s0: seq 'a
-      -> s1: seq 'a
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures (mem s1 a ==> mem (append s0 s1) a))
-   let __lemma_mem__append2 s0 s1 a =
-      if mem s1 a then
-         let s' = append s0 s1 in
-         let i = length s0 in
-         let j = length s' in
-         let s1' = slice s' i j in
-         lemma_mem__slice s1' a s' j i
-      else
-         ()
-
-   let lemma_mem__append s0 s1 a =
-      __lemma_mem__append1 s0 s1 a;
-      __lemma_mem__append2 s0 s1 a
+   open Flutterbye.Seq.Mem
 
    val __filter__loop:
       // predicate; if false, then the element is discarded from the sequence.

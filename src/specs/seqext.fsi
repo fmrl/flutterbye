@@ -1,6 +1,6 @@
 (*--build-config
-   options:--admit_fsi FStar.Seq;
-   other-files:seq.fsi
+   options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Mem;
+   other-files:seq.fsi ../Flutterbye.Seq.Mem.fsi
 --*)
 
 // $legal:614:
@@ -23,8 +23,7 @@
 
 module Flutterbye.Specs.SeqExt
    open FStar.Seq
-
-   val mem: seq 'a -> 'a -> Tot bool
+   open Flutterbye.Seq.Mem
 
    val filter:
       ('a -> Tot bool)
@@ -57,61 +56,6 @@ module Flutterbye.Specs.SeqExt
    val is_set: (s:seq 'a) -> Tot bool
 
    // lemmas
-
-
-   val lemma_mem__mem:
-      s: seq 'a
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures
-            ((mem s a)
-               <==>
-                  (exists i.
-                     0 <= i
-                     && i < length s
-                     && index s i = a)))
-         [SMTPat (mem s a)]
-
-   val lemma_mem__slice:
-      s0: seq 'a
-      -> a: 'a
-      -> s1: seq 'a
-      -> j: nat{j <= length s1}
-      -> i: nat{i <= j}
-      -> Lemma
-         (requires (mem s0 a))
-         (ensures (Eq s0 (slice s1 i j) ==> mem s1 a))
-         [SMTPat (mem (slice s1 i j) a)]
-
-   val lemma_mem__index:
-      s:seq 'a{length s > 0}
-      -> i:nat{i < length s}
-      -> Lemma
-         (requires (True))
-         (ensures (mem s (index s i)))
-         [SMTPat (mem s (index s i))]
-
-   // todo: breaks f* if moved to seqext.fsi.
-   val lemma_mem__slice:
-      s0: seq 'a
-      -> a: 'a
-      -> s1: seq 'a
-      -> j: nat{j <= length s1}
-      -> i: nat{0 <= i && i <= j}
-      -> Lemma
-         (requires (mem s0 a))
-         (ensures (Eq s0 (slice s1 i j) ==> mem s1 a))
-         [SMTPat (mem (slice s1 i j) a)]
-
-   val lemma_mem__append:
-      s0: seq 'a
-      -> s1: seq 'a
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures (mem s0 a || mem s1 a <==> mem (append s0 s1) a))
-         [SMTPat (mem (append s0 s1) a)]
 
    val lemma_filter__admission:
       p: ('a -> Tot bool)
