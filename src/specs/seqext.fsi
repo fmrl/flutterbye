@@ -27,14 +27,6 @@ module Flutterbye.Specs.SeqExt
    // todo: this isn't working when used from Alt.Option
    val option_get: o: option 'a{is_Some o} -> Tot 'a
 
-   val map:
-      // high-order mapping function
-      ('a -> Tot 'b)
-      // input sequence
-      -> s: seq 'a
-      // output sequence
-      -> Tot (seq 'b)
-
    val find: s: seq 'a -> 'a -> Tot (option nat)
 
    val mem: seq 'a -> 'a -> Tot bool
@@ -70,23 +62,6 @@ module Flutterbye.Specs.SeqExt
    val is_set: (s:seq 'a) -> Tot bool
 
    // lemmas
-
-   val lemma_map__length:
-      f: ('a -> Tot 'b)
-      -> s: seq 'a
-      -> Lemma
-         (requires (True))
-         (ensures (length (map f s) = length s))
-         [SMTPat (length (map f s))]
-
-   val lemma_map__map:
-      f: ('a -> Tot 'b)
-      -> s: seq 'a
-      -> i: nat{i < length s}
-      -> Lemma
-         (requires (True))
-         (ensures (index (map f s) i = f (index s i)))
-         [SMTPat (index (map f s) i)]
 
    val lemma_find__index:
       s: seq 'a
