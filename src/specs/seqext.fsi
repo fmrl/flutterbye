@@ -51,10 +51,6 @@ module Flutterbye.Specs.SeqExt
       -> 'a
       -> Tot (seq 'a)
 
-   type IsSet: #a:Type -> s:seq a -> Type
-
-   val is_set: (s:seq 'a) -> Tot bool
-
    // lemmas
 
    val lemma_filter__admission:
@@ -128,9 +124,3 @@ module Flutterbye.Specs.SeqExt
             /\ (forall j. i <= j && j < length (remove s i a)
                ==> index (remove s i a) j = index s (j + 1))))
          // todo: need trigger
-
-   val lemma_is_set__is_set:
-      s:seq 'a
-      -> Lemma
-         (requires (True))
-         (ensures (is_set s <==> IsSet s))

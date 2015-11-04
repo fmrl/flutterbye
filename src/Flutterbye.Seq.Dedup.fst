@@ -1,0 +1,89 @@
+(*--build-config
+   options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Mem;
+   other-files:seq.fsi Flutterbye.Seq.Dedup.fsi Flutterbye.Seq.Mem.fsi
+--*)
+
+// $legal:614:
+//
+// Copyright 2015 Michael Lowell Roberts
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// ,$
+
+module Flutterbye.Seq.Dedup
+   open FStar.Seq
+   open Flutterbye.Seq.Mem
+
+   // bug: the syntax `type Dedup 'a (s:seq 'a) =` doesn't appear to work.
+   // is it supposed to?
+   type Dedup (#a:Type) (s:seq a) =
+      0 = length s
+      \/ (forall (i:nat) (j:nat).
+            i < length s
+            && j < length s
+            && index s j = index s i
+            ==>
+               j == i)
+
+   val dedup__loop:
+      // input sequence
+      s: seq 'a
+      // index of element being examined
+      -> i: nat{i <= length s}
+      // accumulator; in this case, a set to track members of the sequence.
+      -> c: seq 'a{Dedup c}
+      -> Tot bool
+         (decreases (length s - i))
+   let rec dedup__loop s i c =
+      if i < length s then
+         let a = index s i in
+         if mem c a then
+            false
+         else
+            let c' = append c (create 1 a) in
+            dedup__loop s (i + 1) c'
+      else
+         true
+
+   let dedup s =
+      dedup__loop s 0 createEmpty
+
+   val lemma__basic__loop:
+      // input sequence
+      s:seq 'a
+      // index of element being examined
+      -> i:nat{i <= length s}
+      // accumulator; in this case, a set to track members of the sequence.
+      -> c:seq 'a{Dedup c}
+      -> Lemma
+         (requires
+            (Eq c (slice s 0 i)
+            /\ length c = i))
+               // todo: it seems that length c = i should be implied by the
+               // Eq c (slice s 0 i) property.
+         (ensures (dedup__loop s i c <==> Dedup s))
+         (decreases (length s - i))
+   let rec lemma__basic__loop s i c =
+      if i < length s then
+         let a = index s i in
+         if mem c a then
+            ()
+         else
+            let c' = append c (create 1 a) in
+            lemma__basic__loop s (i + 1) c'
+      else
+         ()
+
+   let lemma__basic s =
+      lemma__basic__loop s 0 createEmpty
