@@ -1,6 +1,6 @@
 (*--build-config
-   options:--admit_fsi FStar.Seq;
-   other-files:seq.fsi seqext.fsi
+   options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Find;
+   other-files:seq.fsi seqext.fsi ../Flutterbye.Seq.Find.fsi
 --*)
 
 // $legal:614:
@@ -23,67 +23,7 @@
 
 module Flutterbye.Specs.SeqExt
    open FStar.Seq
-
-   // todo: this isn't working when used from Alt.Option
-   let option_get o =
-      match o with
-         | Some a ->
-            a
-
-   val __find__loop:
-      s: seq 'a
-      -> 'a
-      -> i: nat{i <= length s}
-      -> c: option nat
-      -> Tot (c': option nat)
-         (decreases (length s - i))
-   let rec __find__loop s a i c =
-      if i < length s then
-         let c' =
-            if is_None c && (a = index s i) then
-               Some i
-            else
-               c in
-         __find__loop s a (i + 1) c'
-      else
-         c
-
-   val __lemma_find__index__loop:
-      s: seq 'a
-      -> a: 'a
-      -> i: nat{i <= length s}
-      -> c: option nat
-      -> Lemma
-         (requires
-            ((is_None c ==>
-               (forall j.
-                  0 <= j && j < i ==> index s j <> a))
-            /\ (is_Some c ==>
-                  ((option_get c) < length s
-                  && a = index s (option_get c)))))
-         (ensures
-            ((is_None (__find__loop s a i c) ==>
-               (forall j.
-                  0 <= j && j < length s ==> index s j <> a))
-            /\ (is_Some (__find__loop s a i c) ==>
-                  ((option_get (__find__loop s a i c)) < length s
-                  && a = index s (option_get (__find__loop s a i c))))))
-         (decreases (length s - i))
-   let rec __lemma_find__index__loop s a i c =
-      if i < length s then
-         let c' =
-            if is_None c && a = index s i then
-               Some i
-            else
-               c in
-         __lemma_find__index__loop s a (i + 1) c'
-      else
-         ()
-
-   let find s a =
-      __find__loop s a 0 None
-   let lemma_find__index s a =
-      __lemma_find__index__loop s a 0 None
+   open Flutterbye.Seq.Find
 
    let mem s a =
       is_Some (find s a)
@@ -91,7 +31,7 @@ module Flutterbye.Specs.SeqExt
       ()
 
    let lemma_mem__index s i =
-      __lemma_find__index__loop s (index s i) 0 None
+      Flutterbye.Seq.Find.lemma__result s (index s i)
 
    let lemma_mem__slice s0 a s1 j i =
       ()

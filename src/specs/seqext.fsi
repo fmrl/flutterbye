@@ -24,11 +24,6 @@
 module Flutterbye.Specs.SeqExt
    open FStar.Seq
 
-   // todo: this isn't working when used from Alt.Option
-   val option_get: o: option 'a{is_Some o} -> Tot 'a
-
-   val find: s: seq 'a -> 'a -> Tot (option nat)
-
    val mem: seq 'a -> 'a -> Tot bool
 
    val filter:
@@ -63,19 +58,6 @@ module Flutterbye.Specs.SeqExt
 
    // lemmas
 
-   val lemma_find__index:
-      s: seq 'a
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures
-            ((is_None (find s a) ==>
-               (forall j.
-                  0 <= j && j < length s ==> index s j <> a))
-            /\ (is_Some (find s a) ==>
-                  ((option_get (find s a)) < length s
-                  && a = index s (option_get (find s a))))))
-         [SMTPat (find s a)]
 
    val lemma_mem__mem:
       s: seq 'a
