@@ -1,6 +1,6 @@
 (*--build-config
    options:--admit_fsi FStar.Seq;
-   other-files:seq.fsi alt/option.fst
+   other-files:seq.fsi
 --*)
 
 // $legal:614:
@@ -64,6 +64,10 @@ module Flutterbye.Specs.SeqExt
       -> i: nat{i < length s}
       -> 'a
       -> Tot (seq 'a)
+
+   type IsSet: #a:Type -> s:seq a -> Type
+
+   val is_set: (s:seq 'a) -> Tot bool
 
    // lemmas
 
@@ -223,3 +227,9 @@ module Flutterbye.Specs.SeqExt
             /\ (forall j. i <= j && j < length (remove s i a)
                ==> index (remove s i a) j = index s (j + 1))))
          // todo: need trigger
+
+   val lemma_is_set__is_set:
+      s:seq 'a
+      -> Lemma
+         (requires (True))
+         (ensures (is_set s <==> IsSet s))

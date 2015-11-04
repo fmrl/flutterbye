@@ -331,3 +331,71 @@ module Flutterbye.Specs.SeqExt
 
    let lemma_remove__length s i a = ()
    let lemma_remove__contents s i a = ()
+
+   // bug: the syntax `type IsSet 'a (s:seq 'a) =` doesn't appear to work.
+   // is it supposed to?
+   type IsSet (#a:Type) (s:seq a) =
+      0 = length s
+      \/ (forall (i:nat) (j:nat).
+            i < length s
+            && j < length s
+            && index s j = index s i
+            ==>
+               j == i)
+
+   val __is_set__loop:
+      // input sequence
+      s: seq 'a
+      // index of element being examined
+      -> i: nat{i <= length s}
+      // accumulator; in this case, a set to track members of the sequence.
+      -> c: seq 'a{IsSet c}
+      -> Tot bool
+         (decreases (length s - i))
+   let rec __is_set__loop s i c =
+      if i < length s then
+         let a = index s i in
+         if mem c a then
+            false
+         else
+            let c' = append c (create 1 a) in
+            __is_set__loop s (i + 1) c'
+      else
+         true
+
+   let is_set s =
+      __is_set__loop s 0 createEmpty
+
+   val __lemma_is_set__is_set__loop:
+      // input sequence
+      s:seq 'a
+      // index of element being examined
+      -> i:nat{i <= length s}
+      // accumulator; in this case, a set to track members of the sequence.
+      -> c:seq 'a{IsSet c}
+      -> Lemma
+         (requires
+            (Eq c (slice s 0 i)
+            /\ length c = i))
+               // todo: it seems that length c = i should be implied by the
+               // Eq c (slice s 0 i) property.
+         (ensures (__is_set__loop s i c <==> IsSet s))
+         (decreases (length s - i))
+   let rec __lemma_is_set__is_set__loop s i c =
+      if i < length s then
+         let a = index s i in
+         if mem c a then
+            ()
+         else
+            let c' = append c (create 1 a) in
+            __lemma_is_set__is_set__loop s (i + 1) c'
+      else
+         ()
+
+   val lemma_is_set__is_set:
+      s:seq 'a
+      -> Lemma
+         (requires (True))
+         (ensures (is_set s <==> IsSet s))
+   let lemma_is_set__is_set s =
+      __lemma_is_set__is_set__loop s 0 createEmpty
