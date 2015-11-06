@@ -27,12 +27,6 @@ module Flutterbye.Specs.SeqExt
    open Flutterbye.Seq.Mem
    open Flutterbye.Seq.Filter
 
-   let count p s =
-      length (filter p s)
-
-   let lemma_count__length p s =
-      Flutterbye.Seq.Filter.lemma__length p s
-
    let insert s i a =
       let l = slice s 0 i in
       let c = create 1 a in

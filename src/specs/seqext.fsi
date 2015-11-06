@@ -25,13 +25,6 @@ module Flutterbye.Specs.SeqExt
    open FStar.Seq
    open Flutterbye.Seq.Mem
 
-   val count:
-      ('a -> Tot bool)
-         // predicate; if false, then the element is discarded from the
-         // sequence.
-      -> seq 'a // input sequence
-      -> Tot nat
-
    val insert:
       s: seq 'a
       -> i: nat{i <= length s}
@@ -45,14 +38,6 @@ module Flutterbye.Specs.SeqExt
       -> Tot (seq 'a)
 
    // lemmas
-
-   val lemma_count__length:
-      p: ('a -> Tot bool)
-      -> s: seq 'a
-      -> Lemma
-         (requires (True))
-         (ensures (count p s <= length s))
-         [SMTPat (count p s)]
 
    val lemma_insert__length:
       s: seq 'a
