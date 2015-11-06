@@ -1,6 +1,6 @@
 (*--build-config
-   options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Mem;
-   other-files:seq.fsi ../Flutterbye.Seq.Mem.fsi
+   options:--admit_fsi FStar.Seq;
+   other-files:seq.fsi
 --*)
 
 // $legal:614:
@@ -21,9 +21,8 @@
 //
 // ,$
 
-module Flutterbye.Specs.SeqExt
+module Flutterbye.Seq.Insert
    open FStar.Seq
-   open Flutterbye.Seq.Mem
 
    val insert:
       s: seq 'a
@@ -31,15 +30,7 @@ module Flutterbye.Specs.SeqExt
       -> 'a
       -> Tot (seq 'a)
 
-   val remove:
-      s: seq 'a{length s > 0}
-      -> i: nat{i < length s}
-      -> 'a
-      -> Tot (seq 'a)
-
-   // lemmas
-
-   val lemma_insert__length:
+   val lemma__length:
       s: seq 'a
       -> i: nat{i <= length s}
       -> a: 'a
@@ -48,7 +39,7 @@ module Flutterbye.Specs.SeqExt
          (ensures (length (insert s i a) = length s + 1))
          [SMTPat (length (insert s i a))]
 
-   val lemma_insert__contents:
+   val lemma__content:
       s: seq 'a
       -> i: nat{i <= length s}
       -> a: 'a
@@ -61,25 +52,3 @@ module Flutterbye.Specs.SeqExt
             /\ (forall j. i < j && j < length (insert s i a)
                ==> index (insert s i a) j = index s (j - 1))))
          // todo: need trigger.
-
-   val lemma_remove__length:
-      s: seq 'a{length s > 0}
-      -> i: nat{i < length s}
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures (length (remove s i a) = length s - 1))
-         [SMTPat (length (remove s i a))]
-
-   val lemma_remove__contents:
-      s: seq 'a{length s > 0}
-      -> i: nat{i < length s}
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures
-            ((forall j. 0 <= j && j < i
-               ==> index (remove s i a) j = index s j)
-            /\ (forall j. i <= j && j < length (remove s i a)
-               ==> index (remove s i a) j = index s (j + 1))))
-         // todo: need trigger

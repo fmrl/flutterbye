@@ -1,6 +1,6 @@
 (*--build-config
-   options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Find --admit_fsi Flutterbye.Seq.Mem --admit_fsi Flutterbye.Seq.Filter;
-   other-files:seq.fsi ../Flutterbye.Seq.Find.fsi ../Flutterbye.Seq.Mem.fsi ../Flutterbye.Seq.Filter.fsi seqext.fsi
+   options:--admit_fsi FStar.Seq;
+   other-files:seq.fsi Flutterbye.Seq.Insert.fsi
 --*)
 
 // $legal:614:
@@ -21,11 +21,8 @@
 //
 // ,$
 
-module Flutterbye.Specs.SeqExt
+module Flutterbye.Seq.Insert
    open FStar.Seq
-   open Flutterbye.Seq.Find
-   open Flutterbye.Seq.Mem
-   open Flutterbye.Seq.Filter
 
    let insert s i a =
       let l = slice s 0 i in
@@ -33,13 +30,5 @@ module Flutterbye.Specs.SeqExt
       let r = slice s i (length s) in
       append (append l c) r
 
-   let lemma_insert__length s i a = ()
-   let lemma_insert__contents s i a = ()
-
-   let remove s i a =
-      let l = slice s 0 i in
-      let r = slice s (i + 1) (length s) in
-      append l r
-
-   let lemma_remove__length s i a = ()
-   let lemma_remove__contents s i a = ()
+   let lemma__length s i a = ()
+   let lemma__content s i a = ()
