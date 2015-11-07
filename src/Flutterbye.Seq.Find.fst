@@ -31,26 +31,26 @@ module Flutterbye.Seq.Find
             a
 
    val find__loop:
-      s: seq 'a
-      -> 'a
+      'a
+      -> s: seq 'a
       -> i: nat{i <= length s}
       -> c: option nat
       -> Tot (option nat)
          (decreases (length s - i))
-   let rec find__loop s a i c =
+   let rec find__loop a s i c =
       if i < length s then
          let c' =
             if is_None c && (a = index s i) then
                Some i
             else
                c in
-         find__loop s a (i + 1) c'
+         find__loop a s (i + 1) c'
       else
          c
 
    val lemma__basic__loop:
-      s: seq 'a
-      -> a: 'a
+      a: 'a
+      -> s: seq 'a
       -> i: nat{i <= length s}
       -> c: option nat
       -> Lemma
@@ -62,25 +62,25 @@ module Flutterbye.Seq.Find
                   ((option_get c) < length s
                   && a = index s (option_get c)))))
          (ensures
-            ((is_None (find__loop s a i c) ==>
+            ((is_None (find__loop a s i c) ==>
                (forall j.
                   0 <= j && j < length s ==> index s j <> a))
-            /\ (is_Some (find__loop s a i c) ==>
-                  ((option_get (find__loop s a i c)) < length s
-                  && a = index s (option_get (find__loop s a i c))))))
+            /\ (is_Some (find__loop a s i c) ==>
+                  ((option_get (find__loop a s i c)) < length s
+                  && a = index s (option_get (find__loop a s i c))))))
          (decreases (length s - i))
-   let rec lemma__basic__loop s a i c =
+   let rec lemma__basic__loop a s i c =
       if i < length s then
          let c' =
             if is_None c && a = index s i then
                Some i
             else
                c in
-         lemma__basic__loop s a (i + 1) c'
+         lemma__basic__loop a s (i + 1) c'
       else
          ()
 
-   let find s a =
-      find__loop s a 0 None
-   let lemma__basic s a =
-      lemma__basic__loop s a 0 None
+   let find a s =
+      find__loop a s 0 None
+   let lemma__basic a s =
+      lemma__basic__loop a s 0 None

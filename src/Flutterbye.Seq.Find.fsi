@@ -28,20 +28,20 @@ module Flutterbye.Seq.Find
    val option_get: o: option 'a{is_Some o} -> Tot 'a
 
    // todo: this should accept an 'a -> bool rather than an 'a.
-   val find: s: seq 'a -> 'a -> Tot (option nat)
+   val find: s:'a -> seq 'a -> Tot (option nat)
 
    // todo: can this be broken down into simpler lemmas
    // (e.g. lemma__range and lemma__not_found)?
    val lemma__basic:
-      s: seq 'a
-      -> a: 'a
+      a: 'a
+      -> s: seq 'a
       -> Lemma
          (requires (True))
          (ensures
-            ((is_None (find s a) ==>
+            ((is_None (find a s) ==>
                (forall j.
                   0 <= j && j < length s ==> index s j <> a))
-            /\ (is_Some (find s a) ==>
-                  ((option_get (find s a)) < length s
-                  && a = index s (option_get (find s a))))))
-         [SMTPat (find s a)]
+            /\ (is_Some (find a s) ==>
+                  ((option_get (find a s)) < length s
+                  && a = index s (option_get (find a s))))))
+         [SMTPat (find a s)]
