@@ -25,45 +25,45 @@ module Flutterbye.Seq.Mem
    open FStar.Seq
    open Flutterbye.Seq.Find
 
-   let mem s a =
+   let mem a s =
       is_Some (find s a)
 
-   let lemma__basic s a =
+   let lemma__basic a s =
       ()
 
    let lemma__index s i =
       Flutterbye.Seq.Find.lemma__basic s (index s i)
 
-   let lemma__slice s0 a s1 j i =
+   let lemma__slice a s0 s1 j i =
       ()
 
    val lemma__append__case1:
-      s0: seq 'a
+      a: 'a
+      -> s0: seq 'a
       -> s1: seq 'a
-      -> a: 'a
       -> Lemma
          (requires (True))
-         (ensures (mem s0 a ==> mem (append s0 s1) a))
-   let lemma__append__case1 s0 s1 a =
+         (ensures (mem a s0 ==> mem a (append s0 s1)))
+   let lemma__append__case1 a s0 s1 =
       ()
 
    val lemma__append__case2:
-      s0: seq 'a
+      a: 'a
+      -> s0: seq 'a
       -> s1: seq 'a
-      -> a: 'a
       -> Lemma
          (requires (True))
-         (ensures (mem s1 a ==> mem (append s0 s1) a))
-   let lemma__append__case2 s0 s1 a =
-      if mem s1 a then
+         (ensures (mem a s1 ==> mem a (append s0 s1)))
+   let lemma__append__case2 a s0 s1 =
+      if mem a s1 then
          let s' = append s0 s1 in
          let i = length s0 in
          let j = length s' in
          let s1' = slice s' i j in
-         lemma__slice s1' a s' j i
+         lemma__slice a s1' s' j i
       else
          ()
 
-   let lemma_mem__append s0 s1 a =
-      lemma__append__case1 s0 s1 a;
-      lemma__append__case2 s0 s1 a
+   let lemma_mem__append a s0 s1 =
+      lemma__append__case1 a s0 s1;
+      lemma__append__case2 a s0 s1

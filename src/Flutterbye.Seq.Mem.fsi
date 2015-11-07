@@ -24,46 +24,46 @@
 module Flutterbye.Seq.Mem
    open FStar.Seq
 
-   val mem: seq 'a -> 'a -> Tot bool
+   val mem: 'a -> seq 'a -> Tot bool
 
    val lemma__basic:
-      s: seq 'a
-      -> a: 'a
+      a: 'a
+      -> s: seq 'a
       -> Lemma
          (requires (True))
          (ensures
-            ((mem s a)
+            ((mem a s)
                <==>
                   (exists i.
                      0 <= i
                      && i < length s
                      && index s i = a)))
-         [SMTPat (mem s a)]
+         [SMTPat (mem a s)]
 
    val lemma__slice:
-      s0: seq 'a
-      -> a: 'a
+      a: 'a
+      -> s0: seq 'a
       -> s1: seq 'a
       -> j: nat{j <= length s1}
       -> i: nat{0 <= i && i <= j}
       -> Lemma
-         (requires (mem s0 a))
-         (ensures (Eq s0 (slice s1 i j) ==> mem s1 a))
-         [SMTPat (mem (slice s1 i j) a)]
+         (requires (mem a s0))
+         (ensures (Eq s0 (slice s1 i j) ==> mem a s1))
+         [SMTPat (mem a (slice s1 i j))]
 
    val lemma__index:
       s:seq 'a{length s > 0}
       -> i:nat{i < length s}
       -> Lemma
          (requires (True))
-         (ensures (mem s (index s i)))
-         [SMTPat (mem s (index s i))]
+         (ensures (mem (index s i) s))
+         [SMTPat (mem (index s i) s)]
 
    val lemma__append:
-      s0: seq 'a
+      a: 'a
+      -> s0: seq 'a
       -> s1: seq 'a
-      -> a: 'a
       -> Lemma
          (requires (True))
-         (ensures (mem s0 a || mem s1 a <==> mem (append s0 s1) a))
-         [SMTPat (mem (append s0 s1) a)]
+         (ensures (mem a s0 || mem a s1 <==> mem a (append s0 s1)))
+         [SMTPat (mem a (append s0 s1))]

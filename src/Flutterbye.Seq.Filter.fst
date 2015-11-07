@@ -115,10 +115,10 @@ module Flutterbye.Seq.Filter
       -> Lemma
          (requires
             (forall j.
-               (0 <= j && j < length c) ==> (mem s (index c j))))
+               (0 <= j && j < length c) ==> (mem (index c j) s)))
          (ensures
             (forall j.
-               (0 <= j && j < length (filter__loop p s i c)) ==> (mem s (index (filter__loop p s i c) j))))
+               (0 <= j && j < length (filter__loop p s i c)) ==> (mem (index (filter__loop p s i c) j) s)))
          (decreases (length s - i))
    let rec lemma__mem__loop p s i c =
       if i = length s then

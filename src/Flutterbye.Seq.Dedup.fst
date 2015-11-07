@@ -48,7 +48,7 @@ module Flutterbye.Seq.Dedup
    let rec dedup__loop s i c =
       if i < length s then
          let a = index s i in
-         if mem c a then
+         if mem a c then
             false
          else
             let c' = append c (create 1 a) in
@@ -77,7 +77,7 @@ module Flutterbye.Seq.Dedup
    let rec lemma__basic__loop s i c =
       if i < length s then
          let a = index s i in
-         if mem c a then
+         if mem a c then
             ()
          else
             let c' = append c (create 1 a) in
