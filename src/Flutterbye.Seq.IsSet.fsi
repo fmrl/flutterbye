@@ -21,16 +21,16 @@
 //
 // ,$
 
-module Flutterbye.Seq.Dedup
+module Flutterbye.Seq.IsSet
    open FStar.Seq
 
-   type Dedup: #a:Type -> s:seq a -> Type
+   type IsSet: #a:Type -> s:seq a -> Type
 
-   val dedup: (s:seq 'a) -> Tot bool
+   val is_set: (s:seq 'a) -> Tot bool
 
    val lemma__basic:
       s:seq 'a
       -> Lemma
          (requires (True))
-         (ensures (dedup s <==> Dedup s))
+         (ensures (is_set s <==> IsSet s))
          // todo: need pattern

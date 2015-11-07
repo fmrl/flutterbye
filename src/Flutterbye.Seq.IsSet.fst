@@ -1,6 +1,6 @@
 (*--build-config
    options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Mem;
-   other-files:seq.fsi Flutterbye.Seq.Dedup.fsi Flutterbye.Seq.Mem.fsi
+   other-files:seq.fsi Flutterbye.Seq.IsSet.fsi Flutterbye.Seq.Mem.fsi
 --*)
 
 // $legal:614:
@@ -21,13 +21,13 @@
 //
 // ,$
 
-module Flutterbye.Seq.Dedup
+module Flutterbye.Seq.IsSet
    open FStar.Seq
    open Flutterbye.Seq.Mem
 
-   // bug: the syntax `type Dedup 'a (s:seq 'a) =` doesn't appear to work.
+   // bug: the syntax `type IsSet 'a (s:seq 'a) =` doesn't appear to work.
    // is it supposed to?
-   type Dedup (#a:Type) (s:seq a) =
+   type IsSet (#a:Type) (s:seq a) =
       0 = length s
       \/ (forall (i:nat) (j:nat).
             i < length s
@@ -36,28 +36,28 @@ module Flutterbye.Seq.Dedup
             ==>
                j == i)
 
-   val dedup__loop:
+   val is_set__loop:
       // input sequence
       s: seq 'a
       // index of element being examined
       -> i: nat{i <= length s}
       // accumulator; in this case, a set to track members of the sequence.
-      -> c: seq 'a{Dedup c}
+      -> c: seq 'a{IsSet c}
       -> Tot bool
          (decreases (length s - i))
-   let rec dedup__loop s i c =
+   let rec is_set__loop s i c =
       if i < length s then
          let a = index s i in
          if mem a c then
             false
          else
             let c' = append c (create 1 a) in
-            dedup__loop s (i + 1) c'
+            is_set__loop s (i + 1) c'
       else
          true
 
-   let dedup s =
-      dedup__loop s 0 createEmpty
+   let is_set s =
+      is_set__loop s 0 createEmpty
 
    val lemma__basic__loop:
       // input sequence
@@ -65,14 +65,14 @@ module Flutterbye.Seq.Dedup
       // index of element being examined
       -> i:nat{i <= length s}
       // accumulator; in this case, a set to track members of the sequence.
-      -> c:seq 'a{Dedup c}
+      -> c:seq 'a{IsSet c}
       -> Lemma
          (requires
             (Eq c (slice s 0 i)
             /\ length c = i))
                // todo: it seems that length c = i should be implied by the
                // Eq c (slice s 0 i) property.
-         (ensures (dedup__loop s i c <==> Dedup s))
+         (ensures (is_set__loop s i c <==> IsSet s))
          (decreases (length s - i))
    let rec lemma__basic__loop s i c =
       if i < length s then
