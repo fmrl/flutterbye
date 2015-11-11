@@ -1,6 +1,6 @@
 (*--build-config
-   options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.IsSet;
-   other-files:seq.fsi Flutterbye.Seq.IsSet.fsi Flutterbye.Schedule.Core.fsi
+   options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Unique;
+   other-files:seq.fsi Flutterbye.Seq.Unique.fsi Flutterbye.Schedule.Core.fsi
 --*)
 
 // $legal:614:
@@ -26,7 +26,7 @@ module Flutterbye.Schedule.Core
    open Flutterbye
 
    type seq = FStar.Seq.seq
-   type SeqIsSet = Flutterbye.Seq.IsSet.IsSet
+   type Unique = Flutterbye.Seq.Unique.Unique
 
    type Name = nat
 

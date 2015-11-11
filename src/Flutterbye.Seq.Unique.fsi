@@ -21,16 +21,16 @@
 //
 // ,$
 
-module Flutterbye.Seq.IsSet
+module Flutterbye.Seq.Unique
    open FStar.Seq
 
-   type IsSet: #a:Type -> s:seq a -> Type
+   type Unique: #a:Type -> s:seq a -> Type
 
-   val is_set: (s:seq 'a) -> Tot bool
+   val is_unique: (s:seq 'a) -> Tot bool
 
-   val lemma__basic:
+   val lemma__property:
       s:seq 'a
       -> Lemma
          (requires (True))
-         (ensures (is_set s <==> IsSet s))
+         (ensures (is_unique s <==> Unique s))
          // todo: need pattern

@@ -1,6 +1,6 @@
 (*--build-config
    options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Mem;
-   other-files:seq.fsi Flutterbye.Seq.IsSet.fsi Flutterbye.Seq.Mem.fsi
+   other-files:seq.fsi Flutterbye.Seq.Unique.fsi Flutterbye.Seq.Mem.fsi
 --*)
 
 // $legal:614:
@@ -21,13 +21,13 @@
 //
 // ,$
 
-module Flutterbye.Seq.IsSet
+module Flutterbye.Seq.Unique
    open FStar.Seq
    open Flutterbye.Seq.Mem
 
-   // bug: the syntax `type IsSet 'a (s:seq 'a) =` doesn't appear to work.
+   // bug: the syntax `type Unique 'a (s:seq 'a) =` doesn't appear to work.
    // is it supposed to?
-   type IsSet (#a:Type) (s:seq a) =
+   type Unique (#a:Type) (s:seq a) =
       0 = length s
       \/ (forall (i:nat) (j:nat).
             i < length s
@@ -36,54 +36,54 @@ module Flutterbye.Seq.IsSet
             ==>
                j == i)
 
-   val is_set__loop:
+   val is_unique__loop:
       // input sequence
       s: seq 'a
       // index of element being examined
       -> i: nat{i <= length s}
       // accumulator; in this case, a set to track members of the sequence.
-      -> c: seq 'a{IsSet c}
+      -> c: seq 'a{Unique c}
       -> Tot bool
          (decreases (length s - i))
-   let rec is_set__loop s i c =
+   let rec is_unique__loop s i c =
       if i < length s then
          let a = index s i in
          if mem a c then
             false
          else
             let c' = append c (create 1 a) in
-            is_set__loop s (i + 1) c'
+            is_unique__loop s (i + 1) c'
       else
          true
 
-   let is_set s =
-      is_set__loop s 0 createEmpty
+   let is_unique s =
+      is_unique__loop s 0 createEmpty
 
-   val lemma__basic__loop:
+   val lemma__property__loop:
       // input sequence
       s:seq 'a
       // index of element being examined
       -> i:nat{i <= length s}
       // accumulator; in this case, a set to track members of the sequence.
-      -> c:seq 'a{IsSet c}
+      -> c:seq 'a{Unique c}
       -> Lemma
          (requires
             (Eq c (slice s 0 i)
             /\ length c = i))
                // todo: it seems that length c = i should be implied by the
                // Eq c (slice s 0 i) property.
-         (ensures (is_set__loop s i c <==> IsSet s))
+         (ensures (is_unique__loop s i c <==> Unique s))
          (decreases (length s - i))
-   let rec lemma__basic__loop s i c =
+   let rec lemma__property__loop s i c =
       if i < length s then
          let a = index s i in
          if mem a c then
             ()
          else
             let c' = append c (create 1 a) in
-            lemma__basic__loop s (i + 1) c'
+            lemma__property__loop s (i + 1) c'
       else
          ()
 
-   let lemma__basic s =
-      lemma__basic__loop s 0 createEmpty
+   let lemma__property s =
+      lemma__property__loop s 0 createEmpty
