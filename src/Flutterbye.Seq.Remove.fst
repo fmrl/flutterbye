@@ -21,7 +21,7 @@
 //
 // ,$
 
-module Flutterbye.Specs.Remove
+module Flutterbye.Seq.Remove
    open FStar.Seq
 
    let remove s i a =
