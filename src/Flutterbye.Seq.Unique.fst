@@ -59,7 +59,7 @@ module Flutterbye.Seq.Unique
    let is_unique s =
       is_unique__loop s 0 createEmpty
 
-   val lemma__property__loop:
+   val lemma__is_unique__loop:
       // input sequence
       s:seq 'a
       // index of element being examined
@@ -74,16 +74,18 @@ module Flutterbye.Seq.Unique
                // Eq c (slice s 0 i) property.
          (ensures (is_unique__loop s i c <==> Unique s))
          (decreases (length s - i))
-   let rec lemma__property__loop s i c =
+   let rec lemma__is_unique__loop s i c =
       if i < length s then
          let a = index s i in
          if mem a c then
             ()
          else
             let c' = append c (create 1 a) in
-            lemma__property__loop s (i + 1) c'
+            lemma__is_unique__loop s (i + 1) c'
       else
          ()
 
-   let lemma__property s =
-      lemma__property__loop s 0 createEmpty
+   let lemma__is_unique s =
+      lemma__is_unique__loop s 0 createEmpty
+
+   let lemma__empty s = ()
