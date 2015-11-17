@@ -26,13 +26,26 @@ module Flutterbye.Seq.Unique
 
    type Unique: #a:Type -> s:seq a -> Type
 
-   val is_unique: (s:seq 'a) -> Tot bool
+   val unique: (s:seq 'a) -> Tot bool
 
-   val lemma__is_unique:
+   val lemma__reveal:
+      s:seq 'a
+      -> Lemma
+         (requires (Unique s))
+         (ensures
+            (0 = length s
+            \/ (forall (i:nat) (j:nat).
+                  i < length s
+                  && j < length s
+                  && index s j = index s i
+                  ==>
+                     j == i)))
+
+   val lemma__unique:
       s:seq 'a
       -> Lemma
          (requires (True))
-         (ensures (is_unique s <==> Unique s))
+         (ensures (unique s <==> Unique s))
          // todo: need pattern
 
    val lemma__empty: s:seq 'a -> Lemma
