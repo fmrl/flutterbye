@@ -22,33 +22,33 @@
 // ,$
 
 module Flutterbye.Seq.Unique
-   open FStar.Seq
+open FStar.Seq
 
-   type Unique: #a:Type -> s:seq a -> Type
+type Unique: #a:Type -> s:seq a -> Type
 
-   val unique: (s:seq 'a) -> Tot bool
+val unique: (s:seq 'a) -> Tot bool
 
-   val lemma__reveal:
-      s:seq 'a
-      -> Lemma
-         (requires (Unique s))
-         (ensures
-            (0 = length s
-            \/ (forall (i:nat) (j:nat).
-                  i < length s
-                  && j < length s
-                  && index s j = index s i
-                  ==>
-                     j == i)))
+val lemma__reveal:
+   s:seq 'a
+   -> Lemma
+      (requires (Unique s))
+      (ensures
+         (0 = length s
+         \/ (forall (i:nat) (j:nat).
+               i < length s
+               && j < length s
+               && index s j = index s i
+               ==>
+                  j == i)))
 
-   val lemma__unique:
-      s:seq 'a
-      -> Lemma
-         (requires (True))
-         (ensures (unique s <==> Unique s))
-         // todo: need pattern
-
-   val lemma__empty: s:seq 'a -> Lemma
+val lemma__unique:
+   s:seq 'a
+   -> Lemma
       (requires (True))
-      (ensures (Eq createEmpty s ==> Unique s))
+      (ensures (unique s <==> Unique s))
       // todo: need pattern
+
+val lemma__empty: s:seq 'a -> Lemma
+   (requires (True))
+   (ensures (Eq createEmpty s ==> Unique s))
+   // todo: need pattern
