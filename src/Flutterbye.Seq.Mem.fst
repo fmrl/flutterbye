@@ -26,13 +26,13 @@ module Flutterbye.Seq.Mem
    open Flutterbye.Seq.Find
 
    let mem a s =
-      is_Some (find s a)
+      is_Some (find a s)
 
    let lemma__basic a s =
       ()
 
    let lemma__index s i =
-      Flutterbye.Seq.Find.lemma__basic s (index s i)
+      Flutterbye.Seq.Find.lemma__basic (index s i) s
 
    let lemma__slice a s0 s1 j i =
       ()
