@@ -28,7 +28,7 @@ module Flutterbye.Seq.Mem
    let mem a s =
       is_Some (find a s)
 
-   let lemma__basic a s =
+   let lemma__basic_properties a s =
       ()
 
    let lemma__index s i =
@@ -67,3 +67,6 @@ module Flutterbye.Seq.Mem
    let lemma_mem__append a s0 s1 =
       lemma__append__case1 a s0 s1;
       lemma__append__case2 a s0 s1
+
+   let lemma__slice__unnamed s i a =
+      ()

@@ -26,7 +26,7 @@ module Flutterbye.Seq.Mem
 
    val mem: 'a -> seq 'a -> Tot bool
 
-   val lemma__basic:
+   val lemma__basic_properties:
       a: 'a
       -> s: seq 'a
       -> Lemma
@@ -40,6 +40,8 @@ module Flutterbye.Seq.Mem
                      && index s i = a)))
          [SMTPat (mem a s)]
 
+   // todo: this lemma seems really awkward to use without the trigger.
+   // todo: what is `a` for? it's not in the pattern.
    val lemma__slice:
       a: 'a
       -> s0: seq 'a
@@ -67,3 +69,12 @@ module Flutterbye.Seq.Mem
          (requires (True))
          (ensures (mem a s0 || mem a s1 <==> mem a (append s0 s1)))
          [SMTPat (mem a (append s0 s1))]
+
+   // todo: can this be merged into the other slice lemma somehow?
+   val lemma__slice__unnamed:
+      s:seq 'a
+      -> i:nat{i < length s}
+      -> a:'a
+      -> Lemma
+         (requires (index s i = a))
+         (ensures (mem a (slice s 0 (i + 1))))
