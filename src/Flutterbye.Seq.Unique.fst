@@ -1,6 +1,6 @@
 (*--build-config
-   options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Mem;
-   other-files:seq.fsi Flutterbye.Seq.Unique.fsi Flutterbye.Seq.Mem.fsi
+   options:--admit_fsi FStar.Seq --admit_fsi FStar.Set --admit_fsi Flutterbye.Seq.Mem;
+   other-files:seq.fsi set.fsi Flutterbye.Seq.Mem.fsi Flutterbye.Seq.Unique.fsi
 --*)
 
 // $legal:614:
@@ -23,7 +23,7 @@
 
 module Flutterbye.Seq.Unique
 open FStar.Seq
-open Flutterbye.Seq.Mem
+open FStar.Set
 
 // bug: the syntax `type Unique 'a (s:seq 'a) =` doesn't appear to work.
 // is it supposed to?
@@ -50,7 +50,7 @@ val unique__loop:
 let rec unique__loop s i c =
    if i < length s then
       let a = index s i in
-      if mem a c then
+      if Flutterbye.Seq.Mem.mem a c then
          false
       else
          let c' = append c (create 1 a) in
@@ -60,6 +60,26 @@ let rec unique__loop s i c =
 
 let unique s =
    unique__loop s 0 createEmpty
+
+val to_set__loop:
+   // input sequence
+   s:seq 'a{Unique s}
+   // index of element being examined
+   -> i:nat{i <= length s}
+   // accumulator; in this case, the output set.
+   -> c:set 'a
+   -> Tot (set 'a)
+      (decreases (length s - i))
+let rec to_set__loop s i c =
+   if i < length s then
+      let a = index s i in
+      let c' = union c (singleton a) in
+      to_set__loop s (i + 1) c'
+   else
+      c
+
+let to_set s =
+   to_set__loop s 0 empty
 
 val lemma__unique__loop:
    // input sequence
@@ -79,7 +99,7 @@ val lemma__unique__loop:
 let rec lemma__unique__loop s i c =
    if i < length s then
       let a = index s i in
-      if mem a c then
+      if Flutterbye.Seq.Mem.mem a c then
          ()
       else
          let c' = append c (create 1 a) in
@@ -91,3 +111,33 @@ let lemma__unique s =
    lemma__unique__loop s 0 createEmpty
 
 let lemma__empty s = ()
+
+type Synonymous (#a:Type) (s_0:seq a{Unique s_0}) (s_1:set a) =
+   forall x.
+      Flutterbye.Seq.Mem.mem x s_0 <==> mem x s_1
+
+val lemma__to_set__loop:
+   // input sequence
+   s:seq 'a{Unique s}
+   // index of element being examined
+   -> i:nat{i <= length s}
+   // accumulator; in this case, the output set.
+   -> c:set 'a
+   -> Lemma
+      (requires
+         ((i = 0 ==> Equal c empty)
+         /\ (Synonymous (slice s 0 i) c)))
+      (ensures (Synonymous s (to_set__loop s i c)))
+      (decreases (length s - i))
+let rec lemma__to_set__loop s i c =
+   if i < length s then
+      let a = index s i in
+      let c' = union c (singleton a) in
+      Flutterbye.Seq.Mem.lemma__slice__unnamed s i a;
+      assert (Flutterbye.Seq.Mem.mem a (slice s 0 (i + 1)));
+      lemma__to_set__loop s (i + 1) c'
+   else
+      ()
+
+let lemma__to_set s =
+   lemma__to_set__loop s 0 empty

@@ -1,6 +1,6 @@
 (*--build-config
-   options:--admit_fsi FStar.Seq;
-   other-files:seq.fsi
+   options:--admit_fsi FStar.Seq --admit_fsi FStar.Set --admit_fsi Flutterbye.Seq.Mem;
+   other-files:seq.fsi set.fsi Flutterbye.Seq.Mem.fsi
 --*)
 
 // $legal:614:
@@ -23,10 +23,12 @@
 
 module Flutterbye.Seq.Unique
 open FStar.Seq
+open FStar.Set
 
 type Unique: #a:Type -> s:seq a -> Type
 
 val unique: (s:seq 'a) -> Tot bool
+val to_set: (s:seq 'a{Unique s}) -> Tot (set 'a)
 
 val lemma__reveal:
    s:seq 'a
@@ -52,3 +54,11 @@ val lemma__empty: s:seq 'a -> Lemma
    (requires (True))
    (ensures (Eq createEmpty s ==> Unique s))
    // todo: need pattern
+
+val lemma__to_set:
+   (s:seq 'a{Unique s})
+   -> Lemma
+      (requires (True))
+      (ensures
+         (forall a.
+            Flutterbye.Seq.Mem.mem a s <==> mem a (to_set s)))
