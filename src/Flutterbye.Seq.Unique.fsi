@@ -43,22 +43,23 @@ val lemma__reveal:
                ==>
                   j == i)))
 
-val lemma__unique:
+val lemma__unique__default_properties:
    s:seq 'a
    -> Lemma
       (requires (True))
       (ensures (unique s <==> Unique s))
-      // todo: need pattern
+      [SMTPat (unique s)]
 
 val lemma__empty: s:seq 'a -> Lemma
    (requires (True))
    (ensures (Eq createEmpty s ==> Unique s))
    // todo: need pattern
 
-val lemma__to_set:
+val lemma__to_set__default_properties:
    (s:seq 'a{Unique s})
    -> Lemma
       (requires (True))
       (ensures
          (forall a.
             Flutterbye.Seq.Mem.mem a s <==> mem a (to_set s)))
+      [SMTPat (to_set s)]

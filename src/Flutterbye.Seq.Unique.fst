@@ -81,7 +81,7 @@ let rec to_set__loop s i c =
 let to_set s =
    to_set__loop s 0 empty
 
-val lemma__unique__loop:
+val lemma__unique__default_properties__loop:
    // input sequence
    s:seq 'a
    // index of element being examined
@@ -96,19 +96,19 @@ val lemma__unique__loop:
          /\ length c = i))
       (ensures (unique__loop s i c <==> Unique s))
       (decreases (length s - i))
-let rec lemma__unique__loop s i c =
+let rec lemma__unique__default_properties__loop s i c =
    if i < length s then
       let a = index s i in
       if Flutterbye.Seq.Mem.mem a c then
          ()
       else
          let c' = append c (create 1 a) in
-         lemma__unique__loop s (i + 1) c'
+         lemma__unique__default_properties__loop s (i + 1) c'
    else
       ()
 
-let lemma__unique s =
-   lemma__unique__loop s 0 createEmpty
+let lemma__unique__default_properties s =
+   lemma__unique__default_properties__loop s 0 createEmpty
 
 let lemma__empty s = ()
 
@@ -116,7 +116,7 @@ type Synonymous (#a:Type) (s_0:seq a{Unique s_0}) (s_1:set a) =
    forall x.
       Flutterbye.Seq.Mem.mem x s_0 <==> mem x s_1
 
-val lemma__to_set__loop:
+val lemma__to_set__default_properties__loop:
    // input sequence
    s:seq 'a{Unique s}
    // index of element being examined
@@ -129,15 +129,15 @@ val lemma__to_set__loop:
          /\ (Synonymous (slice s 0 i) c)))
       (ensures (Synonymous s (to_set__loop s i c)))
       (decreases (length s - i))
-let rec lemma__to_set__loop s i c =
+let rec lemma__to_set__default_properties__loop s i c =
    if i < length s then
       let a = index s i in
       let c' = union c (singleton a) in
       Flutterbye.Seq.Mem.lemma__slice__unnamed s i a;
       assert (Flutterbye.Seq.Mem.mem a (slice s 0 (i + 1)));
-      lemma__to_set__loop s (i + 1) c'
+      lemma__to_set__default_properties__loop s (i + 1) c'
    else
       ()
 
-let lemma__to_set s =
-   lemma__to_set__loop s 0 empty
+let lemma__to_set__default_properties s =
+   lemma__to_set__default_properties__loop s 0 empty
