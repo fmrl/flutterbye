@@ -22,59 +22,59 @@
 // ,$
 
 module Flutterbye.Seq.Mem
-   open FStar.Seq
+open FStar.Seq
 
-   val mem: 'a -> seq 'a -> Tot bool
+val mem: 'a -> seq 'a -> Tot bool
 
-   val lemma__basic_properties:
-      a: 'a
-      -> s: seq 'a
-      -> Lemma
-         (requires (True))
-         (ensures
-            ((mem a s)
-               <==>
-                  (exists i.
-                     0 <= i
-                     && i < length s
-                     && index s i = a)))
-         [SMTPat (mem a s)]
+val lemma__basic_properties:
+   a: 'a
+   -> s: seq 'a
+   -> Lemma
+      (requires (True))
+      (ensures
+         ((mem a s)
+            <==>
+               (exists i.
+                  0 <= i
+                  && i < length s
+                  && index s i = a)))
+      [SMTPat (mem a s)]
 
-   // todo: this lemma seems really awkward to use without the trigger.
-   // todo: what is `a` for? it's not in the pattern.
-   val lemma__slice:
-      a: 'a
-      -> s0: seq 'a
-      -> s1: seq 'a
-      -> j: nat{j <= length s1}
-      -> i: nat{0 <= i && i <= j}
-      -> Lemma
-         (requires (mem a s0))
-         (ensures (Eq s0 (slice s1 i j) ==> mem a s1))
-         [SMTPat (mem a (slice s1 i j))]
+// todo: this lemma seems really awkward to use without the trigger.
+// todo: what is `a` for? it's not in the pattern.
+val lemma__slice:
+   a: 'a
+   -> s0: seq 'a
+   -> s1: seq 'a
+   -> j: nat{j <= length s1}
+   -> i: nat{0 <= i && i <= j}
+   -> Lemma
+      (requires (mem a s0))
+      (ensures (Eq s0 (slice s1 i j) ==> mem a s1))
+      [SMTPat (mem a (slice s1 i j))]
 
-   val lemma__index:
-      s:seq 'a{length s > 0}
-      -> i:nat{i < length s}
-      -> Lemma
-         (requires (True))
-         (ensures (mem (index s i) s))
-         [SMTPat (mem (index s i) s)]
+val lemma__index:
+   s:seq 'a{length s > 0}
+   -> i:nat{i < length s}
+   -> Lemma
+      (requires (True))
+      (ensures (mem (index s i) s))
+      [SMTPat (mem (index s i) s)]
 
-   val lemma__append:
-      a: 'a
-      -> s0: seq 'a
-      -> s1: seq 'a
-      -> Lemma
-         (requires (True))
-         (ensures (mem a s0 || mem a s1 <==> mem a (append s0 s1)))
-         [SMTPat (mem a (append s0 s1))]
+val lemma__append:
+   a: 'a
+   -> s0: seq 'a
+   -> s1: seq 'a
+   -> Lemma
+      (requires (True))
+      (ensures (mem a s0 || mem a s1 <==> mem a (append s0 s1)))
+      [SMTPat (mem a (append s0 s1))]
 
-   // todo: can this be merged into the other slice lemma somehow?
-   val lemma__slice__unnamed:
-      s:seq 'a
-      -> i:nat{i < length s}
-      -> a:'a
-      -> Lemma
-         (requires (index s i = a))
-         (ensures (mem a (slice s 0 (i + 1))))
+// todo: can this be merged into the other slice lemma somehow?
+val lemma__slice__unnamed:
+   s:seq 'a
+   -> i:nat{i < length s}
+   -> a:'a
+   -> Lemma
+      (requires (index s i = a))
+      (ensures (mem a (slice s 0 (i + 1))))
