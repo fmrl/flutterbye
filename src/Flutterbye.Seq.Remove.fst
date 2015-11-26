@@ -30,4 +30,4 @@ module Flutterbye.Seq.Remove
       append l r
 
    let lemma__length s i a = ()
-   let lemma__contents s i a = ()
+   let lemma__index s i a = ()

@@ -39,7 +39,7 @@ module Flutterbye.Seq.Insert
          (ensures (length (insert s i a) = length s + 1))
          [SMTPat (length (insert s i a))]
 
-   val lemma__content:
+   val lemma__index:
       s: seq 'a
       -> i: nat{i <= length s}
       -> a: 'a
@@ -51,4 +51,15 @@ module Flutterbye.Seq.Insert
                ==> index (insert s i a) j = index s j)
             /\ (forall j. i < j && j < length (insert s i a)
                ==> index (insert s i a) j = index s (j - 1))))
-         // todo: need trigger.
+
+   val lemma__synonyms_for_append:
+      s: seq 'a
+      -> a: 'a
+      -> i: nat{i <= length s}
+      -> Lemma
+         (requires (True))
+         (ensures
+            ((i = 0 <==> Eq (insert s 0 a) (append (create 1 a) s))
+            /\
+               ((i = length s)
+                  <==> (Eq (insert s (length s) a) (append s (create 1 a))))))

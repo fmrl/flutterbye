@@ -39,7 +39,7 @@ module Flutterbye.Seq.Remove
          (ensures (length (remove s i a) = length s - 1))
          [SMTPat (length (remove s i a))]
 
-   val lemma__content:
+   val lemma__index:
       s: seq 'a{length s > 0}
       -> i: nat{i < length s}
       -> a: 'a

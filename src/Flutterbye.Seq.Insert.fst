@@ -31,4 +31,4 @@ module Flutterbye.Seq.Insert
       append (append l c) r
 
    let lemma__length s i a = ()
-   let lemma__content s i a = ()
+   let lemma__index s i a = ()
