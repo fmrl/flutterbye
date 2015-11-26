@@ -133,7 +133,7 @@ let rec lemma__to_set__default_properties__loop s i c =
    if i < length s then
       let a = index s i in
       let c' = union c (singleton a) in
-      Flutterbye.Seq.Mem.lemma__slice__unnamed s i a;
+      Flutterbye.Seq.Mem.lemma__slice s a;
       assert (Flutterbye.Seq.Mem.mem a (slice s 0 (i + 1)));
       lemma__to_set__default_properties__loop s (i + 1) c'
    else

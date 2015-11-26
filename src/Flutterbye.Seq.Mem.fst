@@ -34,7 +34,7 @@ let lemma__basic_properties a s =
 let lemma__index s i =
    Flutterbye.Seq.Find.lemma__basic (index s i) s
 
-let lemma__slice a s0 s1 j i =
+let lemma__slice s a =
    ()
 
 val lemma__append__case1:
@@ -60,13 +60,10 @@ let lemma__append__case2 a s0 s1 =
       let i = length s0 in
       let j = length s' in
       let s1' = slice s' i j in
-      lemma__slice a s1' s' j i
+      lemma__slice s1' a
    else
       ()
 
 let lemma_mem__append a s0 s1 =
    lemma__append__case1 a s0 s1;
    lemma__append__case2 a s0 s1
-
-let lemma__slice__unnamed s i a =
-   ()
