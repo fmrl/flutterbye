@@ -22,69 +22,69 @@
 // ,$
 
 module Flutterbye.Seq.Map
-   open FStar.Seq
+open FStar.Seq
 
-   val map__loop:
-      // mapping function
-      ('a -> Tot 'b)
-      // input sequence
-      -> s: seq 'a
-      // accumulator; in this case, the output sequence.
-      -> c: seq 'b{length c <= length s}
-      -> Tot (seq 'b)
-         (decreases (length s - length c))
-   let rec map__loop f s c =
-      let i = length c in
-      if i < length s then
-         let a = index s i in
-         let c' = append c (create 1 (f a)) in
-         map__loop f s c'
-      else
-         c
+val map__loop:
+   // mapping function
+   ('a -> Tot 'b)
+   // input sequence
+   -> s:seq 'a
+   // accumulator; in this case, the output sequence.
+   -> c:seq 'b{length c <= length s}
+   -> Tot (seq 'b)
+      (decreases (length s - length c))
+let rec map__loop f s c =
+   let i = length c in
+   if i < length s then
+      let a = index s i in
+      let c' = append c (create 1 (f a)) in
+      map__loop f s c'
+   else
+      c
 
-   val lemma__preserves_length__loop:
-      f: ('a -> Tot 'b)
-      -> s: seq 'a
-      -> c: seq 'b{length c <= length s}
-      -> Lemma
-         (requires (True))
-         (ensures (length (map__loop f s c) = length s))
-         (decreases (length s - length c))
-   let rec lemma__preserves_length__loop f s c =
-      let i = length c in
-      if i < length s then
-         let a = index s i in
-         let c' = append c (create 1 (f a)) in
-         lemma__preserves_length__loop f s c'
-      else
-         ()
+val lemma__length__loop:
+   f:('a -> Tot 'b)
+   -> s:seq 'a
+   -> c:seq 'b{length c <= length s}
+   -> Lemma
+      (requires (True))
+      (ensures (length (map__loop f s c) = length s))
+      (decreases (length s - length c))
+let rec lemma__length__loop f s c =
+   let i = length c in
+   if i < length s then
+      let a = index s i in
+      let c' = append c (create 1 (f a)) in
+      lemma__length__loop f s c'
+   else
+      ()
 
-   val lemma__mapping_of_elements__loop:
-      f: ('a -> Tot 'b)
-      -> s: seq 'a
-      -> c: seq 'b{length c <= length s}
-      -> Lemma
-         (requires ((forall i. 0 <= i && i < length c ==> index c i = f (index s i))))
-         (ensures
-            (forall i.
-               0 <= i
-               && i < length (map__loop f s c)
-               ==>
-                  (i < length s
-                  && index (map__loop f s c) i = f (index s i))))
-         (decreases (length s - length c))
-   let rec lemma__mapping_of_elements__loop f s c =
-      let i = length c in
-      if i < length s then
-         let a = index s i in
-         let c' = append c (create 1 (f a)) in
-         lemma__mapping_of_elements__loop f s c'
-      else
-         ()
+val lemma__index__loop:
+   f:('a -> Tot 'b)
+   -> s:seq 'a
+   -> c:seq 'b{length c <= length s}
+   -> Lemma
+      (requires ((forall i. 0 <= i && i < length c ==> index c i = f (index s i))))
+      (ensures
+         (forall i.
+            0 <= i
+            && i < length (map__loop f s c)
+            ==>
+               (i < length s
+               && index (map__loop f s c) i = f (index s i))))
+      (decreases (length s - length c))
+let rec lemma__index__loop f s c =
+   let i = length c in
+   if i < length s then
+      let a = index s i in
+      let c' = append c (create 1 (f a)) in
+      lemma__index__loop f s c'
+   else
+      ()
 
-   let map f s =
-      map__loop f s createEmpty
-   let lemma__preserves_length f s =
-      lemma__preserves_length__loop f s createEmpty
-   let lemma__mapping_of_elements f s i =
-      lemma__mapping_of_elements__loop f s createEmpty
+let map f s =
+   map__loop f s createEmpty
+let lemma__length f s =
+   lemma__length__loop f s createEmpty
+let lemma__index f s i =
+   lemma__index__loop f s createEmpty

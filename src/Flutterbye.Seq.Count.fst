@@ -22,11 +22,12 @@
 // ,$
 
 module Flutterbye.Seq.Count
-   open FStar.Seq
-   open Flutterbye.Seq.Filter
+open FStar.Seq
+open Flutterbye.Seq.Filter
 
-   let count p s =
-      length (filter p s)
-
-   let lemma__not_greater_than_length p s =
-      Flutterbye.Seq.Filter.lemma__length p s
+// todo: it's too easy to define something and accidentally mismatch what's in
+// the `.fsi` file, causing f* to declare something as verifying were the user
+// has actually unwittingly discared all verification conditions.
+let count p s =
+   Flutterbye.Seq.Filter.lemma__length p s;
+   length (filter p s)

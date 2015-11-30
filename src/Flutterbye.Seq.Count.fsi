@@ -1,6 +1,6 @@
 (*--build-config
-   options:--admit_fsi FStar.Seq --admit_fsi Flutterbye.Seq.Mem --admit_fsi Flutterbye.Seq.Filter;
-   other-files:seq.fsi Flutterbye.Seq.Mem.fsi Flutterbye.Seq.Filter.fsi
+   options:--admit_fsi FStar.Seq;
+   other-files:seq.fsi
 --*)
 
 // $legal:614:
@@ -22,18 +22,10 @@
 // ,$
 
 module Flutterbye.Seq.Count
-   open FStar.Seq
+open FStar.Seq
 
-   val count:
-      ('a -> Tot bool)
-         // predicate; if false, the element is discarded from the count.
-      -> seq 'a // input sequence
-      -> Tot nat
-
-   val lemma__not_greater_than_length:
-      p: ('a -> Tot bool)
-      -> s: seq 'a
-      -> Lemma
-         (requires (True))
-         (ensures (count p s <= length s))
-         [SMTPat (count p s)]
+val count:
+   ('a -> Tot bool)
+      // predicate; if false, the element is discarded from the count.
+   -> s:seq 'a // input sequence
+   -> Tot (n:nat{n <= length s})

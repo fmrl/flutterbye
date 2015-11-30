@@ -22,24 +22,24 @@
 // ,$
 
 module Flutterbye.Seq.Map
-   open FStar.Seq
+open FStar.Seq
 
-   // map seq 'a to seq 'b given a function that maps 'a to 'b.
-   val map: ('a -> Tot 'b) -> s: seq 'a -> Tot (seq 'b)
+// map seq 'a to seq 'b given a function that maps 'a to 'b.
+val map: ('a -> Tot 'b) -> s: seq 'a -> Tot (seq 'b)
 
-   val lemma__preserves_length:
-      f: ('a -> Tot 'b)
-      -> s: seq 'a
-      -> Lemma
-         (requires (True))
-         (ensures (length (map f s) = length s))
-         [SMTPat (length (map f s))]
+val lemma__length:
+   f:('a -> Tot 'b)
+   -> s:seq 'a
+   -> Lemma
+      (requires (True))
+      (ensures (length (map f s) = length s))
+      [SMTPat (length (map f s))]
 
-   val lemma__mapping_of_elements:
-      f: ('a -> Tot 'b)
-      -> s: seq 'a
-      -> i: nat{i < length s}
-      -> Lemma
-         (requires (True))
-         (ensures (index (map f s) i = f (index s i)))
-         [SMTPat (index (map f s) i)]
+val lemma__index:
+   f:('a -> Tot 'b)
+   -> s:seq 'a
+   -> i:nat{i < length s}
+   -> Lemma
+      (requires (True))
+      (ensures (index (map f s) i = f (index s i)))
+      [SMTPat (index (map f s) i)]

@@ -28,19 +28,19 @@ open Flutterbye.Seq.Find
 let mem a s =
    is_Some (find a s)
 
-let lemma__basic_properties a s =
+let lemma__mem a s =
    ()
 
 let lemma__index s i =
-   Flutterbye.Seq.Find.lemma__basic (index s i) s
+   lemma__find (index s i) s
 
 let lemma__slice s a =
    ()
 
 val lemma__append__case1:
-   a: 'a
-   -> s0: seq 'a
-   -> s1: seq 'a
+   a:'a
+   -> s0:seq 'a
+   -> s1:seq 'a
    -> Lemma
       (requires (True))
       (ensures (mem a s0 ==> mem a (append s0 s1)))
@@ -48,9 +48,9 @@ let lemma__append__case1 a s0 s1 =
    ()
 
 val lemma__append__case2:
-   a: 'a
-   -> s0: seq 'a
-   -> s1: seq 'a
+   a:'a
+   -> s0:seq 'a
+   -> s1:seq 'a
    -> Lemma
       (requires (True))
       (ensures (mem a s1 ==> mem a (append s0 s1)))

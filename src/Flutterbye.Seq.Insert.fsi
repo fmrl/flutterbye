@@ -22,44 +22,44 @@
 // ,$
 
 module Flutterbye.Seq.Insert
-   open FStar.Seq
+open FStar.Seq
 
-   val insert:
-      s: seq 'a
-      -> i: nat{i <= length s}
-      -> 'a
-      -> Tot (seq 'a)
+val insert:
+   s:seq 'a
+   -> i:nat{i <= length s}
+   -> 'a
+   -> Tot (seq 'a)
 
-   val lemma__length:
-      s: seq 'a
-      -> i: nat{i <= length s}
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures (length (insert s i a) = length s + 1))
-         [SMTPat (length (insert s i a))]
+val lemma__length:
+   s: seq 'a
+   -> i: nat{i <= length s}
+   -> a: 'a
+   -> Lemma
+      (requires (True))
+      (ensures (length (insert s i a) = length s + 1))
+      [SMTPat (length (insert s i a))]
 
-   val lemma__index:
-      s: seq 'a
-      -> i: nat{i <= length s}
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures
-            (index (insert s i a) i = a
-            /\ (forall j. 0 <= j && j < i
-               ==> index (insert s i a) j = index s j)
-            /\ (forall j. i < j && j < length (insert s i a)
-               ==> index (insert s i a) j = index s (j - 1))))
+val lemma__index:
+   s: seq 'a
+   -> i: nat{i <= length s}
+   -> a: 'a
+   -> Lemma
+      (requires (True))
+      (ensures
+         ((index (insert s i a) i = a)
+         /\ (forall (j:nat).
+               (j < i) ==> (index (insert s i a) j = index s j))
+         /\ (forall (j:nat).
+               (i < j && j < length (insert s i a)) ==>
+                  (index (insert s i a) j = index s (j - 1)))))
 
-   val lemma__synonyms_for_append:
-      s: seq 'a
-      -> a: 'a
-      -> i: nat{i <= length s}
-      -> Lemma
-         (requires (True))
-         (ensures
-            ((i = 0 <==> Eq (insert s 0 a) (append (create 1 a) s))
-            /\
-               ((i = length s)
-                  <==> (Eq (insert s (length s) a) (append s (create 1 a))))))
+val lemma__append:
+   s: seq 'a
+   -> i: nat{i <= length s}
+   -> a: 'a
+   -> Lemma
+      (requires (True))
+      (ensures
+         (((i = 0) <==> (Eq (insert s 0 a) (append (create 1 a) s)))
+         /\ ((i = length s) <==>
+               (Eq (insert s (length s) a) (append s (create 1 a))))))

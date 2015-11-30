@@ -30,14 +30,14 @@ type Unique: #a:Type -> s:seq a -> Type
 val unique: (s:seq 'a) -> Tot bool
 val to_set: (s:seq 'a{Unique s}) -> Tot (set 'a)
 
-val lemma__unique__default_properties:
+val lemma__unique:
    s:seq 'a
    -> Lemma
       (requires (True))
       (ensures (unique s <==> Unique s))
       [SMTPat (unique s)]
 
-val lemma__to_set__default_properties:
+val lemma__to_set:
    (s:seq 'a{Unique s})
    -> Lemma
       (requires (True))
@@ -46,7 +46,8 @@ val lemma__to_set__default_properties:
             Flutterbye.Seq.Mem.mem a s <==> mem a (to_set s)))
       [SMTPat (to_set s)]
 
-val lemma__empty: s:seq 'a -> Lemma
-   (requires (True))
-   (ensures (Eq createEmpty s ==> Unique s))
-   // todo: need pattern
+val lemma__empty:
+   s:seq 'a
+   -> Lemma
+      (requires (True))
+      (ensures (Eq createEmpty s ==> Unique s))

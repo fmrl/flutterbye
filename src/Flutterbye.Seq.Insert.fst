@@ -22,13 +22,22 @@
 // ,$
 
 module Flutterbye.Seq.Insert
-   open FStar.Seq
+open FStar.Seq
 
-   let insert s i a =
-      let l = slice s 0 i in
-      let c = create 1 a in
-      let r = slice s i (length s) in
-      append (append l c) r
+let insert s i a =
+   let l = slice s 0 i in
+   let c = create 1 a in
+   let r = slice s i (length s) in
+   append (append l c) r
 
-   let lemma__length s i a = ()
-   let lemma__index s i a = ()
+let lemma__length s i a = ()
+let lemma__index s i a = ()
+
+// todo: do missing definitions generate an error when verified from the
+// command line? i believe so.
+// todo: missing defintions should generate warnings in interactive mode so
+// that we don't think everything is okay when it's actually not finished--
+// alternative, if the cursor is only followed by whitespace, undefined symbols
+// become errors.
+let lemma__append s i a =
+   admit ()

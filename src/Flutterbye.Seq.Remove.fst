@@ -22,12 +22,12 @@
 // ,$
 
 module Flutterbye.Seq.Remove
-   open FStar.Seq
+open FStar.Seq
 
-   let remove s i a =
-      let l = slice s 0 i in
-      let r = slice s (i + 1) (length s) in
-      append l r
+let remove s i a =
+   let l = slice s 0 i in
+   let r = slice s (i + 1) (length s) in
+   append l r
 
-   let lemma__length s i a = ()
-   let lemma__index s i a = ()
+let lemma__length s i a = ()
+let lemma__index s i a = ()

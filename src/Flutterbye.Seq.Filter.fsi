@@ -22,39 +22,38 @@
 // ,$
 
 module Flutterbye.Seq.Filter
-   open FStar.Seq
-   open Flutterbye.Seq.Mem
+open FStar.Seq
+open Flutterbye.Seq.Mem
 
-   val filter:
-      ('a -> Tot bool)
-         // predicate; if false, then the element is discarded from the
-         // sequence.
-      -> seq 'a // input sequence
-      -> Tot (seq 'a) // output sequence
+val filter:
+   ('a -> Tot bool)
+      // predicate; if false, then the element is discarded from the
+      // sequence.
+   -> seq 'a // input sequence
+   -> Tot (seq 'a) // output sequence
 
-   val lemma__predicate:
-      p: ('a -> Tot bool)
-      -> s: seq 'a
-      -> i: nat{i < length (filter p s)}
-      -> Lemma
-         (requires (True))
-         (ensures (p (index (filter p s) i)))
-         [SMTPat (index (filter p s) i)]
+val lemma__predicate:
+   p:('a -> Tot bool)
+   -> s:seq 'a
+   -> i:nat{i < length (filter p s)}
+   -> Lemma
+      (requires (True))
+      (ensures (p (index (filter p s) i)))
+      [SMTPat (index (filter p s) i)]
 
-   val lemma__length:
-      p: ('a -> Tot bool)
-      -> s: seq 'a
-      -> Lemma
-         (requires (True))
-         (ensures (length (filter p s) <= length s))
-         [SMTPat (length (filter p s))]
+val lemma__length:
+   p:('a -> Tot bool)
+   -> s:seq 'a
+   -> Lemma
+      (requires (True))
+      (ensures (length (filter p s) <= length s))
+      [SMTPat (length (filter p s))]
 
-   val lemma__preserves_mem:
-      p: ('a -> Tot bool) ->
-      s: seq 'a ->
-      Lemma
-         (requires (True))
-         (ensures
-            (forall i.
-               0 <= i && i < length (filter p s)
-               ==> mem s (index (filter p s) i)))
+val lemma__mem:
+   p:('a -> Tot bool)
+   -> s:seq 'a
+   -> Lemma
+      (requires (True))
+      (ensures
+         (forall (i:nat).
+            (i < length (filter p s)) ==> (mem (index (filter p s) i) s)))

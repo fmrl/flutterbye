@@ -22,32 +22,32 @@
 // ,$
 
 module Flutterbye.Seq.Remove
-   open FStar.Seq
+open FStar.Seq
 
-   val remove:
-      s: seq 'a{length s > 0}
-      -> i: nat{i < length s}
-      -> 'a
-      -> Tot (seq 'a)
+val remove:
+   s:seq 'a{length s > 0}
+   -> i:nat{i < length s}
+   -> 'a
+   -> Tot (seq 'a)
 
-   val lemma__length:
-      s: seq 'a{length s > 0}
-      -> i: nat{i < length s}
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures (length (remove s i a) = length s - 1))
-         [SMTPat (length (remove s i a))]
+val lemma__length:
+   s:seq 'a{length s > 0}
+   -> i:nat{i < length s}
+   -> a:'a
+   -> Lemma
+      (requires (True))
+      (ensures (length (remove s i a) = length s - 1))
+      [SMTPat (length (remove s i a))]
 
-   val lemma__index:
-      s: seq 'a{length s > 0}
-      -> i: nat{i < length s}
-      -> a: 'a
-      -> Lemma
-         (requires (True))
-         (ensures
-            ((forall j. 0 <= j && j < i
-               ==> index (remove s i a) j = index s j)
-            /\ (forall j. i <= j && j < length (remove s i a)
-               ==> index (remove s i a) j = index s (j + 1))))
-         // todo: need trigger
+val lemma__index:
+   s:seq 'a{length s > 0}
+   -> i:nat{i < length s}
+   -> a:'a
+   -> Lemma
+      (requires (True))
+      (ensures
+         ((forall (j:nat).
+            (j < i) ==> (index (remove s i a) j = index s j))
+         /\ (forall (j:nat).
+            (i <= j && j < length (remove s i a)) ==>
+               (index (remove s i a) j = index s (j + 1)))))

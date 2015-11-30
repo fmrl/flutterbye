@@ -22,65 +22,65 @@
 // ,$
 
 module Flutterbye.Seq.Find
-   open FStar.Seq
+open FStar.Seq
 
-   // todo: this isn't working when used from another module.
-   let option_get o =
-      match o with
-         | Some a ->
-            a
+// todo: this isn't working when used from another module.
+let option_get o =
+   match o with
+      | Some a ->
+         a
 
-   val find__loop:
-      'a
-      -> s: seq 'a
-      -> i: nat{i <= length s}
-      -> c: option nat
-      -> Tot (option nat)
-         (decreases (length s - i))
-   let rec find__loop a s i c =
-      if i < length s then
-         let c' =
-            if is_None c && (a = index s i) then
-               Some i
-            else
-               c in
-         find__loop a s (i + 1) c'
-      else
-         c
+val find__loop:
+   'a
+   -> s:seq 'a
+   -> i:nat{i <= length s}
+   -> c:(option nat)
+   -> Tot (option nat)
+      (decreases (length s - i))
+let rec find__loop a s i c =
+   if i < length s then
+      let c' =
+         if is_None c && (a = index s i) then
+            Some i
+         else
+            c in
+      find__loop a s (i + 1) c'
+   else
+      c
 
-   val lemma__basic__loop:
-      a: 'a
-      -> s: seq 'a
-      -> i: nat{i <= length s}
-      -> c: option nat
-      -> Lemma
-         (requires
-            ((is_None c ==>
-               (forall j.
-                  0 <= j && j < i ==> index s j <> a))
-            /\ (is_Some c ==>
-                  ((option_get c) < length s
-                  && a = index s (option_get c)))))
-         (ensures
-            ((is_None (find__loop a s i c) ==>
-               (forall j.
-                  0 <= j && j < length s ==> index s j <> a))
-            /\ (is_Some (find__loop a s i c) ==>
-                  ((option_get (find__loop a s i c)) < length s
-                  && a = index s (option_get (find__loop a s i c))))))
-         (decreases (length s - i))
-   let rec lemma__basic__loop a s i c =
-      if i < length s then
-         let c' =
-            if is_None c && a = index s i then
-               Some i
-            else
-               c in
-         lemma__basic__loop a s (i + 1) c'
-      else
-         ()
+val lemma__find__loop:
+   a:'a
+   -> s:seq 'a
+   -> i:nat{i <= length s}
+   -> c:(option nat)
+   -> Lemma
+      (requires
+         ((is_None c ==>
+            (forall (j:nat).
+               (j < i) ==> (index s j <> a)))
+         /\ (is_Some c ==>
+               ((option_get c) < length s
+               && a = index s (option_get c)))))
+      (ensures
+         ((is_None (find__loop a s i c) ==>
+            (forall (j:nat).
+               (j < length s) ==> (index s j <> a)))
+         /\ (is_Some (find__loop a s i c) ==>
+               ((option_get (find__loop a s i c)) < length s
+               && a = index s (option_get (find__loop a s i c))))))
+      (decreases (length s - i))
+let rec lemma__find__loop a s i c =
+   if i < length s then
+      let c' =
+         if is_None c && a = index s i then
+            Some i
+         else
+            c in
+      lemma__find__loop a s (i + 1) c'
+   else
+      ()
 
-   let find a s =
-      find__loop a s 0 None
-   let lemma__basic a s =
-      lemma__basic__loop a s 0 None
+let find a s =
+   find__loop a s 0 None
+let lemma__find a s =
+   lemma__find__loop a s 0 None

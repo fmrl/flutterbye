@@ -26,9 +26,9 @@ open FStar.Seq
 
 val mem: 'a -> seq 'a -> Tot bool
 
-val lemma__basic_properties:
-   a: 'a
-   -> s: seq 'a
+val lemma__mem:
+   a:'a
+   -> s:seq 'a
    -> Lemma
       (requires (True))
       (ensures
@@ -41,8 +41,8 @@ val lemma__basic_properties:
       [SMTPat (mem a s)]
 
 val lemma__slice:
-   s: seq 'a
-   -> a: 'a
+   s:seq 'a
+   -> a:'a
    -> Lemma
       (requires (mem a s))
       (ensures
@@ -63,10 +63,9 @@ val lemma__index:
       [SMTPat (mem (index s i) s)]
 
 val lemma__append:
-   a: 'a
-   -> s0: seq 'a
-   -> s1: seq 'a
+   a:'a
+   -> s0:seq 'a
+   -> s1:seq 'a
    -> Lemma
       (requires (True))
-      (ensures (mem a s0 || mem a s1 <==> mem a (append s0 s1)))
-      [SMTPat (mem a (append s0 s1))]
+      (ensures ((mem a s0 || mem a s1) <==> (mem a (append s0 s1))))

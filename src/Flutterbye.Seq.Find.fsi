@@ -22,26 +22,25 @@
 // ,$
 
 module Flutterbye.Seq.Find
-   open FStar.Seq
+open FStar.Seq
 
-   // todo: this isn't working when used from a separate module.
-   val option_get: o: option 'a{is_Some o} -> Tot 'a
+// todo: this isn't working when used from a separate module.
+val option_get: o:option 'a{is_Some o} -> Tot 'a
 
-   // todo: this should accept an 'a -> bool rather than an 'a.
-   val find: s:'a -> seq 'a -> Tot (option nat)
+// todo: this should accept an 'a -> bool rather than an 'a.
+val find: a:'a -> s:seq 'a -> Tot (option nat)
 
-   // todo: can this be broken down into simpler lemmas
-   // (e.g. lemma__range and lemma__not_found)?
-   val lemma__basic:
-      a: 'a
-      -> s: seq 'a
-      -> Lemma
-         (requires (True))
-         (ensures
-            ((is_None (find a s) ==>
-               (forall j.
-                  0 <= j && j < length s ==> index s j <> a))
-            /\ (is_Some (find a s) ==>
-                  ((option_get (find a s)) < length s
-                  && a = index s (option_get (find a s))))))
-         [SMTPat (find a s)]
+// todo: can this be broken down into an aggregation of simpler forms?
+val lemma__find:
+   a:'a
+   -> s:seq 'a
+   -> Lemma
+      (requires (True))
+      (ensures
+         ((is_None (find a s) ==>
+            (forall (j:nat).
+               (j < length s) ==> (index s j <> a)))
+         /\ ((is_Some (find a s)) ==>
+               ((option_get (find a s) < length s
+               && a = index s (option_get (find a s)))))))
+      [SMTPat (find a s)]
