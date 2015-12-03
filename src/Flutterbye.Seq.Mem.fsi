@@ -40,19 +40,25 @@ val lemma__mem:
                   && index s i = a)))
       [SMTPat (mem a s)]
 
-val lemma__slice:
-   s:seq 'a
-   -> a:'a
+val lemma__slice_1:
+   a:'a
+   -> s:seq 'a
    -> Lemma
       (requires (mem a s))
       (ensures
-         ((forall (i:nat) (j:nat) (s1:seq 'a).
-            ((j < length s1 /\ i <= j /\ (Eq s (slice s1 i j))) ==>
-               mem a s1)))
-         /\
-            (forall (i:nat).
-               ((i < length s && index s i = a) ==>
-                  (mem a (slice s 0 (i + 1))))))
+         (forall (i:nat) (j:nat) (q:seq 'a).
+            ((j < length q /\ i <= j /\ (Eq s (slice q i j))) ==>
+               mem a q)))
+
+val lemma__slice_2:
+   a:'a
+   -> s:seq 'a
+   -> Lemma
+      (requires (True))
+      (ensures
+         (forall (i:nat).
+            ((i < length s && index s i = a) ==>
+               (mem a (slice s 0 (i + 1))))))
 
 val lemma__index:
    s:seq 'a{length s > 0}
@@ -64,8 +70,16 @@ val lemma__index:
 
 val lemma__append:
    a:'a
-   -> s0:seq 'a
-   -> s1:seq 'a
+   -> s_1:seq 'a
+   -> s_2:seq 'a
    -> Lemma
       (requires (True))
-      (ensures ((mem a s0 || mem a s1) <==> (mem a (append s0 s1))))
+      (ensures ((mem a s_1 || mem a s_2) <==> (mem a (append s_1 s_2))))
+
+val lemma__create:
+   n:nat
+   -> a:'a
+   -> Lemma
+      (requires (True))
+      (ensures (mem a (create n a)))
+      [SMTPat (create n a)]

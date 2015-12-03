@@ -34,7 +34,10 @@ let lemma__mem a s =
 let lemma__index s i =
    lemma__find (index s i) s
 
-let lemma__slice s a =
+let lemma__slice_1 a s =
+   ()
+
+let lemma__slice_2 a s =
    ()
 
 val lemma__append__case1:
@@ -60,7 +63,8 @@ let lemma__append__case2 a s0 s1 =
       let i = length s0 in
       let j = length s' in
       let s1' = slice s' i j in
-      lemma__slice s1' a
+      lemma__slice_1 a s1';
+      lemma__slice_2 a s1'
    else
       ()
 

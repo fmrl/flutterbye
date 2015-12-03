@@ -29,6 +29,7 @@ type Unique: #a:Type -> s:seq a -> Type
 
 val unique: (s:seq 'a) -> Tot bool
 val to_set: (s:seq 'a{Unique s}) -> Tot (set 'a)
+val dedup: (s:seq 'a) -> Tot (u:seq 'a{Unique u})
 
 val lemma__unique:
    s:seq 'a
@@ -51,3 +52,21 @@ val lemma__empty:
    -> Lemma
       (requires (True))
       (ensures (Eq createEmpty s ==> Unique s))
+
+val lemma__dedup__length:
+   s:seq 'a
+   -> Lemma
+      (requires (True))
+      (ensures (length (dedup s) <= length s))
+      [SMTPat (length (dedup s))]
+
+val lemma__dedup__mem:
+   s:seq 'a
+   -> a:'a
+   -> Lemma
+      (requires (True))
+      (ensures
+         (Flutterbye.Seq.Mem.mem a (dedup s) <==>
+            Flutterbye.Seq.Mem.mem a s))
+      // todo: SMTPat doesn't like something about the following expression.
+      //[SMTPat (Flutterbye.Seq.Mem.mem (dedup s))]
