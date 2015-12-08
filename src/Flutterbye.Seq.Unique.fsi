@@ -27,9 +27,8 @@ open FStar.Set
 
 type Unique: #a:Type -> s:seq a -> Type
 
-val unique: (s:seq 'a) -> Tot (b:bool{b <==> Unique s})
 val to_set: (s:seq 'a{Unique s}) -> Tot (set 'a)
-val dedup: (s:seq 'a) -> Tot (u:seq 'a{Unique u})
+val unique: (s:seq 'a) -> Tot (u:seq 'a{Unique u})
 
 val lemma__to_set:
    (s:seq 'a{Unique s})
@@ -45,19 +44,19 @@ val lemma__empty:
       (requires (length s = 0))
       (ensures (Unique s))
 
-val lemma__dedup__length:
+val lemma__unique__length:
    s:seq 'a
    -> Lemma
       (requires (True))
-      (ensures (length (dedup s) <= length s))
+      (ensures (length (unique s) <= length s))
 
-// todo: are there disadvantages to combining the two `lemma__dedup...` lemmas
+// todo: are there disadvantages to combining the two `lemma__unique...` lemmas
 // given that one needs an additional free variable?
-val lemma__dedup__mem:
+val lemma__unique__mem:
    s:seq 'a
    -> a:'a
    -> Lemma
       (requires (True))
       (ensures
-         (Flutterbye.Seq.Mem.mem a (dedup s) <==>
+         (Flutterbye.Seq.Mem.mem a (unique s) <==>
             Flutterbye.Seq.Mem.mem a s))

@@ -37,56 +37,6 @@ type Unique (#a:Type) (s:seq a) =
          ==>
             j == i)
 
-val unique__loop:
-   // input sequence
-   s:seq 'a
-   // index of element being examined
-   -> i:nat{i <= length s}
-   // accumulator; in this case, a set to track members of the sequence.
-   -> c:seq 'a{Unique c}
-   -> Tot bool
-      (decreases (length s - i))
-let rec unique__loop s i c =
-   if i < length s then
-      let a = index s i in
-      if Flutterbye.Seq.Mem.mem a c then
-         false
-      else
-         let c' = append c (create 1 a) in
-         unique__loop s (i + 1) c'
-   else
-      true
-
-val lemma__unique__loop:
-   // input sequence
-   s:seq 'a
-   // index of element being examined
-   -> i:nat{i <= length s}
-   // accumulator; in this case, a set to track members of the sequence.
-   -> c:seq 'a{Unique c}
-   -> Lemma
-      (requires
-         (Eq c (slice s 0 i)
-         // todo: it seems that length c = i should be implied by the
-         // Fstar.Seq.Eq c (FStar.Seq.slice s 0 i) property.
-         /\ length c = i))
-      (ensures (unique__loop s i c <==> Unique s))
-      (decreases (length s - i))
-let rec lemma__unique__loop s i c =
-   if i < length s then
-      let a = index s i in
-      if Flutterbye.Seq.Mem.mem a c then
-         ()
-      else
-         let c' = append c (create 1 a) in
-         lemma__unique__loop s (i + 1) c'
-   else
-      ()
-
-let unique s =
-   lemma__unique__loop s 0 createEmpty;
-   unique__loop s 0 createEmpty
-
 val to_set__loop:
    // input sequence
    s:seq 'a{Unique s}
@@ -107,7 +57,7 @@ let rec to_set__loop s i c =
 let to_set s =
    to_set__loop s 0 empty
 
-val dedup__loop:
+val unique__loop:
    // input sequence
    s:seq 'a
    // index of element being examined
@@ -116,7 +66,7 @@ val dedup__loop:
    -> c:seq 'a{Unique c}
    -> Tot (c':seq 'a{Unique c'})
       (decreases (length s - i))
-let rec dedup__loop s i c =
+let rec unique__loop s i c =
    if i < length s then
       let a = index s i in
       let c' =
@@ -124,12 +74,12 @@ let rec dedup__loop s i c =
             c
          else
             append c (create 1 a) in
-      dedup__loop s (i + 1) c'
+      unique__loop s (i + 1) c'
    else
       c
 
-let dedup s =
-   dedup__loop s 0 createEmpty
+let unique s =
+   unique__loop s 0 createEmpty
 
 let lemma__empty s = ()
 
@@ -163,7 +113,7 @@ let rec lemma__to_set__loop s i c =
 let lemma__to_set s =
    lemma__to_set__loop s 0 empty
 
-val lemma__dedup__length__loop:
+val lemma__unique__length__loop:
    // input sequence
    s:seq 'a
    // index of element being examined
@@ -172,9 +122,9 @@ val lemma__dedup__length__loop:
    -> c:seq 'a{Unique c}
    -> Lemma
       (requires (length c <= i))
-      (ensures (length (dedup__loop s i c) <= length s))
+      (ensures (length (unique__loop s i c) <= length s))
       (decreases (length s - i))
-let rec lemma__dedup__length__loop s i c =
+let rec lemma__unique__length__loop s i c =
    if i < length s then
       let a = index s i in
       let c' =
@@ -182,14 +132,14 @@ let rec lemma__dedup__length__loop s i c =
             c
          else
             append c (create 1 a) in
-      lemma__dedup__length__loop s (i + 1) c'
+      lemma__unique__length__loop s (i + 1) c'
    else
       ()
 
-let lemma__dedup__length s =
-   lemma__dedup__length__loop s 0 createEmpty
+let lemma__unique__length s =
+   lemma__unique__length__loop s 0 createEmpty
 
-val lemma__dedup__mem__loop:
+val lemma__unique__mem__loop:
    // input sequence
    s:seq 'a
    // index of element being examined
@@ -203,15 +153,15 @@ val lemma__dedup__mem__loop:
          /\ (Flutterbye.Seq.Mem.mem x c <==>
                Flutterbye.Seq.Mem.mem x (slice s 0 i))))
       (ensures
-         (Flutterbye.Seq.Mem.mem x (dedup__loop s i c) <==>
+         (Flutterbye.Seq.Mem.mem x (unique__loop s i c) <==>
             Flutterbye.Seq.Mem.mem x s))
       (decreases (length s - i))
-let rec lemma__dedup__mem__loop s i c x =
+let rec lemma__unique__mem__loop s i c x =
    if i < length s then
       let a = index s i in
       (if Flutterbye.Seq.Mem.mem a c then
          let c' = c in
-         lemma__dedup__mem__loop s (i + 1) c' x
+         lemma__unique__mem__loop s (i + 1) c' x
       else
          let c' = append c (create 1 a) in
          let p_1 = hide (Flutterbye.Seq.Mem.mem a c') in
@@ -221,9 +171,9 @@ let rec lemma__dedup__mem__loop s i c x =
          Flutterbye.Seq.Mem.lemma__append a c (create 1 a);
          assert (Flutterbye.Seq.Mem.mem a c');
          assert ((reveal p_2) ==> (reveal p_1));
-         lemma__dedup__mem__loop s (i + 1) c' x)
+         lemma__unique__mem__loop s (i + 1) c' x)
    else
       ()
 
-let lemma__dedup__mem s a =
-   lemma__dedup__mem__loop s 0 createEmpty a
+let lemma__unique__mem s a =
+   lemma__unique__mem__loop s 0 createEmpty a
