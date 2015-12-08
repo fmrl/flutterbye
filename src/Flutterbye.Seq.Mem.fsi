@@ -71,12 +71,12 @@ val lemma__index:
       [SMTPat (mem (index s i) s)]
 
 val lemma__append:
-   a:'a
+   x:'a
    -> s_1:seq 'a
    -> s_2:seq 'a
    -> Lemma
-      (requires (True))
-      (ensures ((mem a s_1 || mem a s_2) <==> (mem a (append s_1 s_2))))
+      (requires (mem x s_1 || mem x s_2))
+      (ensures (mem x (append s_1 s_2)))
 
 val lemma__create:
    n:nat

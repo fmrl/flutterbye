@@ -40,34 +40,33 @@ let lemma__slice_1 a s =
 let lemma__slice_2 a s =
    ()
 
-val lemma__append__case1:
-   a:'a
-   -> s0:seq 'a
-   -> s1:seq 'a
+val lemma__append__case_1:
+   x:'a
+   -> s_1:seq 'a
+   -> s_2:seq 'a
    -> Lemma
-      (requires (True))
-      (ensures (mem a s0 ==> mem a (append s0 s1)))
-let lemma__append__case1 a s0 s1 =
+      (requires (mem x s_1))
+      (ensures (mem x (append s_1 s_2)))
+let lemma__append__case_1 x s_1 s_2 =
    ()
 
-val lemma__append__case2:
-   a:'a
-   -> s0:seq 'a
-   -> s1:seq 'a
+val lemma__append__case_2:
+   x:'a
+   -> s_1:seq 'a
+   -> s_2:seq 'a
    -> Lemma
-      (requires (True))
-      (ensures (mem a s1 ==> mem a (append s0 s1)))
-let lemma__append__case2 a s0 s1 =
-   if mem a s1 then
-      let s' = append s0 s1 in
-      let i = length s0 in
-      let j = length s' in
-      let s1' = slice s' i j in
-      lemma__slice_1 a s1';
-      lemma__slice_2 a s1'
-   else
-      ()
+      (requires (mem x s_2))
+      (ensures (mem x (append s_1 s_2)))
+let lemma__append__case_2 x s_1 s_2 =
+   let s' = append s_1 s_2 in
+   let i = length s_1 in
+   let j = length s' in
+   let s'' = slice s' i j in
+   lemma__slice_1 x s'';
+   lemma__slice_2 x s''
 
-let lemma_mem__append a s0 s1 =
-   lemma__append__case1 a s0 s1;
-   lemma__append__case2 a s0 s1
+let lemma__append x s_1 s_2 =
+   if mem x s_1 then
+      lemma__append__case_1 x s_1 s_2
+   else
+      lemma__append__case_2 x s_1 s_2
