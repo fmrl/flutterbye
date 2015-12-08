@@ -50,11 +50,13 @@ val lemma__slice_1:
             ((j < length q /\ i <= j /\ (Eq s (slice q i j))) ==>
                mem a q)))
 
+// todo: this lemma could be generalized to any slice containing index `i`.
+// (would that subsume lemma__slice_1?)
 val lemma__slice_2:
    a:'a
    -> s:seq 'a
    -> Lemma
-      (requires (True))
+      (requires (mem a s))
       (ensures
          (forall (i:nat).
             ((i < length s && index s i = a) ==>
