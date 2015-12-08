@@ -22,24 +22,18 @@
 // ,$
 
 module Flutterbye.Schedule.Core
-   open FStar
-   open Flutterbye
+open FStar.Seq
 
-   type seq = FStar.Seq.seq
-   type Unique = Flutterbye.Seq.Unique.Unique
+type Name = nat
 
-   type Name = nat
+type Effect =
+   | Spawn:(name:Name -> Effect)
+   | Message:Effect
 
-   type Effect =
-      | Spawn:(name:Name -> Effect)
-      | Message:Effect
+type Schedule = seq Effect
 
-   type Schedule = seq Effect
+let empty = createEmpty
 
-   let empty =
-      Seq.createEmpty
-
-   let length s =
-      Seq.length s
+let length s = length s
 
 // $vim-fst:32: vim:set sts=3 sw=3 et ft=fstar:,$

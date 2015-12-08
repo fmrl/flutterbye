@@ -57,7 +57,34 @@ let rec unique__loop s i c =
    else
       true
 
+val lemma__unique__loop:
+   // input sequence
+   s:seq 'a
+   // index of element being examined
+   -> i:nat{i <= length s}
+   // accumulator; in this case, a set to track members of the sequence.
+   -> c:seq 'a{Unique c}
+   -> Lemma
+      (requires
+         (Eq c (slice s 0 i)
+         // todo: it seems that length c = i should be implied by the
+         // Fstar.Seq.Eq c (FStar.Seq.slice s 0 i) property.
+         /\ length c = i))
+      (ensures (unique__loop s i c <==> Unique s))
+      (decreases (length s - i))
+let rec lemma__unique__loop s i c =
+   if i < length s then
+      let a = index s i in
+      if Flutterbye.Seq.Mem.mem a c then
+         ()
+      else
+         let c' = append c (create 1 a) in
+         lemma__unique__loop s (i + 1) c'
+   else
+      ()
+
 let unique s =
+   lemma__unique__loop s 0 createEmpty;
    unique__loop s 0 createEmpty
 
 val to_set__loop:
@@ -103,35 +130,6 @@ let rec dedup__loop s i c =
 
 let dedup s =
    dedup__loop s 0 createEmpty
-
-val lemma__unique__loop:
-   // input sequence
-   s:seq 'a
-   // index of element being examined
-   -> i:nat{i <= length s}
-   // accumulator; in this case, a set to track members of the sequence.
-   -> c:seq 'a{Unique c}
-   -> Lemma
-      (requires
-         (Eq c (slice s 0 i)
-         // todo: it seems that length c = i should be implied by the
-         // Fstar.Seq.Eq c (FStar.Seq.slice s 0 i) property.
-         /\ length c = i))
-      (ensures (unique__loop s i c <==> Unique s))
-      (decreases (length s - i))
-let rec lemma__unique__loop s i c =
-   if i < length s then
-      let a = index s i in
-      if Flutterbye.Seq.Mem.mem a c then
-         ()
-      else
-         let c' = append c (create 1 a) in
-         lemma__unique__loop s (i + 1) c'
-   else
-      ()
-
-let lemma__unique s =
-   lemma__unique__loop s 0 createEmpty
 
 let lemma__empty s = ()
 

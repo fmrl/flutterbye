@@ -24,21 +24,11 @@
 module Flutterbye.Seq.Mem
 open FStar.Seq
 
-val mem: 'a -> seq 'a -> Tot bool
+type Mem (#a:Type) (x:a) (s:seq a) =
+   exists (i:nat).
+      i < length s && index s i = x
 
-val lemma__mem:
-   a:'a
-   -> s:seq 'a
-   -> Lemma
-      (requires (True))
-      (ensures
-         ((mem a s)
-            <==>
-               (exists i.
-                  0 <= i
-                  && i < length s
-                  && index s i = a)))
-      [SMTPat (mem a s)]
+val mem: x:'a -> s:seq 'a -> Tot (b:bool{b <==> Mem x s})
 
 val lemma__slice_1:
    a:'a
@@ -68,7 +58,6 @@ val lemma__index:
    -> Lemma
       (requires (True))
       (ensures (mem (index s i) s))
-      [SMTPat (mem (index s i) s)]
 
 val lemma__append:
    x:'a
@@ -78,8 +67,16 @@ val lemma__append:
       (requires (mem x s_1 || mem x s_2))
       (ensures (mem x (append s_1 s_2)))
 
+val lemma__empty:
+   x:'a
+   -> s:seq 'a
+   -> Lemma
+      (requires (length s = 0))
+      (ensures (not (mem x s)))
+      [SMTPat (mem x s)]
+
 val lemma__create:
-   n:nat
+   n:nat{n > 0}
    -> a:'a
    -> Lemma
       (requires (True))

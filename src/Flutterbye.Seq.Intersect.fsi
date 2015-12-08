@@ -33,7 +33,8 @@ val insersect:
    -> Tot (s_i:seq 'a{Intersect s_i s_1 s_2})
 
 val lemma__empty:
-   s:seq 'a
+   s_1:seq 'a
+   -> s_2:seq 'a
    -> Lemma
-      (requires (True))
-      (ensures (Intersect createEmpty createEmpty s))
+      (requires (length s_1 = 0 || length s_2 = 0))
+      (ensures (Intersect createEmpty s_1 s_2))

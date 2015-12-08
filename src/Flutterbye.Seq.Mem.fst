@@ -70,3 +70,9 @@ let lemma__append x s_1 s_2 =
       lemma__append__case_1 x s_1 s_2
    else
       lemma__append__case_2 x s_1 s_2
+
+let lemma__empty x s = ()
+
+// bug: f* was successfully verifying this module without an implementation for
+// lemma__create. it might matter that lemma__create is last when this happened.
+let lemma__create n a = ()

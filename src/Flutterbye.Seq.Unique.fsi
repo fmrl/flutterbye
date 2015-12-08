@@ -27,16 +27,9 @@ open FStar.Set
 
 type Unique: #a:Type -> s:seq a -> Type
 
-val unique: (s:seq 'a) -> Tot bool
+val unique: (s:seq 'a) -> Tot (b:bool{b <==> Unique s})
 val to_set: (s:seq 'a{Unique s}) -> Tot (set 'a)
 val dedup: (s:seq 'a) -> Tot (u:seq 'a{Unique u})
-
-val lemma__unique:
-   s:seq 'a
-   -> Lemma
-      (requires (True))
-      (ensures (unique s <==> Unique s))
-      [SMTPat (unique s)]
 
 val lemma__to_set:
    (s:seq 'a{Unique s})
@@ -45,21 +38,21 @@ val lemma__to_set:
       (ensures
          (forall a.
             Flutterbye.Seq.Mem.mem a s <==> mem a (to_set s)))
-      [SMTPat (to_set s)]
 
 val lemma__empty:
    s:seq 'a
    -> Lemma
-      (requires (True))
-      (ensures (Eq createEmpty s ==> Unique s))
+      (requires (length s = 0))
+      (ensures (Unique s))
 
 val lemma__dedup__length:
    s:seq 'a
    -> Lemma
       (requires (True))
       (ensures (length (dedup s) <= length s))
-      [SMTPat (length (dedup s))]
 
+// todo: are there disadvantages to combining the two `lemma__dedup...` lemmas
+// given that one needs an additional free variable?
 val lemma__dedup__mem:
    s:seq 'a
    -> a:'a
@@ -68,5 +61,3 @@ val lemma__dedup__mem:
       (ensures
          (Flutterbye.Seq.Mem.mem a (dedup s) <==>
             Flutterbye.Seq.Mem.mem a s))
-      // todo: SMTPat doesn't like something about the following expression.
-      //[SMTPat (Flutterbye.Seq.Mem.mem (dedup s))]
