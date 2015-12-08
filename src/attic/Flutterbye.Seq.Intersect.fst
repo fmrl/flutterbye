@@ -21,6 +21,11 @@
 //
 // ,$
 
+// notes: i'm putting this module aside for the moment becasue i've realized
+// that sequence intesection is a more complicated concept than i'm really
+// interested in tackling for the moment-- mostly that sequence intersection
+// should probably mirror multiset intersection.
+
 // todo: in interactive mode, if this module name doesn't match the interface
 // module name, it can cause timeouts that are difficult to connect to a simple
 // cut-and-paste error.
@@ -32,7 +37,7 @@ type Intersect (#a:Type) (s_i:seq a) (s_1:seq a) (s_2:seq a) =
    forall x.
       mem x s_i <==> (mem x s_1 /\ mem x s_2)
 
-let lemma__empty s = ()
+let lemma__empty s_1 s_2 = ()
 
 val intersect__loop:
    s_1:seq 'a
@@ -68,16 +73,17 @@ val lemma__intersect__loop:
 // error message produced is accurate but confusing because of assumptions that
 // the compiler is making.
 let rec lemma__intersect__loop s_1 s_2 i a =
+   // todo: would knowing about length help? intersection <= args.
    if i < length s_1 then
       let e_i = index s_1 i in
       if mem e_i s_2 then
          let a' = append a (create 1 e_i) in
-         (*Flutterbye.Seq.Mem.lemma__append e_i a (create 1 e_i);
+         Flutterbye.Seq.Mem.lemma__append e_i a (create 1 e_i);
          assert (mem e_i a');
          Flutterbye.Seq.Mem.lemma__slice_2 e_i s_1;
-         assert (mem e_i (slice s_1 0 (i + 1)));*)
+         assert (mem e_i (slice s_1 0 (i + 1)));
          if mem e_i a then
-            admit ()//lemma__intersect__loop s_1 s_2 (i + 1) a'
+            lemma__intersect__loop s_1 s_2 (i + 1) a'
          else
             admit ()//lemma__intersect__loop s_1 s_2 (i + 1) a'
      else
