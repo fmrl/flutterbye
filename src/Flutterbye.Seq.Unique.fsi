@@ -31,12 +31,11 @@ val to_set: (s:seq 'a{Unique s}) -> Tot (set 'a)
 val unique: (s:seq 'a) -> Tot (u:seq 'a{Unique u})
 
 val lemma__to_set:
-   (s:seq 'a{Unique s})
+   x:'a
+   -> s:seq 'a{Unique s}
    -> Lemma
       (requires (True))
-      (ensures
-         (forall a.
-            Flutterbye.Seq.Mem.mem a s <==> mem a (to_set s)))
+      (ensures (Flutterbye.Seq.Mem.mem x s <==> mem x (to_set s)))
 
 val lemma__empty:
    s:seq 'a
@@ -53,10 +52,10 @@ val lemma__unique__length:
 // todo: are there disadvantages to combining the two `lemma__unique...` lemmas
 // given that one needs an additional free variable?
 val lemma__unique__mem:
-   s:seq 'a
-   -> a:'a
+   x:'a
+   -> s:seq 'a
    -> Lemma
       (requires (True))
       (ensures
-         (Flutterbye.Seq.Mem.mem a (unique s) <==>
-            Flutterbye.Seq.Mem.mem a s))
+         (Flutterbye.Seq.Mem.mem x (unique s) <==>
+            Flutterbye.Seq.Mem.mem x s))

@@ -110,7 +110,7 @@ let rec lemma__to_set__loop s i c =
    else
       ()
 
-let lemma__to_set s =
+let lemma__to_set x s =
    lemma__to_set__loop s 0 empty
 
 val lemma__unique__length__loop:
@@ -175,5 +175,5 @@ let rec lemma__unique__mem__loop s i c x =
    else
       ()
 
-let lemma__unique__mem s a =
-   lemma__unique__mem__loop s 0 createEmpty a
+let lemma__unique__mem x s =
+   lemma__unique__mem__loop s 0 createEmpty x
