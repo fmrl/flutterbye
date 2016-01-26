@@ -2,5 +2,8 @@
 *.tmp
 *~
 /.bundle/
-/bin/
-_vendor/
+/_vendor/
+/bin/jdepp
+/bin/rake
+/bin/rubrstmp
+/node_modules/

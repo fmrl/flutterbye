@@ -1,0 +1,13 @@
+{ "name": "flutterbye",
+  "description": "an experimental operational semantics and actor system",
+  "version": "0.0.0",
+  "license" : "Apache License 2.0",
+  "private": "true",
+  "repository" :
+  { "type" : "git"
+  , "url" : "https://github.com/fmrl/flutterbye.git"
+  },
+  "devDependencies": {
+    "madoko-local": "*"
+  }
+}

@@ -1,0 +1,21 @@
+#!/bin/sh
+
+dry=
+
+repo_prefix=$(git rev-parse --show-toplevel)
+exit=$?
+if [ $exit -ne 0 ]; then
+  exit $exit
+fi
+
+madoko_local=$repo_prefix/node_modules/.bin/madoko-local
+port=8066
+doc_prefix=$repo_prefix/src/doc
+
+if [ ! -x $madoko_local ]; then
+  $dry cd $repo_prefix; $dry npm install
+fi
+
+$dry $madoko_local -l --port=$port $doc_prefix
+
+
