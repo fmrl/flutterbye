@@ -26,6 +26,12 @@ concurrent (and by extension, distributed) computer programs expressed in *flutt
 
 most computer programs are concurrent in nature. an important motivation in *flutterbye*'s development is to bring awareness to how the common practice of ignoring side-effects and implicit behavior in software development leads to systems that fail unpredictably and prove difficult to diagnose and repair.
 
+# side-effects
+
+#. side-effects are *necessary* in order to do anything useful in a computer program.
+#. it is *difficult*, if not *impossible*, to reason about the behavior of non-trivial programs that do not describe the side-effects that affect their behavior. therefore, a computer program that does not specify  such side-effects is an *incomplete specification* of the program's behavior. 
+#. pure functions have *useful properties* that can and should be leveraged to make computer programs *more performant*, *easier to debug*, and *simpler for both humans and machines to reason about*.
+
 # components
 
 *flutterbye*'s operational semantics are divided into four distinct components:
