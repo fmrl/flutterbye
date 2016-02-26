@@ -7,3 +7,4 @@
 /bin/rake
 /bin/rubrstmp
 /node_modules/
+/npm-debug.log
