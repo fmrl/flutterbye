@@ -1,0 +1,6 @@
+#!/bin/sh
+
+if [ ! -d $(npm root) ]; then
+  npm install
+fi
+

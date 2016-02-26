@@ -1,0 +1,7 @@
+#!/bin/sh
+
+port=8066
+
+$(npm prefix)/bin/want-npm-install
+$(npm bin)/madoko-local -l --port=$port $(npm prefix)/src/doc
+
