@@ -9,5 +9,8 @@
   },
   "devDependencies": {
     "madoko-local": "*"
+  },
+  "scripts": {
+    "exec": "exec"
   }
 }
