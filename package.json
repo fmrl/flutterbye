@@ -8,9 +8,12 @@
   , "url" : "https://github.com/fmrl/flutterbye.git"
   },
   "devDependencies": {
+    "jake": "*",
+    "madoko": "*",
     "madoko-local": "*"
   },
   "scripts": {
-    "exec": "exec"
+    "exec": "exec",
+    "shell": "PATH=$(npm bin):$PATH exec $SHELL"
   }
 }
