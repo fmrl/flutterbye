@@ -1,0 +1,101 @@
+Title         : Fundamentals of The *flutterbye*
+Author        : Michael Lowell Roberts
+Copyright     : (c) 2016, Michael Lowell Roberts
+License       : Apache License 2.0 
+Logo          : True
+
+[TITLE]
+
+# Scope 
+
+The purpose of this document is to informally specify, in concise terms[^1], the operational semantic called [flutterbye]. 
+
+[flutterbye]: https://github.com/fmrl/flutterbye
+
+# Overview
+
+*flutterbye* is an operational semantic that resembles the actor model[^2]; it is an intermediate representation of causality in a computer program. 
+
+We divide *flutterbye* into three primary components:
+
+#. *storage*.
+#. *fabric*.
+#. *scheduler*.
+
+## Storage
+
+The storage component must conform to the semantics of a mutable key-value store.
+
+## Fabric
+
+The *fabric* is the portion of *flutterbye* that resembles the actor model. *Regions* correspond to actors and *effects* correspond to messages.
+
+We reason about computer programs modeled using *regions* and *effects* as if it were a distributed system.
+
+### Regions
+
+A *region* ($R$) is specified as follows:
+
+~ Math
+  A_t=\left(I_R, T_c, S\right)
+~
+
+~ Center
+| ------ | -------------------------- |
+| Symbol | Description                | 
+| -------| -------------------------- |
+| $I_R$  | identity of the region $R$ |
+| $T_c$  | causal transform           |
+| $S$    | input state of region $R$  |
+| ------ | -------------------------- |
+{ .booktable }
+~
+
+### Effects
+
+**Effects** represent what is normally referred to as a [side-effect] in computer science.
+
+[side-effect]: https://en.wikipedia.org/wiki/Side_effect_%28computer_science%29 "Wikipedia: Side effect (Computer Science)"
+
+### Causal Transform
+
+The causal transform is a [total function] that expresses what should happen when the system advances one step in time.
+
+[total function]: http://en.wikipedia.org/wiki/Partial_function#Total_function "Wikipedia: Total Function"
+
+~ Math
+  T_c:\left(I_R, C, S\right)\rightarrow\left(S', \left\{E_1...E_n\right\}\right)
+~
+
+~ Center
+| -------------------------- | ----------------------------- |
+| Symbol                     | Description                   | 
+| -------------------------- | ----------------------------- |
+| $T_c$                      | causal transform              |
+| $I_R$                      | identity of the region $R$    |
+| $C$                        | input effect (or *cause*)     |
+| $S$                        | state of region $R$           |
+| $S'$                       | successor state of region $R$ |
+| $\left\{E_1...E_n\right\}$ | multiset of output effects    |
+| -------------------------- | ----------------------------- |
+{ .booktable }
+~
+
+## Scheduler
+
+The scheduler multiplexes causal threads onto either one thread or a thread pool. It does this by advancing the system one or more steps at a time. A full step consists of:
+
+#. Retrieve the actor's state from storage.
+#. Apply the actor's causal transform to the actor's state.
+#. Replace the actor's previous state in storage with its new state.
+#. Schedule new effects to be processed at a later time.
+
+Causal transforms must be applied occur in a time order that conforms to a [topological sort]. Note that topological sort is a partial sort a
+
+[topological sort]: https://en.wikipedia.org/wiki/Topological_sorting "Wikipedia: Topological Sort"
+
+[^1]: Less so, if you're tempted to read the footnotes.
+
+[^2]: For the purposes of understanding *flutterbye*, it is sufficient to understand [the actor model] to be an asynchronous message passing system, where message processors (i.e. *actors*) may have an associated state.
+
+[the actor model]: http://en.wikipedia.org/wiki/Actor_model "Wikipedia: Actor Model"
