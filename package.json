@@ -3,18 +3,18 @@
   "version": "0.0.0",
   "license" : "Apache License 2.0",
   "private": "true",
-  "repository" :
-  { "type" : "git"
-  , "url" : "https://github.com/fmrl/flutterbye.git"
+  "repository" : { 
+     "type" : "git",
+     "url" : "https://github.com/fmrl/flutterbye.git"
   },
   "devDependencies": {
-    "jake": "*",
-    "madoko": "*",
-    "madoko-local": "*"
+     "jake": "*",
+     "madoko": "*",
+     "madoko-local": "*"
   },
   "scripts": {
-    "exec": "exec",
-    "madoko": "$(npm bin)/madoko-local -l --port=8066 $(npm prefix)/src/doc",
-    "shell": "PATH=$(npm bin):$PATH exec $SHELL"
+     "exec": "exec",
+     "madoko": "$(npm bin)/madoko-local -l --port=8066 $(npm prefix)/src/doc",
+     "shell": "PATH=$(npm bin):$PATH exec $SHELL"
   }
 }
