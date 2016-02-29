@@ -14,7 +14,7 @@
   },
   "scripts": {
      "exec": "exec",
-     "madoko": "$(npm bin)/madoko-local -l --port=8066 $(npm prefix)/src/doc",
-     "shell": "PATH=$(npm bin):$PATH exec $SHELL"
+     "madoko": "madoko-local -l --port=8066 $(npm prefix)/src/doc",
+     "shell": "$SHELL"
   }
 }
