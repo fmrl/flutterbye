@@ -1,10 +1,6 @@
 *.swp
 *.tmp
 *~
-/.bundle/
-/_vendor/
-/bin/jdepp
-/bin/rake
-/bin/rubrstmp
 /node_modules/
 /npm-debug.log
+/out/

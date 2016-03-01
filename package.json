@@ -1,20 +1,23 @@
-{ "name": "flutterbye",
+{
+  "name": "flutterbye",
   "description": "an experimental operational semantics and actor system",
   "version": "0.0.0",
-  "license" : "Apache License 2.0",
+  "license": "Apache License 2.0",
   "private": "true",
-  "repository" : { 
-     "type" : "git",
-     "url" : "https://github.com/fmrl/flutterbye.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fmrl/flutterbye.git"
   },
   "devDependencies": {
-     "jake": "*",
-     "madoko": "*",
-     "madoko-local": "*"
+    "globule": "^0.2.0",
+    "jake": "^8.0.12",
+    "madoko": "^1.0.0-rc5",
+    "madoko-local": "^0.5.3-beta"
   },
   "scripts": {
-     "exec": "exec",
-     "madoko": "madoko-local -l --port=8066 $(npm prefix)/src/doc",
-     "shell": "$SHELL"
-  }
+    "exec": "exec",
+    "madoko": "madoko-local -l --port=8066 $(npm prefix)/src/doc",
+    "shell": "$SHELL"
+  },
+  "dependencies": {}
 }
