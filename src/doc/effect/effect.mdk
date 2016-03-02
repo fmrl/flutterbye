@@ -6,85 +6,12 @@ Logo          : True
 
 [TITLE]
 
-# status
-
-this document describes an operational semantics and actor system named **flutterbye**. please consider this document an early work-in-progress.
-
-# introduction 
-
-[**flutterbye**](https://github.com/fmrl/flutterbye) is an experimental [operational semantics](https://en.wikipedia.org/wiki/Operational_semantics) that uses a variation of the [actor model](https://en.wikipedia.org/wiki/Actor_model) to explicitly model [concurrency in computer programs](https://en.wikipedia.org/wiki/Concurrent_computing).
-
-concurrent (and by extension, distributed) computer programs expressed in *flutterbye*'s semantics are predicted to have the following advantages:
-
-- no implicit program behavior (i.e. no [action at a distance](https://en.wikipedia.org/wiki/Action_at_a_distance_%28computer_programming%29)).
-- automatically scalable, both horizontally and vertically, through static analysis.
-- usable in mathematical proofs of the soundness of the system.
-- familiar to distributed systems programmers and programmers familiar with the actor system.
-- permit "replay" and "rewind" of relevant concurrent logic in a debugger.
-- permit automated logging of crucial events needed to support replay and rewind in a debugger.
-- eliminates the need for ad-hoc logging of state transitions in code normally needed to make debugging concurrent systems effective.
-
-most computer programs are concurrent in nature. an important motivation in *flutterbye*'s development is to bring awareness to how the common practice of ignoring side-effects and implicit behavior in software development leads to systems that fail unpredictably and prove difficult to diagnose and repair.
+~ Center
+[this document is an early work-in-progress.]{ :red }
+~
 
 # side-effects
 
 #. side-effects are *necessary* in order to do anything useful in a computer program.
 #. it is *difficult*, if not *impossible*, to reason about the behavior of non-trivial programs that do not describe the side-effects that affect their behavior. therefore, a computer program that does not specify  such side-effects is an *incomplete specification* of the program's behavior. 
 #. pure functions have *useful properties* that can and should be leveraged to make computer programs *more performant*, *easier to debug*, and *simpler for both humans and machines to reason about*.
-
-# components
-
-*flutterbye*'s operational semantics are divided into four distinct components:
-
-#. actors
-#. effects
-#. storage
-#. scheduler
-
-## actors
-
-a *flutterbye* actor ($A_t$) at a given moment ($t$) is defined as:
-
-~ Math
-  A_t=\left(I, F_c, S\right)
-~
-
-$I$ represents the identity of the actor. $F_c$ is a total function called the *causal transform*. $S$ is the state associated with the actor.
-
-flutterbye actors are *total actors*, meaning:
-
-- they may only be specified using total functions.
-- all data is immutable. i.e. instead of saying that the actor has a state, we say the actor is represented with a sequence of yet unknown states.
-
-### causal transform
-
-the function $F_c$ is called the *causal transform* because it describes how an effect transforms the current state associated with the actor:
-
-~ Math
-  F_c:\left(I, E, S\right)\rightarrow\left(S', \left\{E'_0, ... E'_n\right\}\right)
-~
-
-actor identity, $I$, cannot change but is available as input to the transform function. $E$ represents the incoming effect (or *cause*) that is responsible for the transform being scheduled. $S$ represents the state, retrieved from *storage*, associated with the actor's identity at the moment the transform is applied.
-
-the function produces two output components. first, $S'$ represents the new state of the actor. This value is passed to storage by the scheduler after applying the transform to its input. second, a multiset of effects ($\left\{E'_0,...E'_n\right\}$) describes the effects that should be passed to actors in the system by means of the scheduler. 
-
-## effects
-
-total actors, being defined with total functions, do not permit side-effects. instead, we describe these side-effects explicitly ($\left\{E'_0,...E'_n\right\}$) for a separate scheduler component which applies these effects to actors in the system at some point in the future. 
-
-actor messages in *flutterbye* represent what we would call *side-effects* in systems that permit the use of partial functions. therefore we refer to messages in *flutterbye* as *effects* to communicate that (a) messages exclusively describe side-effects and (b) these side-effects are no longer a secondary concern (or "on-the-side").
-
-## storage
-
-*flutterbye*'s storage component defines semantics that resemble a simple key/value store. that is, given an actor identity, the storage component can both store and recall an associated state.
-
-the storage component is expected to store immutable data but key/value associations are expected to exhibit mutable semantics.
-
-how these semantics translate into executable code is left undefined by flutterbye.
-
-## scheduler
-
-the scheduler component defines semantics expected of a scheduler required of an actor system:
-
-- effects are expected to be scheduled in topological order.
-- it is expected that some sort of "fair queuing" property will be required of the scheduler. 

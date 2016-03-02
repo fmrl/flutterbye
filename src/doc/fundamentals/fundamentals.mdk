@@ -1,10 +1,14 @@
-Title         : Fundamentals of The *flutterbye*
+Title         : Fundamentals of the *flutterbye*
 Author        : Michael Lowell Roberts
 Copyright     : (c) 2016, Michael Lowell Roberts
 License       : Apache License 2.0 
 Logo          : True
 
 [TITLE]
+
+~ Center
+[this document is an early work-in-progress.]{ :red }
+~
 
 # Scope 
 
@@ -30,14 +34,38 @@ The storage component must conform to the semantics of a mutable key-value store
 
 The *fabric* is the portion of *flutterbye* that resembles the actor model. *Regions* correspond to actors and *effects* correspond to messages.
 
-We reason about computer programs modeled using *regions* and *effects* as if it were a distributed system.
+We reason about computer programs modeled using *regions* and *effects* as if the program were a distributed system.
+
+### Effects
+
+*Effects* represent what is normally referred to as a [side-effect] in computer science.
+
+[side-effect]: https://en.wikipedia.org/wiki/Side_effect_%28computer_science%29 "Wikipedia: Side effect (Computer Science)"
+
+Effects are both produced and consumed by regions, as actors would produce and consume messages in an actor system.
+
+An effect ($E$) is defined as follows:
+
+~ Math
+  E=\left(I_R, x\right)
+~
+
+~ Center
+| ------ | -------------------- |
+| Symbol | Description          | 
+| -------| -------------------- |
+| $I_R$  | recipient region     |
+| $x$    | payload (undefined)  |
+| ------ | -------------------- |
+{ .booktable }
+~
 
 ### Regions
 
 A *region* ($R$) is specified as follows:
 
 ~ Math
-  A_t=\left(I_R, T_c, S\right)
+  R=\left(I_R, T_c, S\right)
 ~
 
 ~ Center
@@ -46,20 +74,22 @@ A *region* ($R$) is specified as follows:
 | -------| -------------------------- |
 | $I_R$  | identity of the region $R$ |
 | $T_c$  | causal transform           |
-| $S$    | input state of region $R$  |
+| $S$    | state of region $R$        |
 | ------ | -------------------------- |
 { .booktable }
 ~
 
-### Effects
+#### Import Regions
 
-**Effects** represent what is normally referred to as a [side-effect] in computer science.
+*Import regions* represent input to the program. They are modeled as effect generators.
 
-[side-effect]: https://en.wikipedia.org/wiki/Side_effect_%28computer_science%29 "Wikipedia: Side effect (Computer Science)"
+#### Export Regions
+
+*Export regions* represent program output. They are modeled as logs with an undefined record schema.
 
 ### Causal Transform
 
-The causal transform is a [total function] that expresses what should happen when the system advances one step in time.
+The causal transform is a [total function] that expresses what would happen if the program were to advance one step forward.
 
 [total function]: http://en.wikipedia.org/wiki/Partial_function#Total_function "Wikipedia: Total Function"
 
@@ -81,6 +111,14 @@ The causal transform is a [total function] that expresses what should happen whe
 { .booktable }
 ~
 
+The causal transform does not advance the state of the program. Rather, the scheduler uses the output of a region's causal transform to advance the state of the program by one step.
+
+## Causal Threads
+
+*Causal threads* are the paths of dependent calculations that are represented by stringing causal transforms together through the transmission of effects. A thread remains stable when a transform produces a single effect. A thread splits into multiple threads when a transform produces more than one effect. A thread terminates when a causal transform produces no effects.
+
+Together, these threads describe the *causal fabric*, which serves as an exact specification of the causality in a computer program. The fabric also describes the maximum amount of concurrency a program may exhibit.
+
 ## Scheduler
 
 The scheduler multiplexes causal threads onto either one thread or a thread pool. It does this by advancing the system one or more steps at a time. A full step consists of:
@@ -93,6 +131,8 @@ The scheduler multiplexes causal threads onto either one thread or a thread pool
 Causal transforms must be applied occur in a time order that conforms to a [topological sort]. Note that topological sort is a partial sort a
 
 [topological sort]: https://en.wikipedia.org/wiki/Topological_sorting "Wikipedia: Topological Sort"
+
+The schedule must fairly schedule effects.
 
 [^1]: Less so, if you're tempted to read the footnotes.
 
