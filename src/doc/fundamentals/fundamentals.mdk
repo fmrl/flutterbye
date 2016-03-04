@@ -40,7 +40,9 @@ The storage component must conform to the semantics of a mutable key-value store
 
 The *fabric* is the portion of *flutterbye* that resembles the actor model. *Regions* correspond to actors and *effects* correspond to messages.
 
-We reason about computer programs modeled using *regions* and *effects* as if the program were a distributed system.
+We reason about computer programs modeled using *regions* and *effects* as if the program were a distributed system[^as-if-distributed].
+
+[^as-if-distributed]: Another way to think of actor systems is that they are the application of distributed programming techniques outside of the context of distributed programming.
 
 ### Effects
 
