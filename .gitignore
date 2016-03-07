@@ -1,6 +1,8 @@
 *.swp
 *.tmp
 *~
+/.bundle/
+/cache/
 /node_modules/
 /npm-debug.log
-/out/
+/vendor/

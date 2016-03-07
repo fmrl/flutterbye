@@ -15,9 +15,7 @@
     "madoko-local": "^0.5.3-beta"
   },
   "scripts": {
-    "exec": "exec",
-    "madoko": "madoko-local -l --port=8066 $(npm prefix)/src/doc",
-    "shell": "$SHELL"
+    "exec": "exec"
   },
   "dependencies": {}
 }
