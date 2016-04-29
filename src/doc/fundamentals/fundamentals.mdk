@@ -26,47 +26,21 @@ The purpose of this document is to informally specify, in concise terms[^concise
 
 [the actor model]: http://en.wikipedia.org/wiki/Actor_model "Wikipedia: Actor Model"
 
-We divide *flutterbye* into three primary components:
+## Subsystems
 
+*flutterbye* programs are organized into a hierarchical graph of **subsystems**, similar to a heirarchical graph of directories in a file system. We divide each subsystem into three components:
+
+#. *specification*.
 #. *storage*.
-#. *fabric*.
 #. *scheduler*.
 
-## Storage
+## Specification
 
-The storage component must conform to the semantics of a mutable key-value store.
-
-## Fabric
-
-The *fabric* is the portion of *flutterbye* that resembles the actor model. *Regions* correspond to actors and *effects* correspond to messages.
+The *specification* component of a *flutterbye* subsystem is organized into *regions* and *effects*, which, when combined with associated storage and scheduling, collectively resemble the actor model. *Regions* correspond to actors and *effects* correspond to messages.
 
 We reason about computer programs modeled using *regions* and *effects* as if the program were a distributed system[^as-if-distributed].
 
 [^as-if-distributed]: Another way to think of actor systems is that they are the application of distributed programming techniques outside of the context of distributed programming.
-
-### Effects
-
-*Effects* represent what is normally referred to as a [side-effect] in computer science.
-
-[side-effect]: https://en.wikipedia.org/wiki/Side_effect_%28computer_science%29 "Wikipedia: Side effect (Computer Science)"
-
-Effects are both produced and consumed by regions, as actors would produce and consume messages in an actor system.
-
-An effect ($E$) is defined as follows:
-
-~ Math
-  E=\left(I_R, x\right)
-~
-
-~ Center
-| ------ | -------------------- |
-| Symbol | Description          | 
-| -------| -------------------- |
-| $I_R$  | recipient region     |
-| $x$    | payload (undefined)  |
-| ------ | -------------------- |
-{ .booktable }
-~
 
 ### Regions
 
@@ -87,25 +61,42 @@ A *region* ($R$) is specified as follows:
 { .booktable }
 ~
 
-#### Import Regions
+### Identity
 
-*Import regions* represent input to the program. They are modeled as effect generators.
+Each region requires a identity, unique within the subsystem it resides. 
 
-#### Export Regions
+### Effects
 
-*Export regions* represent program output. They are modeled as logs with an undefined record schema.
+*Effects* represent what is normally referred to as a [side-effect] in computer science.
 
-#### Region Classes
+[side-effect]: https://en.wikipedia.org/wiki/Side_effect_%28computer_science%29 "Wikipedia: Side effect (Computer Science)"
 
-A *region class* describes a group of regions that share a common causal transform (i.e. only differing in identity and state).
+Effects are both produced and consumed by regions, as actors would produce and consume messages in an actor system.
 
-#### Region Modules
+An effect ($E$) is defined as follows:
 
-A collection of regions that include a single import region and a single export region are referred to as region modules. Region modules import and export effects exclusively.
+~ Math
+  E=\left(I_T, x\right)
+~
+
+~ Center
+| ------ | -------------------- |
+| Symbol | Description          | 
+| -------| -------------------- |
+| $I_T$  | identity of target   |
+| $x$    | payload (undefined)  |
+| ------ | -------------------- |
+{ .booktable }
+~
+
+## Storage
+
+The storage component must conform to the semantics of a mutable key-value store.
+
 
 #### Region Refinement
 
-A region may be substituted for a region module, provided that the module exhibits behavior that correctly mimics the region it replaces. This substitution is called *region refinement*. 
+A region may be substituted for a subsystem, provided that the subsystem exhibits behavior that correctly mimics the region it replaces. This substitution is called *region refinement*. 
 
 A placeholder region whose purpose is to serve as a site for refinement is called an *abstract region*.
 
@@ -124,7 +115,7 @@ The causal transform is a [total function] that expresses what would happen if t
 [total function]: http://en.wikipedia.org/wiki/Partial_function#Total_function "Wikipedia: Total Function"
 
 ~ Math
-  T_c:\left(I_R, C, S\right)\rightarrow\left(S', \left\{E_1...E_n\right\}\right)
+  T_c:\left(I_R, I_s, C, S\right)\rightarrow\left(S', \left\{E_1...E_n\right\}\right)
 ~
 
 ~ Center
@@ -133,6 +124,7 @@ The causal transform is a [total function] that expresses what would happen if t
 | -------------------------- | ----------------------------- |
 | $T_c$                      | causal transform              |
 | $I_R$                      | identity of the region $R$    |
+| $I_s$                      | subsystem $s$ identity        |
 | $C$                        | input effect (or *cause*)     |
 | $S$                        | state of region $R$           |
 | $S'$                       | successor state of region $R$ |
