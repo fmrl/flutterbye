@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-# $legal:598:
+# $legal:619:
 # 
-# Copyright 2015 Michael Lowell Roberts
+# Copyright 2016 Michael Lowell Roberts & Microsoft Research
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,4 +20,4 @@
 
 `bundle install --path vendor/bundle`
 
-# $vim-rb$
+# $vim-rb:31: vim:set sts=3 sw=3 et ft=ruby:,$
