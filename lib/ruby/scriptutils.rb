@@ -16,19 +16,43 @@
 # 
 # ,$
 
-require 'pathname'
+require "open3"
+require "pathname"
+require "rbconfig"
 
 module ScriptUtils
 
+   module_function
    def which(exe_name)
-      path_name = `which #{exe_name}`.strip
-      if path_name == '' then
-         nil
+      if ScriptUtils.is_windows? then
+         cmd = "cmd.exe /c where #{exe_name}"
+         # where is a little chatty on stderr, so we use popen3 to suppress stderr.
+         output = Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
+            stdout.read
+         end
+         lines = output.each_line.to_a
+         if lines.length == 0 then
+            return nil 
+         end
+         path = lines[0].strip
+         if path == '' then
+            return nil
+         end
+         return Pathname.new(path)
       else
-         Pathname.new(path_name)
+         path = `which #{exe_name}`.strip
+         if $? != 0 or path == '' then
+            return nil
+         else
+            return Pathname.new(path)
+         end
       end
    end
-   module_function :which
-
+   
+   module_function
+   def is_windows?
+      RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+   end
+   
 end
 

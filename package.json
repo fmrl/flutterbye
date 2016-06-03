@@ -15,7 +15,8 @@
     "madoko-local": "^0.5.3-beta"
   },
   "scripts": {
-    "exec": "exec"
+    "madoko": "madoko",
+    "madoko-local": "madoko-local"
   },
   "dependencies": {}
 }

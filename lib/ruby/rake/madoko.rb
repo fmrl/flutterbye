@@ -36,7 +36,7 @@ module Rake::Madoko
             # boo: the --rundir option appears to be broken
             #tmpdir = Dir.mktmpdir
             #Npm.run('exec', "madoko-local -l --port=#{args.port} --rundir=#{tmpdir} #{root}") { |s| sh s }
-            Npm.run('exec', "madoko-local -l --port=#{args.port} #{root}") { |s| sh s }
+            Npm.run('madoko-local', "-l --port=#{args.port} #{root}") { |s| sh s }
          end
 
          # todo: list documentation sources task
@@ -51,7 +51,7 @@ module Rake::Madoko
          odir = yield match.relative_path_from(root)
          html = odir.join("#{match.basename(".mdk")}.html")
          file html => match do |t|
-            sh "npm run exec -- madoko --pdf --odir=#{odir} #{match}"
+            sh "npm run madoko -- --pdf --odir=#{odir} #{match}"
          end
 
          pdf = odir.join("#{match.basename(".mdk")}.pdf")
