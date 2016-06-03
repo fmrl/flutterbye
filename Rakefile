@@ -23,9 +23,13 @@ require 'pathname'
 prefix = Pathname.new(Dir.pwd)
 $LOAD_PATH.unshift prefix.join('lib/ruby').to_s
 
+require 'rake/fstar'
 require 'rake/madoko'
 require 'rake/npm'
-require "rubrstmp/rake_tasks"
+
+require "scriptutils"
+
+#require "rubrstmp/rake_tasks"
 
 src_doc = prefix.join("src/doc")
 
@@ -35,8 +39,19 @@ directory CACHE
 cache_doc = CACHE.join("doc")
 directory cache_doc
 
-task default: [:docs]
-task :docs
+if ScriptUtils.is_windows? then
+   exe_ext = ".exe"
+else
+   exe_ext = ""
+end
+
+Rake::FStar.FSTAR = "./submodules/FStar/bin/fstar.exe"
+Rake::FStar.FSTARSMT = Pathname.new "./submodules/z3/build/z3#{exe_ext}"
+Rake::FStar.verify(Rake::FileList["src/**/*.fst"])
+
+task default: [:verify]
+desc "verify sources"
+task :verify => %w[fstar:verify]
 
 if Npm.has? then
    Rake::Madoko.find src_doc do |p|

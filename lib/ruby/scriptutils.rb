@@ -53,6 +53,21 @@ module ScriptUtils
    def is_windows?
       RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
    end
+
+   module_function
+   def raise_if_nonexistant(pathn)
+      if not pathn.exist? then
+         raise "`#{pathn.to_s}` does not (yet) exist."
+      end
+   end
+
+   module_function
+   def raise_if_not_executable(pathn)
+      ScriptUtils.raise_if_nonexistant(pathn)
+      if not pathn.executable? then
+         raise "`#{pathn.to_s}` is not executable."
+      end
+   end
    
 end
 
