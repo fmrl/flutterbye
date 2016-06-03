@@ -19,6 +19,6 @@
 # ,$
 
 # todo: detect whether bundler is available.
-`bundle install --path vendor/bundle`
+puts `bundle install --path vendor/bundle 2>&1`
 
 # $vim-rb:31: vim:set sts=3 sw=3 et ft=ruby:,$
