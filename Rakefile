@@ -29,7 +29,7 @@ require "rake/npm"
 
 require "scriptutils"
 
-#require "rubrstmp/rake_tasks"
+require "rubrstmp/rake_tasks"
 
 MADOKO_ROOT = Pathname.new "src/doc/madoko"
 directory MADOKO_ROOT
