@@ -16,7 +16,7 @@
 # 
 # ,$
 
-require 'npm'
+require "npm"
 
 namespace :npm do
    desc 'install needed node.js packages'

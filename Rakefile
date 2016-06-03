@@ -16,28 +16,23 @@
 #
 # ,$
 
-require 'fileutils'
-require 'pathname'
+require "fileutils"
+require "pathname"
 
 # repository root is the directory that contains the rakefile.
 prefix = Pathname.new(Dir.pwd)
 $LOAD_PATH.unshift prefix.join('lib/ruby').to_s
 
-require 'rake/fstar'
-require 'rake/madoko'
-require 'rake/npm'
+require "rake/fstar"
+require "rake/madoko"
+require "rake/npm"
 
 require "scriptutils"
 
 #require "rubrstmp/rake_tasks"
 
-src_doc = prefix.join("src/doc")
-
-CACHE = ENV.fetch("CACHE", prefix.join("cache"))
-directory CACHE
-
-cache_doc = CACHE.join("doc")
-directory cache_doc
+MADOKO_ROOT = Pathname.new "src/doc/madoko"
+directory MADOKO_ROOT
 
 if ScriptUtils.is_windows? then
    exe_ext = ".exe"
@@ -45,20 +40,21 @@ else
    exe_ext = ""
 end
 
-Rake::FStar.FSTAR = "./submodules/FStar/bin/fstar.exe"
+Rake::FStar.FSTAR = Pathname.new "./submodules/FStar/bin/fstar.exe"
 Rake::FStar.FSTARSMT = Pathname.new "./submodules/z3/build/z3#{exe_ext}"
-Rake::FStar.verify(Rake::FileList["src/**/*.fst"])
+Rake::FStar.verify Rake::FileList["src/**/*.fst"]
 
 task default: [:verify]
 desc "verify sources"
 task :verify => %w[fstar:verify]
 
 if Npm.has? then
-   Rake::Madoko.find src_doc do |p|
-      CACHE.join(p.dirname.join("madoko.out"))
+   Rake::Madoko.find MADOKO_ROOT do |p|
+      # `p` is relative to `src_doc`.
+      MADOKO_ROOT.join(p.dirname.join("out"))
    end
    desc "generate all documentation"
-   task :docs => %w[madoko:generate]
+   task :docs => "madoko:generate"
 else
    puts 'warning: i was unable to find node.js; madoko-related targets will be unavailable.'
 end

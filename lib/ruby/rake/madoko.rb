@@ -16,48 +16,45 @@
 # 
 # ,$
 
-require 'rake/dsl_definition'
-require 'tmpdir'
+require "rake/dsl_definition"
+require "tmpdir"
 
-require 'rake/npm'
-
+require "rake/npm"
 
 module Rake::Madoko
    self.extend Rake::DSL
    
    module_function
    def find(root)
-
+      # we specify the root directory because madoko sources should be isolated to a common root when using madoko-local.
+      
       namespace :madoko do
-
+      
          desc "start local madoko editor"
-         task :local, [:port] => %w[npm:install] do |t, args|
+         task :local, [:port] => "npm:install" do |t, args|
             args.with_defaults(:port => rand(32767) + 1024) 
-            # boo: the --rundir option appears to be broken
-            #tmpdir = Dir.mktmpdir
-            #Npm.run('exec', "madoko-local -l --port=#{args.port} --rundir=#{tmpdir} #{root}") { |s| sh s }
             Npm.run('madoko-local', "-l --port=#{args.port} #{root}") { |s| sh s }
          end
-
+         
          # todo: list documentation sources task
          desc "generate madoko documentation"
          task :generate
-
+         
       end
 
       Dir.glob(root.join("**/*.mdk")) do |match|
          match = Pathname.new(match)
-
+         
          odir = yield match.relative_path_from(root)
          html = odir.join("#{match.basename(".mdk")}.html")
-         file html => match do |t|
+         file html => [match, "npm:install"] do |t|
             sh "npm run madoko -- --pdf --odir=#{odir} #{match}"
          end
 
          pdf = odir.join("#{match.basename(".mdk")}.pdf")
          file pdf => html
 
-         task %[madoko:generate] => [html, pdf]
+         task "madoko:generate" => [html, pdf]
       end
    end
 
