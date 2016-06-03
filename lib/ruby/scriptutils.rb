@@ -69,5 +69,14 @@ module ScriptUtils
       end
    end
    
+   module_function
+   def exe_ext
+      if ScriptUtils.is_windows? then
+         return ".exe"
+      else
+         return ""
+      end
+   end
+   
 end
 

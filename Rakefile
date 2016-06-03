@@ -34,14 +34,6 @@ require "scriptutils"
 MADOKO_ROOT = Pathname.new "src/doc/madoko"
 directory MADOKO_ROOT
 
-if ScriptUtils.is_windows? then
-   exe_ext = ".exe"
-else
-   exe_ext = ""
-end
-
-Rake::FStar.FSTAR = Pathname.new "./submodules/FStar/bin/fstar.exe"
-Rake::FStar.FSTARSMT = Pathname.new "./submodules/z3/build/z3#{exe_ext}"
 Rake::FStar.verify Rake::FileList["src/**/*.fst"]
 
 task default: [:verify]
