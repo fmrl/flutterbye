@@ -18,7 +18,24 @@
 # 
 # ,$
 
+require "rbconfig"
+
+def say(s)
+   puts "setup.rb: #{s}"
+end
+
+host_os = RbConfig::CONFIG['host_os']
+say "platform reported as `#{host_os}`."
+if host_os =~ /mswin|msys|mingw|bccwin|wince|emc/
+   # file mode changes can cause havok with git on windows.
+   say "instructing git to ignore file mode changes..."
+   STDOUT.write `git config --local core.fileMode false 2>&1`
+end
+
 # todo: detect whether bundler is available.
-puts `bundle install --path vendor/bundle 2>&1`
+say "performing bundler setup..."
+STDOUT.write `bundle install --path vendor/bundle 2>&1`
+
+say "done."
 
 # $vim-rb:31: vim:set sts=3 sw=3 et ft=ruby:,$
