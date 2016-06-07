@@ -17,7 +17,7 @@ module Rake::FStar
 
    module_function
    def FSTARFLAGS
-      @fstarflags ||= ""
+      @fstarflags ||= "--universes"
       return @fstarflags  
    end
    def FSTARFLAGS= s; @fstarflags = s end

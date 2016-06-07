@@ -1,19 +1,19 @@
 // $legal:635:
-// 
+//
 // Copyright 2016 Michael Lowell Roberts & Microsoft Research
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// 
+//
 // ,$
 
 module Flutterbye.Seq.Filter
@@ -131,11 +131,11 @@ private val lemma__mem__loop:
    -> Lemma
       (requires
          (forall (j:nat).
-            (j < length c) ==> (mem (index c j) s)))
+            (j < length c) ==> (mem_t (index c j) s)))
       (ensures
          (forall (j:nat).
             (j < length (filter__loop p s i c)) ==>
-               (mem (index (filter__loop p s i c) j) s)))
+               (mem_t (index (filter__loop p s i c) j) s)))
       (decreases (length s - i))
 let rec lemma__mem__loop p s i c =
    if i = length s then
@@ -156,6 +156,6 @@ val lemma__mem:
       (requires (True))
       (ensures
          (forall (i:nat).
-            (i < length (filter p s)) ==> (mem (index (filter p s) i) s)))
+            (i < length (filter p s)) ==> (mem_t (index (filter p s) i) s)))
 let lemma__mem p s =
    lemma__mem__loop p s 0 createEmpty
