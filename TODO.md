@@ -1,0 +1,2 @@
+- eliminate uses of admit.
+- eliminate as many uses of SMTPat as possible.
