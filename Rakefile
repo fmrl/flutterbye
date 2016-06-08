@@ -1,4 +1,4 @@
-# $legal:619:
+# $legal:613:
 #
 # Copyright 2016 Michael Lowell Roberts & Microsoft Research
 #
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# ,$
+#,$
 
 require "fileutils"
 require "pathname"
@@ -56,6 +56,7 @@ namespace :rubrstmp do
    exclude "NOTICE"
    exclude "README.md"
    exclude "bin/*"
+   exclude "submodules/*"
    exclude "vendor/*"
    exclude "*.dic"
    exclude "*.json"

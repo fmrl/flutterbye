@@ -1,4 +1,4 @@
-// $legal:635:
+// $legal:629:
 //
 // Copyright 2016 Michael Lowell Roberts & Microsoft Research
 //
@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// ,$
+//,$
 
 module Flutterbye.Seq.Filter
 open FStar.Seq
