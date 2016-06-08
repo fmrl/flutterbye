@@ -16,20 +16,21 @@
 #
 #,$
 
-require "fileutils"
 require "pathname"
 
 # repository root is the directory that contains the rakefile.
 prefix = Pathname.new(Dir.pwd)
 $LOAD_PATH.unshift prefix.join('lib/ruby').to_s
 
+require "fileutils"
+
+require "rake_performance"
+require "rubrstmp/rake_tasks"
+
 require "rake/fstar"
 require "rake/madoko"
 require "rake/npm"
-
 require "scriptutils"
-
-require "rubrstmp/rake_tasks"
 
 MADOKO_ROOT = Pathname.new "src/doc/madoko"
 directory MADOKO_ROOT
@@ -55,7 +56,9 @@ namespace :rubrstmp do
    exclude "LICENSE"
    exclude "NOTICE"
    exclude "README.md"
+   exclude ".git/*"
    exclude "bin/*"
+   exclude "node_modules/*"
    exclude "submodules/*"
    exclude "vendor/*"
    exclude "*.dic"
