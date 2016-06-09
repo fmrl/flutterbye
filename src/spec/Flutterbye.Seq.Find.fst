@@ -75,7 +75,7 @@ let find f s =
    find__loop f s 0 None
 
 // todo: can this be broken down into an aggregation of simpler forms?
-val lemma__find:
+abstract val lemma__find:
    f:('a -> Tot bool)
    -> s:seq 'a
    -> Lemma

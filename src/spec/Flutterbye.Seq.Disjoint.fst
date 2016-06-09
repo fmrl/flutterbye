@@ -24,7 +24,7 @@ open Flutterbye.Seq.Unique
 type disjoint_t (#a:Type) (s_1:seq a) (s_2:seq a) =
    FStar.Set.equal empty (intersect (to_set (unique s_1)) (to_set (unique s_2)))
 
-val lemma__intersect:
+abstract val lemma__intersect:
    s_1:seq 'a
    -> s_2:seq 'a
    -> Lemma
@@ -38,7 +38,7 @@ val lemma__intersect:
 let lemma__intersect s_1 s_2 =
    ()
 
-val lemma__mem:
+abstract val lemma__mem:
 x:'a
 -> s_1:seq 'a
 -> s_2:seq 'a

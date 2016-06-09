@@ -74,7 +74,7 @@ let rec lemma__length__loop p s i c =
             c in
       lemma__length__loop p s (i + 1) c'
 
-val lemma__length:
+abstract val lemma__length:
    p:('a -> Tot bool)
    -> s:seq 'a
    -> Lemma
@@ -112,7 +112,7 @@ let rec lemma__predicate__loop p s i c j =
             c in
       lemma__predicate__loop p s (i + 1) c' j
 
-val lemma__predicate:
+abstract val lemma__predicate:
    p:('a -> Tot bool)
    -> s:seq 'a
    -> i:nat{i < length (filter p s)}
@@ -149,7 +149,7 @@ let rec lemma__mem__loop p s i c =
             c in
       lemma__mem__loop p s (i + 1) c'
 
-val lemma__mem:
+abstract val lemma__mem:
    p:('a -> Tot bool)
    -> s:seq 'a
    -> Lemma

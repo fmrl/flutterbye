@@ -29,7 +29,7 @@ let remove s i a =
    let r = slice s (i + 1) (length s) in
    append l r
 
-val lemma__length:
+abstract val lemma__length:
    s:seq 'a{length s > 0}
    -> i:nat{i < length s}
    -> a:'a
@@ -39,7 +39,7 @@ val lemma__length:
       [SMTPat (length (remove s i a))]
 let lemma__length s i a = ()
 
-val lemma__index:
+abstract val lemma__index:
    s:seq 'a{length s > 0}
    -> i:nat{i < length s}
    -> a:'a

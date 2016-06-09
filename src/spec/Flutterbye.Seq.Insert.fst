@@ -30,7 +30,7 @@ let insert s i a =
    let r = slice s i (length s) in
    append (append l c) r
 
-val lemma__length:
+abstract val lemma__length:
    s: seq 'a
    -> i: nat{i <= length s}
    -> a: 'a
@@ -40,7 +40,7 @@ val lemma__length:
       [SMTPat (length (insert s i a))]
 let lemma__length s i a = ()
 
-val lemma__index:
+abstract val lemma__index:
    s: seq 'a
    -> i: nat{i <= length s}
    -> a: 'a
@@ -55,7 +55,7 @@ val lemma__index:
                   (index (insert s i a) j = index s (j - 1)))))
 let lemma__index s i a = ()
 
-val lemma__append:
+abstract val lemma__append:
    s: seq 'a
    -> i: nat{i <= length s}
    -> a: 'a

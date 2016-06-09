@@ -28,7 +28,7 @@ val mem: x:'a -> s:seq 'a -> Tot (b:bool{b <==> mem_t x s})
 let mem a s =
    is_Some (find (fun a' -> a = a') s)
 
-val lemma__index:
+abstract val lemma__index:
    s:seq 'a{length s > 0}
    -> i:nat{i < length s}
    -> Lemma
@@ -37,7 +37,7 @@ val lemma__index:
 let lemma__index s i =
    lemma__find (fun a -> a = index s i) s
 
-val lemma__slice_1:
+abstract val lemma__slice_1:
    a:'a
    -> s:seq 'a
    -> Lemma
@@ -51,7 +51,7 @@ let lemma__slice_1 a s =
 
 // todo: this lemma could be generalized to any slice containing index `i`.
 // (would that subsume lemma__slice_1?)
-val lemma__slice_2:
+abstract val lemma__slice_2:
    a:'a
    -> s:seq 'a
    -> Lemma
@@ -88,7 +88,7 @@ let lemma__append__case_2 x s_1 s_2 =
    lemma__slice_1 x s'';
    lemma__slice_2 x s''
 
-val lemma__append:
+abstract val lemma__append:
    x:'a
    -> s_1:seq 'a
    -> s_2:seq 'a
@@ -101,7 +101,7 @@ let lemma__append x s_1 s_2 =
    else
       lemma__append__case_2 x s_1 s_2
 
-val lemma__empty:
+abstract val lemma__empty:
    x:'a
    -> s:seq 'a
    -> Lemma
@@ -110,7 +110,7 @@ val lemma__empty:
       [SMTPat (mem x s)]
 let lemma__empty x s = ()
 
-val lemma__create:
+abstract val lemma__create:
    n:nat{n > 0}
    -> a:'a
    -> Lemma
@@ -119,5 +119,5 @@ val lemma__create:
       [SMTPat (create n a)]
 let lemma__create n a =
    let s = create n a in
-   assert (index s 0 = a);
+   assert (index s 0 = a); // required
    ()

@@ -76,7 +76,7 @@ val unique: (s:seq 'a) -> Tot (u:seq 'a{unique_t u})
 let unique s =
    unique__loop s 0 createEmpty
 
-val lemma__empty:
+abstract val lemma__empty:
    s:seq 'a
    -> Lemma
       (requires (length s = 0))
@@ -111,7 +111,7 @@ let rec lemma__to_set__loop s i c =
    else
       ()
 
-val lemma__to_set:
+abstract val lemma__to_set:
    x:'a
    -> s:seq 'a{unique_t s}
    -> Lemma
@@ -143,7 +143,7 @@ let rec lemma__unique__length__loop s i c =
    else
       ()
 
-val lemma__unique__length:
+abstract val lemma__unique__length:
    s:seq 'a
    -> Lemma
       (requires (True))
@@ -189,7 +189,7 @@ let rec lemma__unique__mem__loop s i c x =
 
 // todo: are there disadvantages to combining the two `lemma__unique...` lemmas
 // given that one needs an additional free variable?
-val lemma__unique__mem:
+abstract val lemma__unique__mem:
    x:'a
    -> s:seq 'a
    -> Lemma

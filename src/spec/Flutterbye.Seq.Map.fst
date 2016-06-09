@@ -82,7 +82,7 @@ val map: ('a -> Tot 'b) -> s: seq 'a -> Tot (seq 'b)
 let map f s =
    map__loop f s createEmpty
 
-val lemma__length:
+abstract val lemma__length:
    f:('a -> Tot 'b)
    -> s:seq 'a
    -> Lemma
@@ -92,7 +92,7 @@ val lemma__length:
 let lemma__length f s =
    lemma__length__loop f s createEmpty
 
-val lemma__index:
+abstract val lemma__index:
    f:('a -> Tot 'b)
    -> s:seq 'a
    -> i:nat{i < length s}
