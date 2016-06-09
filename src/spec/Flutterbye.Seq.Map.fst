@@ -59,14 +59,15 @@ private val lemma__index__loop:
    -> s:seq 'a
    -> c:seq 'b{length c <= length s}
    -> Lemma
-      (requires ((forall i. 0 <= i && i < length c ==> index c i = f (index s i))))
+      (requires 
+         (forall (i:nat).
+            i < length c ==> 
+               index c i = f (index s i)))
       (ensures
-         (forall i.
-            0 <= i
-            && i < length (map__loop f s c)
-            ==>
-               (i < length s
-               && index (map__loop f s c) i = f (index s i))))
+         (b2t (length (map__loop f s c) = length s) /\
+         (forall (i:nat).
+            i < length s ==>
+               index (map__loop f s c) i = f (index s i))))
       (decreases (length s - length c))
 let rec lemma__index__loop f s c =
    let i = length c in
@@ -88,17 +89,15 @@ abstract val lemma__length:
    -> Lemma
       (requires (True))
       (ensures (length (map f s) = length s))
-      [SMTPat (length (map f s))]
 let lemma__length f s =
    lemma__length__loop f s createEmpty
 
 abstract val lemma__index:
    f:('a -> Tot 'b)
    -> s:seq 'a
-   -> i:nat{i < length s}
+   -> i:nat{i < length s && i < length (map f s)}
    -> Lemma
       (requires (True))
       (ensures (index (map f s) i = f (index s i)))
-      [SMTPat (index (map f s) i)]
 let lemma__index f s i =
    lemma__index__loop f s createEmpty

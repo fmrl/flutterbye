@@ -80,7 +80,6 @@ abstract val lemma__length:
    -> Lemma
       (requires (True))
       (ensures (length (filter p s) <= length s))
-      [SMTPat (length (filter p s))]
 let lemma__length p s =
    lemma__length__loop p s 0 createEmpty
 
@@ -119,7 +118,6 @@ abstract val lemma__predicate:
    -> Lemma
       (requires (True))
       (ensures (p (index (filter p s) i)))
-      [SMTPat (index (filter p s) i)]
 let lemma__predicate p s i =
    lemma__predicate__loop p s 0 createEmpty i
 

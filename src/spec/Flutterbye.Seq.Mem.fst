@@ -34,8 +34,7 @@ abstract val lemma__index:
    -> Lemma
       (requires (True))
       (ensures (mem_t (index s i) s))
-let lemma__index s i =
-   lemma__find (fun a -> a = index s i) s
+let lemma__index s i = ()
 
 abstract val lemma__slice_1:
    a:'a
@@ -107,7 +106,6 @@ abstract val lemma__empty:
    -> Lemma
       (requires (length s = 0))
       (ensures (~ (mem_t x s)))
-      [SMTPat (mem x s)]
 let lemma__empty x s = ()
 
 abstract val lemma__create:

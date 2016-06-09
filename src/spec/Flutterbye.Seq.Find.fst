@@ -38,6 +38,13 @@ let rec find__loop f s i c =
    else
       c
 
+type found_t (#a:Type) (f:(a -> Tot bool)) (s:seq a) (i:option nat) =
+   (is_None i ==>
+      (forall (j:nat).
+         j < length s ==> not (f (index s j)))) /\
+   (is_Some i ==>
+      b2t (get i < length s && f (index s (get i))))
+
 private val lemma__find__loop:
    f:('a -> Tot bool)
    -> s:seq 'a
@@ -70,23 +77,10 @@ let rec lemma__find__loop f s i c =
    else
       ()
 
-val find: f:('a -> Tot bool) -> s:seq 'a -> Tot (option nat)
+val find: 
+   f:('a -> Tot bool) -> 
+   s:seq 'a -> 
+   Tot (i:option nat{found_t f s i})
 let find f s =
+   lemma__find__loop f s 0 None;
    find__loop f s 0 None
-
-// todo: can this be broken down into an aggregation of simpler forms?
-abstract val lemma__find:
-   f:('a -> Tot bool)
-   -> s:seq 'a
-   -> Lemma
-      (requires (True))
-      (ensures
-         ((is_None (find f s) ==>
-            (forall (j:nat).
-               (j < length s) ==> not (f (index s j))))
-         /\ ((is_Some (find f s)) ==>
-               ((get (find f s) < length s
-               && f (index s (get (find f s))))))))
-      [SMTPat (find f s)]
-let lemma__find f s =
-   lemma__find__loop f s 0 None

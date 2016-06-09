@@ -36,7 +36,6 @@ abstract val lemma__length:
    -> Lemma
       (requires (True))
       (ensures (length (remove s i a) = length s - 1))
-      [SMTPat (length (remove s i a))]
 let lemma__length s i a = ()
 
 abstract val lemma__index:
