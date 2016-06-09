@@ -26,7 +26,7 @@ type mem_t (#a:Type) (x:a) (s:seq a) =
 
 val mem: x:'a -> s:seq 'a -> Tot (b:bool{b <==> mem_t x s})
 let mem a s =
-   is_Some (find a s)
+   is_Some (find (fun a' -> a = a') s)
 
 val lemma__index:
    s:seq 'a{length s > 0}
@@ -35,7 +35,7 @@ val lemma__index:
       (requires (True))
       (ensures (mem_t (index s i) s))
 let lemma__index s i =
-   lemma__find (index s i) s
+   lemma__find (fun a -> a = index s i) s
 
 val lemma__slice_1:
    a:'a

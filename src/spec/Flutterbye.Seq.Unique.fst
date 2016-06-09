@@ -83,8 +83,8 @@ val lemma__empty:
       (ensures (unique_t s))
 let lemma__empty s = ()
 
-// todo: need better name
-private type identical_mem_t (#a:Type) (s_0:seq a{unique_t s_0}) (s_1:set a) =
+// mem_eq_t: membership equality
+private type mem_eq_t (#a:Type) (s_0:seq a{unique_t s_0}) (s_1:set a) =
    forall x.
       Flutterbye.Seq.Mem.mem_t x s_0 <==> b2t (mem x s_1)
 
@@ -98,8 +98,8 @@ private val lemma__to_set__loop:
    -> Lemma
       (requires
          (((i = 0) ==> FStar.Set.equal c empty)
-         /\ (identical_mem_t (slice s 0 i) c)))
-      (ensures (identical_mem_t s (to_set__loop s i c)))
+         /\ (mem_eq_t (slice s 0 i) c)))
+      (ensures (mem_eq_t s (to_set__loop s i c)))
       (decreases (length s - i))
 let rec lemma__to_set__loop s i c =
    if i < length s then
@@ -176,14 +176,13 @@ let rec lemma__unique__mem__loop s i c x =
          lemma__unique__mem__loop s (i + 1) c' x
       else
          let c' = append c (create 1 a) in
-         // todo: this is a lemma-- already ghost; do these really need to be hidden?
-         let p_1 = hide (Flutterbye.Seq.Mem.mem_t a c') in
-         let p_2 = hide (Flutterbye.Seq.Mem.mem_t a (slice s 0 (i + 1))) in
+         let p_1 = Flutterbye.Seq.Mem.mem_t a c' in
+         let p_2 = Flutterbye.Seq.Mem.mem_t a (slice s 0 (i + 1)) in
          Flutterbye.Seq.Mem.lemma__slice_2 a s;
-         assert ((reveal p_1) ==> (reveal p_2));
+         assert (p_1 ==> p_2);
          Flutterbye.Seq.Mem.lemma__append a c (create 1 a);
          assert (Flutterbye.Seq.Mem.mem_t a c');
-         assert ((reveal p_2) ==> (reveal p_1));
+         assert (p_2 ==> p_1);
          lemma__unique__mem__loop s (i + 1) c' x)
    else
       ()
