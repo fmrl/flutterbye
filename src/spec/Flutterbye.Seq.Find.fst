@@ -39,7 +39,7 @@ let rec find__loop f s i c =
       c
 
 type found_t (#a:Type) (f:(a -> Tot bool)) (s:seq a) (i:option nat) =
-   (is_None i ==>
+   (is_None i <==>
       (forall (j:nat).
          j < length s ==> not (f (index s j)))) /\
    (is_Some i ==>
@@ -52,14 +52,14 @@ private val lemma__find__loop:
    -> c:(option nat)
    -> Lemma
       (requires
-         ((is_None c ==>
+         ((is_None c <==>
             (forall (j:nat).
                (j < i) ==> (not (f (index s j)))))
          /\ (is_Some c ==>
                ((get c) < length s
                && (f (index s (get c)))))))
       (ensures
-         ((is_None (find__loop f s i c) ==>
+         ((is_None (find__loop f s i c) <==>
             (forall (j:nat).
                (j < length s) ==> (not (f (index s j)))))
          /\ (is_Some (find__loop f s i c) ==>
