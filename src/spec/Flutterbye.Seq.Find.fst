@@ -58,13 +58,7 @@ private val lemma__find__loop:
          /\ (is_Some c ==>
                ((get c) < length s
                && (f (index s (get c)))))))
-      (ensures
-         ((is_None (find__loop f s i c) <==>
-            (forall (j:nat).
-               (j < length s) ==> (not (f (index s j)))))
-         /\ (is_Some (find__loop f s i c) ==>
-               ((get (find__loop f s i c)) < length s
-               && (f (index s (get (find__loop f s i c))))))))
+      (ensures (found_t f s (find__loop f s i c)))
       (decreases (length s - i))
 let rec lemma__find__loop f s i c =
    if i < length s then
