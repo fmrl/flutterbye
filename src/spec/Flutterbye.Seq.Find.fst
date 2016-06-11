@@ -38,11 +38,11 @@ type found_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
             x < get i ==> not (f (index s x))))))
 
 private val find_loop:
-   f:('a -> Tot bool)
-   -> s:seq 'a
-   -> i:nat{i <= length s}
-   -> ac:(option nat)
-   -> Tot (option nat)
+   f:('a -> Tot bool) -> 
+   s:seq 'a -> 
+   i:nat{i <= length s} -> 
+   ac:(option nat) -> 
+   Tot (option nat)
       (decreases (length s - i))
 let rec find_loop f s i ac =
    if i < length s then
@@ -56,18 +56,18 @@ let rec find_loop f s i ac =
       ac
 
 private val lemma:
-   f:('a -> Tot bool)
-   -> s:seq 'a
-   -> i:nat{i <= length s}
-   -> ac:(option nat)
-   -> Lemma
+   f:('a -> Tot bool) -> 
+   s:seq 'a -> 
+   i:nat{i <= length s} -> 
+   ac:(option nat) -> 
+   Lemma
       (requires (found_p f (slice s 0 i) ac))
       (ensures (found_p f s (find_loop f s i ac)))
       (decreases (length s - i))
 let rec lemma f s i ac =
    if i < length s then
       let ac' =
-         if is_None ac && (f (index s i)) then
+         if is_None ac && f (index s i) then
             Some i
          else
             ac in
