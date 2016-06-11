@@ -20,30 +20,30 @@ module Flutterbye.Seq.Find
 open FStar.Seq
 open Flutterbye.Option
 
-private val find__loop:
+private val find_loop:
    f:('a -> Tot bool)
    -> s:seq 'a
    -> i:nat{i <= length s}
-   -> c:(option nat)
+   -> ac:(option nat)
    -> Tot (option nat)
       (decreases (length s - i))
-let rec find__loop f s i c =
+let rec find_loop f s i ac =
    if i < length s then
-      let c' =
-         if is_None c && (f (index s i)) then
+      let ac' =
+         if is_None ac && (f (index s i)) then
             Some i
          else
-            c in
-      find__loop f s (i + 1) c'
+            ac in
+      find_loop f s (i + 1) ac'
    else
-      c
+      ac
 
-type found_t (#a:Type) (f:(a -> Tot bool)) (s:seq a) (i:option nat) =
+type found_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
    // if not found...
    (is_None i <==>
       // ...then no element is `s` can satisfy predicate `f`.
-      (forall (j:nat).
-         j < length s ==> not (f (index s j)))) /\
+      (forall (x:nat).
+         x < length s ==> not (f (index s x)))) /\
    // otherwise, if found...
    (is_Some i ==> 
       // ...then `i` must index an element of `s`.
@@ -55,30 +55,30 @@ type found_t (#a:Type) (f:(a -> Tot bool)) (s:seq a) (i:option nat) =
          (forall (x:nat).
             x < get i ==> not (f (index s x))))))
 
-private val lemma__find__loop:
+private val lemma:
    f:('a -> Tot bool)
    -> s:seq 'a
    -> i:nat{i <= length s}
-   -> c:(option nat)
+   -> ac:(option nat)
    -> Lemma
-      (requires (found_t f (slice s 0 i) c))
-      (ensures (found_t f s (find__loop f s i c)))
+      (requires (found_p f (slice s 0 i) ac))
+      (ensures (found_p f s (find_loop f s i ac)))
       (decreases (length s - i))
-let rec lemma__find__loop f s i c =
+let rec lemma f s i ac =
    if i < length s then
-      let c' =
-         if is_None c && (f (index s i)) then
+      let ac' =
+         if is_None ac && (f (index s i)) then
             Some i
          else
-            c in
-      lemma__find__loop f s (i + 1) c'
+            ac in
+      lemma f s (i + 1) ac'
    else
       ()
 
 val find: 
    f:('a -> Tot bool) -> 
    s:seq 'a -> 
-   Tot (i:option nat{found_t f s i})
+   Tot (i:option nat{found_p f s i})
 let find f s =
-   lemma__find__loop f s 0 None;
-   find__loop f s 0 None
+   lemma f s 0 None;
+   find_loop f s 0 None
