@@ -61,16 +61,7 @@ private val lemma__find__loop:
    -> i:nat{i <= length s}
    -> c:(option nat)
    -> Lemma
-      (requires
-         ((is_None c <==>
-            (forall (j:nat).
-               (j < i) ==> (not (f (index s j)))))
-         /\ (is_Some c ==>
-               (b2t (get c < length s) /\ 
-               b2t (f (index s (get c)))) /\
-               (get c > 0 ==>
-                  (forall (x:nat).
-                     x < get c ==> not (f (index s x)))))))
+      (requires (found_t f (slice s 0 i) c))
       (ensures (found_t f s (find__loop f s i c)))
       (decreases (length s - i))
 let rec lemma__find__loop f s i c =
