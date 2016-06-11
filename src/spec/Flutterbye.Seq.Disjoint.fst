@@ -45,18 +45,18 @@ x:'a
 -> Lemma
    (requires (disjoint_t s_1 s_2))
    (ensures
-      ((Flutterbye.Seq.Mem.mem_t x s_1 \/ Flutterbye.Seq.Mem.mem_t x s_2) <==>
-         ((Flutterbye.Seq.Mem.mem_t x s_1 <==>
-            ~ (Flutterbye.Seq.Mem.mem_t x s_2)))))
+      ((Flutterbye.Seq.Mem.mem_p x s_1 \/ Flutterbye.Seq.Mem.mem_p x s_2) <==>
+         ((Flutterbye.Seq.Mem.mem_p x s_1 <==>
+            ~ (Flutterbye.Seq.Mem.mem_p x s_2)))))
 let lemma__mem x s_1 s_2 =
    let t_1 = to_set (unique s_1) in
    (Flutterbye.Seq.Unique.lemma__unique__mem x (s_1);
    Flutterbye.Seq.Unique.lemma__to_set x (unique s_1);
-   assert (b2t (mem x t_1) <==> Flutterbye.Seq.Mem.mem_t x s_1));
+   assert (b2t (mem x t_1) <==> Flutterbye.Seq.Mem.mem_p x s_1));
    let t_2 = to_set (unique s_2) in
    (Flutterbye.Seq.Unique.lemma__unique__mem x (s_2);
    Flutterbye.Seq.Unique.lemma__to_set x (unique s_2);
-   assert (b2t (mem x t_2) <==> Flutterbye.Seq.Mem.mem_t x s_2));
+   assert (b2t (mem x t_2) <==> Flutterbye.Seq.Mem.mem_p x s_2));
    if mem x t_1 then
       (FStar.Set.mem_intersect x t_1 t_2;
       assert (not (mem x t_2)))

@@ -86,7 +86,7 @@ let lemma__empty s = ()
 // mem_eq_t: membership equality
 private type mem_eq_t (#a:Type) (s_0:seq a{unique_t s_0}) (s_1:set a) =
    forall x.
-      Flutterbye.Seq.Mem.mem_t x s_0 <==> b2t (mem x s_1)
+      Flutterbye.Seq.Mem.mem_p x s_0  <==> b2t (mem x s_1)
 
 private val lemma__to_set__loop:
    // input sequence
@@ -105,8 +105,8 @@ let rec lemma__to_set__loop s i c =
    if i < length s then
       let a = index s i in
       let c' = union c (singleton a) in
-      Flutterbye.Seq.Mem.lemma__slice_2 a s;
-      assert (Flutterbye.Seq.Mem.mem_t a (slice s 0 (i + 1)));
+      Flutterbye.Seq.Mem.slice_lemma s;
+      assert (Flutterbye.Seq.Mem.mem_p a (slice s 0 (i + 1)));
       lemma__to_set__loop s (i + 1) c'
    else
       ()
@@ -116,7 +116,7 @@ abstract val lemma__to_set:
    -> s:seq 'a{unique_t s}
    -> Lemma
       (requires (True))
-      (ensures (Flutterbye.Seq.Mem.mem_t x s <==> mem x (to_set s)))
+      (ensures (Flutterbye.Seq.Mem.mem_p x s <==> mem x (to_set s)))
 let lemma__to_set x s =
    lemma__to_set__loop s 0 empty
 
@@ -162,11 +162,11 @@ private val lemma__unique__mem__loop:
    -> Lemma
       (requires
          (((i = 0) ==> (FStar.Seq.equal c createEmpty))
-         /\ (Flutterbye.Seq.Mem.mem_t x c <==>
-               Flutterbye.Seq.Mem.mem_t x (slice s 0 i))))
+         /\ (Flutterbye.Seq.Mem.mem_p x c <==>
+               Flutterbye.Seq.Mem.mem_p x (slice s 0 i))))
       (ensures
-         (Flutterbye.Seq.Mem.mem_t x (unique__loop s i c) <==>
-            Flutterbye.Seq.Mem.mem_t x s))
+         (Flutterbye.Seq.Mem.mem_p x (unique__loop s i c) <==>
+            Flutterbye.Seq.Mem.mem_p x s))
       (decreases (length s - i))
 let rec lemma__unique__mem__loop s i c x =
    if i < length s then
@@ -176,12 +176,12 @@ let rec lemma__unique__mem__loop s i c x =
          lemma__unique__mem__loop s (i + 1) c' x
       else
          let c' = append c (create 1 a) in
-         let p_1 = Flutterbye.Seq.Mem.mem_t a c' in
-         let p_2 = Flutterbye.Seq.Mem.mem_t a (slice s 0 (i + 1)) in
-         Flutterbye.Seq.Mem.lemma__slice_2 a s;
+         let p_1 = Flutterbye.Seq.Mem.mem_p a c' in
+         let p_2 = Flutterbye.Seq.Mem.mem_p a (slice s 0 (i + 1)) in
+         Flutterbye.Seq.Mem.slice_lemma s;
          assert (p_1 ==> p_2);
-         Flutterbye.Seq.Mem.lemma__append a c (create 1 a);
-         assert (Flutterbye.Seq.Mem.mem_t a c');
+         Flutterbye.Seq.Mem.slice_lemma c';
+         assert (Flutterbye.Seq.Mem.mem_p a c');
          assert (p_2 ==> p_1);
          lemma__unique__mem__loop s (i + 1) c' x)
    else
@@ -195,7 +195,7 @@ abstract val lemma__unique__mem:
    -> Lemma
       (requires (True))
       (ensures
-         (Flutterbye.Seq.Mem.mem_t x (unique s) <==>
-            Flutterbye.Seq.Mem.mem_t x s))
+         (Flutterbye.Seq.Mem.mem_p x (unique s) <==>
+            Flutterbye.Seq.Mem.mem_p x s))
 let lemma__unique__mem x s =
    lemma__unique__mem__loop s 0 createEmpty x

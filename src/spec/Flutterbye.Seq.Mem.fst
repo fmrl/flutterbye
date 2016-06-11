@@ -20,102 +20,66 @@ module Flutterbye.Seq.Mem
 open FStar.Seq
 open Flutterbye.Seq.Find
 
-type mem_t (#a:Type) (x:a) (s:seq a) =
-   exists (i:nat).
-      i < length s && index s i = x
+type mem_p (#a_t:Type) (a:a_t) (s:seq a_t) =
+   (exists (x:nat).
+      x < length s && index s x = a)
 
-val mem: x:'a -> s:seq 'a -> Tot (b:bool{b <==> mem_t x s})
+val mem: x:'a -> s:seq 'a -> Tot (b:bool{b <==> mem_p x s})
 let mem a s =
    is_Some (find (fun a' -> a = a') s)
 
-abstract val lemma__index:
-   s:seq 'a{length s > 0}
-   -> i:nat{i < length s}
-   -> Lemma
-      (requires (True))
-      (ensures (mem_t (index s i) s))
-let lemma__index s i = ()
-
-abstract val lemma__slice_1:
-   a:'a
-   -> s:seq 'a
-   -> Lemma
-      (requires (mem_t a s))
+abstract val index_lemma:
+   s:seq 'a -> 
+   Lemma
       (ensures
-         (forall (i:nat) (j:nat) (q:seq 'a).
-            ((j < length q /\ i <= j /\ (equal s (slice q i j))) ==>
-               mem_t a q)))
-let lemma__slice_1 a s =
+         // an element obtained from a sequence is a member of that sequence.  
+         (length s > 0 ==> 
+            (forall (x:nat).
+               x < length s ==> mem_p (index s x) s)))
+let index_lemma s = 
    ()
 
-// todo: this lemma could be generalized to any slice containing index `i`.
-// (would that subsume lemma__slice_1?)
-abstract val lemma__slice_2:
-   a:'a
-   -> s:seq 'a
-   -> Lemma
-      (requires (mem_t a s))
+abstract val slice_lemma:
+   s:seq 'a ->
+   Lemma
       (ensures
-         (forall (i:nat).
-            ((i < length s && index s i = a) ==>
-               (mem_t a (slice s 0 (i + 1))))))
-let lemma__slice_2 a s =
+         (forall (x:nat) (y:nat) (sl:seq 'a).
+            // if [x, y) describe a slice of `s`, `sl`... 
+            (y < length s /\ x <= y /\ equal sl (slice s x y)) ==>
+               // ...then any member of the slice is a member of `s`.
+               (forall (z:nat).
+                  z < length sl ==> mem_p (index sl z) s)))
+let slice_lemma s =
    ()
 
-private val lemma__append__case_1:
-   x:'a
-   -> s_1:seq 'a
-   -> s_2:seq 'a
-   -> Lemma
-      (requires (mem_t x s_1))
-      (ensures (mem_t x (append s_1 s_2)))
-let lemma__append__case_1 x s_1 s_2 =
-   ()
+private type empty_p (#a_t:Type) (s:seq a_t) =
+   forall (x:a_t).
+      ~ (mem_p x s)
 
-private val lemma__append__case_2:
-   x:'a
-   -> s_1:seq 'a
-   -> s_2:seq 'a
-   -> Lemma
-      (requires (mem_t x s_2))
-      (ensures (mem_t x (append s_1 s_2)))
-let lemma__append__case_2 x s_1 s_2 =
-   let s' = append s_1 s_2 in
-   let i = length s_1 in
-   let j = length s' in
-   let s'' = slice s' i j in
-   lemma__slice_1 x s'';
-   lemma__slice_2 x s''
-
-abstract val lemma__append:
-   x:'a
-   -> s_1:seq 'a
-   -> s_2:seq 'a
-   -> Lemma
-      (requires (mem_t x s_1 \/ mem_t x s_2))
-      (ensures (mem_t x (append s_1 s_2)))
-let lemma__append x s_1 s_2 =
-   if mem x s_1 then
-      lemma__append__case_1 x s_1 s_2
+abstract val empty_lemma:
+   s:seq 'a ->
+   Lemma (ensures (length s = 0 <==> empty_p s))
+let empty_lemma s = 
+   if length s = 0 then
+      ()
    else
-      lemma__append__case_2 x s_1 s_2
+      (assert (mem_p (index s 0) s); // required witness
+      assert (~ (empty_p s)))
 
-abstract val lemma__empty:
-   x:'a
-   -> s:seq 'a
-   -> Lemma
-      (requires (length s = 0))
-      (ensures (~ (mem_t x s)))
-let lemma__empty x s = ()
-
-abstract val lemma__create:
-   n:nat{n > 0}
-   -> a:'a
-   -> Lemma
-      (requires (True))
-      (ensures (mem_t a (create n a)))
+abstract val create_lemma:
+   n:nat -> 
+   a:'a ->
+   Lemma
+      (requires (True)) // required to avoid type error in SMTPat expression.
+      (ensures 
+         // if we are creating an empty sequence, then null membership applies.
+         ((n = 0 <==> empty_p (create n a)) /\
+         // otherwise, only `a` can be a member of the resulting sequence.
+         (n > 0 <==> mem_p a (create n a))))
       [SMTPat (create n a)]
-let lemma__create n a =
-   let s = create n a in
-   assert (index s 0 = a); // required
-   ()
+let create_lemma n a =
+   if n = 0 then
+      ()
+   else
+      let s = create n a in
+      assert (index s 0 = a) // required witness

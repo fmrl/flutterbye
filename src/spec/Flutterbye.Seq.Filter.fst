@@ -129,11 +129,11 @@ private val lemma__mem__loop:
    -> Lemma
       (requires
          (forall (j:nat).
-            (j < length c) ==> (mem_t (index c j) s)))
+            (j < length c) ==> (mem_p (index c j) s)))
       (ensures
          (forall (j:nat).
             (j < length (filter__loop p s i c)) ==>
-               (mem_t (index (filter__loop p s i c) j) s)))
+               (mem_p (index (filter__loop p s i c) j) s)))
       (decreases (length s - i))
 let rec lemma__mem__loop p s i c =
    if i = length s then
@@ -154,6 +154,6 @@ abstract val lemma__mem:
       (requires (True))
       (ensures
          (forall (i:nat).
-            (i < length (filter p s)) ==> (mem_t (index (filter p s) i) s)))
+            (i < length (filter p s)) ==> (mem_p (index (filter p s) i) s)))
 let lemma__mem p s =
    lemma__mem__loop p s 0 createEmpty

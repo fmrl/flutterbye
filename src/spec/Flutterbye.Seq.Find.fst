@@ -55,7 +55,7 @@ let rec find_loop f s i ac =
    else
       ac
 
-private val lemma:
+private val find_lemma:
    f:('a -> Tot bool) -> 
    s:seq 'a -> 
    i:nat{i <= length s} -> 
@@ -64,14 +64,14 @@ private val lemma:
       (requires (found_p f (slice s 0 i) ac))
       (ensures (found_p f s (find_loop f s i ac)))
       (decreases (length s - i))
-let rec lemma f s i ac =
+let rec find_lemma f s i ac =
    if i < length s then
       let ac' =
          if is_None ac && f (index s i) then
             Some i
          else
             ac in
-      lemma f s (i + 1) ac'
+      find_lemma f s (i + 1) ac'
    else
       ()
 
@@ -80,5 +80,5 @@ val find:
    s:seq 'a -> 
    Tot (i:option nat{found_p f s i})
 let find f s =
-   lemma f s 0 None;
+   find_lemma f s 0 None;
    find_loop f s 0 None
