@@ -20,6 +20,23 @@ module Flutterbye.Seq.Find
 open FStar.Seq
 open Flutterbye.Option
 
+type found_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
+   // if not found...
+   (is_None i <==>
+      // ...then no element is `s` can satisfy predicate `f`.
+      (forall (x:nat).
+         x < length s ==> not (f (index s x)))) /\
+   // otherwise, if found...
+   (is_Some i ==> 
+      // ...then `i` must index an element of `s`.
+      (b2t (get i < length s) /\
+      // ...and `i` must point to an element that satisfies predicate `f`.
+      b2t (f (index s (get i))) /\
+      // ...and every element preceeding the element indexed by `i` must not satisfy predicate `f`.
+      (get i > 0 ==>
+         (forall (x:nat).
+            x < get i ==> not (f (index s x))))))
+
 private val find_loop:
    f:('a -> Tot bool)
    -> s:seq 'a
@@ -37,23 +54,6 @@ let rec find_loop f s i ac =
       find_loop f s (i + 1) ac'
    else
       ac
-
-type found_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
-   // if not found...
-   (is_None i <==>
-      // ...then no element is `s` can satisfy predicate `f`.
-      (forall (x:nat).
-         x < length s ==> not (f (index s x)))) /\
-   // otherwise, if found...
-   (is_Some i ==> 
-      // ...then `i` must index an element of `s`.
-      (b2t (get i < length s) /\
-      // ...and `i` must point to an element that satisfies predicate `f`.
-      b2t (f (index s (get i))) /\
-      // ...and every element preceeding the element indexed by `i` must not satisfy predicate `f`.
-      (get i > 0 ==>
-         (forall (x:nat).
-            x < get i ==> not (f (index s x))))))
 
 private val lemma:
    f:('a -> Tot bool)
