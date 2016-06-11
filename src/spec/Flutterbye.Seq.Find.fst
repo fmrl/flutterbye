@@ -45,12 +45,15 @@ type found_t (#a:Type) (f:(a -> Tot bool)) (s:seq a) (i:option nat) =
       (forall (j:nat).
          j < length s ==> not (f (index s j)))) /\
    // otherwise, if found...
-   (is_Some i ==>
+   (is_Some i ==> 
       // ...then `i` must index an element of `s`.
-      b2t (get i < length s) /\
+      (b2t (get i < length s) /\
       // ...and `i` must point to an element that satisfies predicate `f`.
-      b2t (f (index s (get i))))
-      // todo: every element preceeding the element indexed by `i` must not satisfy predicate `f`.
+      b2t (f (index s (get i))) /\
+      // ...and every element preceeding the element indexed by `i` must not satisfy predicate `f`.
+      (get i > 0 ==>
+         (forall (x:nat).
+            x < get i ==> not (f (index s x))))))
 
 private val lemma__find__loop:
    f:('a -> Tot bool)
@@ -63,8 +66,11 @@ private val lemma__find__loop:
             (forall (j:nat).
                (j < i) ==> (not (f (index s j)))))
          /\ (is_Some c ==>
-               ((get c) < length s
-               && (f (index s (get c)))))))
+               (b2t (get c < length s) /\ 
+               b2t (f (index s (get c)))) /\
+               (get c > 0 ==>
+                  (forall (x:nat).
+                     x < get c ==> not (f (index s x)))))))
       (ensures (found_t f s (find__loop f s i c)))
       (decreases (length s - i))
 let rec lemma__find__loop f s i c =
