@@ -20,11 +20,6 @@ module Flutterbye.Seq.Count
 open FStar.Seq
 open Flutterbye.Seq.Filter
 
-val count:
-   ('a -> Tot bool)
-      // predicate; if false, the element is discarded from the count.
-   -> s:seq 'a // input sequence
-   -> Tot (n:nat{n <= length s})
-let count p s =
-   Flutterbye.Seq.Filter.lemma__length p s;
-   length (filter p s)
+val count: f:('a -> Tot bool) -> s:seq 'a -> Tot (n:nat{n <= length s})
+let count f s =
+   length (filter f s)

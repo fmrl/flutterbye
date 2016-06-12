@@ -18,142 +18,74 @@
 
 module Flutterbye.Seq.Filter
 open FStar.Seq
-open Flutterbye.Seq.Mem
 
-private val filter__loop:
-   // predicate; if false, then the element is discarded from the sequence.
-   ('a -> Tot bool)
-   // input sequence
-   -> s:seq 'a
-   // index of element being reduced with (length s) as representing
-   // the base case.
-   -> i:nat{i <= length s}
-   // accumulator; in this case, the output sequence.
-   -> c:seq 'a
-   -> Tot (seq 'a)
+// todo: maintain ordering.
+// todo: maintain counts for elements that satisfy `f`.
+type filtered_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
+   // if the input sequence is empty, then the output sequence will also be.
+   (length s = 0 ==> length s' = 0) /\
+   // if the input sequence is not empty...
+   (length s > 0 ==>
+      // then the input sequence won't be smaller than the output sequence.
+      (length s >= length s' /\
+         // if the output sequence is empty, then the no element of `s` satisfies `f`.
+         (length s' = 0 ==>
+            (forall (x:nat).
+               x < length s ==> not (f (index s x))) /\
+         // if the output sequence is not empty...
+         (length s' > 0 ==>
+            // then every element of `s'`...
+            (forall (x:nat).
+               x < length s' ==>
+                  // satisfies `f`.
+                  (f (index s' x) &&
+                  // and is a member of `s`.
+                  Flutterbye.Seq.Mem.mem (index s' x) s))))))
+
+private val filter_loop:
+   f:('a -> Tot bool) ->
+   s:seq 'a ->
+   i:nat{i <= length s} ->
+   ac:seq 'a ->
+   Tot (ac':seq 'a)
       (decreases (length s - i))
-let rec filter__loop p s i c =
-   if i = length s then
-      c
-   else
+let rec filter_loop f s i ac =
+   if i < length s then
       let a = index s i in
-      let c' =
-         if p a then
-            append c (create 1 a)
+      let ac' =
+         if f a then
+            append ac (create 1 a)
          else
-            c in
-      filter__loop p s (i + 1) c'
+            ac in
+      filter_loop f s (i + 1) ac'
+   else
+      ac
+
+private val filter_loop_lemma:
+   f:('a -> Tot bool) ->
+   s:seq 'a ->
+   i:nat{i <= length s} ->
+   ac:seq 'a ->
+   Lemma
+      (requires (filtered_p f (slice s 0 i) ac))
+      (ensures (filtered_p f s (filter_loop f s i ac)))
+      (decreases (length s - i))
+let rec filter_loop_lemma f s i ac =
+   if i < length s then
+      let a = index s i in
+      let ac' =
+         if f a then
+            append ac (create 1 a)
+         else
+            ac in
+      filter_loop_lemma f s (i + 1) ac'
+   else
+      ()
 
 val filter:
-   ('a -> Tot bool)
-      // predicate; if false, then the element is discarded from the
-      // sequence.
-   -> seq 'a // input sequence
-   -> Tot (seq 'a) // output sequence
-let filter p s =
-   filter__loop p s 0 createEmpty
-
-private val lemma__length__loop:
-   p: ('a -> Tot bool)
-   -> s:seq 'a
-   -> i:nat{i <= length s}
-   -> c:seq 'a
-   -> Lemma
-      (requires (length c <= i))
-      (ensures (length (filter__loop p s i c) <= length s))
-      (decreases (length s - i))
-let rec lemma__length__loop p s i c =
-   if i = length s then
-      ()
-   else
-      let a = index s i in
-      let c' =
-         if p a then
-            append c (create 1 a)
-         else
-            c in
-      lemma__length__loop p s (i + 1) c'
-
-abstract val lemma__length:
-   p:('a -> Tot bool)
-   -> s:seq 'a
-   -> Lemma
-      (requires (True))
-      (ensures (length (filter p s) <= length s))
-let lemma__length p s =
-   lemma__length__loop p s 0 createEmpty
-
-private val lemma__predicate__loop:
-   p: ('a -> Tot bool)
-   -> s:seq 'a
-   -> i:nat{i <= length s}
-   // accumulator-- in this case, a filtered sequence being constructed.
-   -> c:seq 'a
-   // free variable (forall)
-   -> j:nat
-   -> Lemma
-      (requires
-         (forall k.
-            0 <= k && k < length c ==> p (index c k)))
-      (ensures
-         (j < length (filter__loop p s i c)
-         ==> p (index (filter__loop p s i c) j)))
-      (decreases (length s - i))
-let rec lemma__predicate__loop p s i c j =
-   if i = length s then
-      ()
-   else
-      let a = index s i in
-      let c' =
-         if p a then
-            append c (create 1 a)
-         else
-            c in
-      lemma__predicate__loop p s (i + 1) c' j
-
-abstract val lemma__predicate:
-   p:('a -> Tot bool)
-   -> s:seq 'a
-   -> i:nat{i < length (filter p s)}
-   -> Lemma
-      (requires (True))
-      (ensures (p (index (filter p s) i)))
-let lemma__predicate p s i =
-   lemma__predicate__loop p s 0 createEmpty i
-
-private val lemma__mem__loop:
-   p: ('a -> Tot bool)
-   -> s:seq 'a
-   -> i:nat{i <= length s}
-   -> c:seq 'a
-   -> Lemma
-      (requires
-         (forall (j:nat).
-            (j < length c) ==> (mem_p (index c j) s)))
-      (ensures
-         (forall (j:nat).
-            (j < length (filter__loop p s i c)) ==>
-               (mem_p (index (filter__loop p s i c) j) s)))
-      (decreases (length s - i))
-let rec lemma__mem__loop p s i c =
-   if i = length s then
-      ()
-   else
-      let a = index s i in
-      let c' =
-         if p a then
-            append c (create 1 a)
-         else
-            c in
-      lemma__mem__loop p s (i + 1) c'
-
-abstract val lemma__mem:
-   p:('a -> Tot bool)
-   -> s:seq 'a
-   -> Lemma
-      (requires (True))
-      (ensures
-         (forall (i:nat).
-            (i < length (filter p s)) ==> (mem_p (index (filter p s) i) s)))
-let lemma__mem p s =
-   lemma__mem__loop p s 0 createEmpty
+   f:('a -> Tot bool) ->
+   s:seq 'a ->
+   Tot (s':seq 'a{filtered_p f s s'})
+let filter f s =
+   filter_loop_lemma f s 0 createEmpty;
+   filter_loop f s 0 createEmpty
