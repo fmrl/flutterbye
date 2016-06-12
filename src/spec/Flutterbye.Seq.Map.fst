@@ -19,7 +19,7 @@
 module Flutterbye.Seq.Map
 open FStar.Seq
 
-type mapped_p (#a_t:Type) (#b_t:Type) (f:a_t -> Tot b_t) (s_a: seq a_t) (s_b:seq b_t) =
+type mapping_p (#a_t:Type) (#b_t:Type) (f:a_t -> Tot b_t) (s_a: seq a_t) (s_b:seq b_t) =
    b2t (length s_a = length s_b) /\
    (length s_a = 0 \/
       (forall (x:nat).
@@ -48,8 +48,8 @@ private val map_lemma:
    -> s:seq 'a
    -> ac:seq 'b{length ac <= length s}
    -> Lemma
-      (requires (mapped_p f (slice s 0 (length ac)) ac))
-      (ensures (mapped_p f s (map_loop f s ac)))
+      (requires (mapping_p f (slice s 0 (length ac)) ac))
+      (ensures (mapping_p f s (map_loop f s ac)))
       (decreases (length s - length ac))
 let rec map_lemma f s ac =
    let i = length ac in
@@ -64,7 +64,7 @@ let rec map_lemma f s ac =
 val map:
    f:('a -> Tot 'b) ->
    s:seq 'a ->
-   Tot (s':seq 'b{mapped_p f s s'})
+   Tot (s':seq 'b{mapping_p f s s'})
 let map f s =
    map_lemma f s createEmpty;
    map_loop f s createEmpty
