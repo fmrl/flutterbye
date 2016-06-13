@@ -19,183 +19,128 @@
 module Flutterbye.Seq.Unique
 open FStar.Seq
 open FStar.Set
-open FStar.Ghost
 
-type unique_t (#a:Type) (s:seq a) =
-   0 = length s
-   \/ (forall (i:nat) (j:nat).
-         i < length s
-         && j < length s
-         && index s j = index s i
-         ==>
-            j == i)
+type unique_p (#a_t:Type) (s:seq a_t) =
+   0 = length s \/
+   (forall (x:nat) (y:nat).
+      x < length s && y < length s && index s y = index s x <==>
+         x < length s && y < length s && y = x)
 
-private val to_set__loop:
-   // input sequence
-   s:seq 'a{unique_t s}
-   // index of element being examined
-   -> i:nat{i <= length s}
-   // accumulator; in this case, the output set.
-   -> c:set 'a
-   -> Tot (set 'a)
-      (decreases (length s - i))
-let rec to_set__loop s i c =
-   if i < length s then
-      let a = index s i in
-      let c' = union c (singleton a) in
-      to_set__loop s (i + 1) c'
-   else
-      c
-
-val to_set: (s:seq 'a{unique_t s}) -> Tot (set 'a)
-let to_set s =
-   to_set__loop s 0 empty
-
-private val unique__loop:
-   // input sequence
-   s:seq 'a
-   // index of element being examined
-   -> i:nat{i <= length s}
-   // accumulator; in this case, the output sequence.
-   -> c:seq 'a{unique_t c}
-   -> Tot (c':seq 'a{unique_t c'})
-      (decreases (length s - i))
-let rec unique__loop s i c =
-   if i < length s then
-      let a = index s i in
-      let c' =
-         if Flutterbye.Seq.Mem.mem a c then
-            c
-         else
-            append c (create 1 a) in
-      unique__loop s (i + 1) c'
-   else
-      c
-
-val unique: (s:seq 'a) -> Tot (u:seq 'a{unique_t u})
-let unique s =
-   unique__loop s 0 createEmpty
-
-abstract val lemma__empty:
-   s:seq 'a
-   -> Lemma
-      (requires (length s = 0))
-      (ensures (unique_t s))
-let lemma__empty s = ()
-
-// mem_eq_t: membership equality
-private type mem_eq_t (#a:Type) (s_0:seq a{unique_t s_0}) (s_1:set a) =
-   forall x.
-      Flutterbye.Seq.Mem.mem_p x s_0  <==> b2t (mem x s_1)
-
-private val lemma__to_set__loop:
-   // input sequence
-   s:seq 'a{unique_t s}
-   // index of element being examined
-   -> i:nat{i <= length s}
-   // accumulator; in this case, the output set.
-   -> c:set 'a
-   -> Lemma
-      (requires
-         (((i = 0) ==> FStar.Set.equal c empty)
-         /\ (mem_eq_t (slice s 0 i) c)))
-      (ensures (mem_eq_t s (to_set__loop s i c)))
-      (decreases (length s - i))
-let rec lemma__to_set__loop s i c =
-   if i < length s then
-      let a = index s i in
-      let c' = union c (singleton a) in
-      Flutterbye.Seq.Mem.slice_lemma s;
-      assert (Flutterbye.Seq.Mem.mem_p a (slice s 0 (i + 1)));
-      lemma__to_set__loop s (i + 1) c'
-   else
-      ()
-
-abstract val lemma__to_set:
-   x:'a
-   -> s:seq 'a{unique_t s}
-   -> Lemma
-      (requires (True))
-      (ensures (Flutterbye.Seq.Mem.mem_p x s <==> mem x (to_set s)))
-let lemma__to_set x s =
-   lemma__to_set__loop s 0 empty
-
-private val lemma__unique__length__loop:
-   // input sequence
-   s:seq 'a
-   // index of element being examined
-   -> i:nat{i <= length s}
-   // accumulator; in this case, the output set.
-   -> c:seq 'a{unique_t c}
-   -> Lemma
-      (requires (length c <= i))
-      (ensures (length (unique__loop s i c) <= length s))
-      (decreases (length s - i))
-let rec lemma__unique__length__loop s i c =
-   if i < length s then
-      let a = index s i in
-      let c' =
-         if Flutterbye.Seq.Mem.mem a c then
-            c
-         else
-            append c (create 1 a) in
-      lemma__unique__length__loop s (i + 1) c'
-   else
-      ()
-
-abstract val lemma__unique__length:
-   s:seq 'a
-   -> Lemma
-      (requires (True))
-      (ensures (length (unique s) <= length s))
-let lemma__unique__length s =
-   lemma__unique__length__loop s 0 createEmpty
-
-private val lemma__unique__mem__loop:
-   // input sequence
-   s:seq 'a
-   // index of element being examined
-   -> i:nat{i <= length s}
-   // accumulator; in this case, the output set.
-   -> c:seq 'a{unique_t c}
-   -> x:'a
-   -> Lemma
-      (requires
-         (((i = 0) ==> (FStar.Seq.equal c createEmpty))
-         /\ (Flutterbye.Seq.Mem.mem_p x c <==>
-               Flutterbye.Seq.Mem.mem_p x (slice s 0 i))))
+abstract val slice_lemma:
+   s:seq 'a{unique_p s} ->
+   Lemma
       (ensures
-         (Flutterbye.Seq.Mem.mem_p x (unique__loop s i c) <==>
-            Flutterbye.Seq.Mem.mem_p x s))
+         (forall (x:nat) (y:nat) (sl:seq 'a).
+            // if [x, y) describe a slice of `s`, `sl`, then that slice is unique.
+            (y < length s /\ x <= y /\ FStar.Seq.equal sl (slice s x y)) ==> unique_p sl))
+let slice_lemma s =
+   ()
+
+(*abstract val append_lemma:
+   s_1:seq 'a{unique_p s_1} ->
+   s_2:seq 'a{unique_p s_2} ->
+   Lemma
+      //(requires (Flutterbye.Seq.Disjoint.disjoint_p s_1 s_2))
+      (ensures (unique_p (append s_1 s_2)))
+let append_lemma s_1 s_2 =
+   ()*)
+
+abstract val create_lemma:
+   n:nat ->
+   a:'a ->
+   Lemma
+      (requires (True))
+      (ensures (n <= 1 <==> unique_p (create n a)))
+      [SMTPat (create n a)]
+let create_lemma n a =
+   let s = create n a in
+   if n <= 1 then
+      ()
+   else
+      assert (index s 0 = index s 1) // required witness
+
+private val unique_loop:
+   s:seq 'a ->
+   i:nat{i <= length s} ->
+   Tot bool
       (decreases (length s - i))
-let rec lemma__unique__mem__loop s i c x =
+let rec unique_loop s i =
    if i < length s then
       let a = index s i in
-      (if Flutterbye.Seq.Mem.mem a c then
-         let c' = c in
-         lemma__unique__mem__loop s (i + 1) c' x
+      if Flutterbye.Seq.Mem.mem a (slice s 0 i) then
+         false
       else
-         let c' = append c (create 1 a) in
-         let p_1 = Flutterbye.Seq.Mem.mem_p a c' in
-         let p_2 = Flutterbye.Seq.Mem.mem_p a (slice s 0 (i + 1)) in
-         Flutterbye.Seq.Mem.slice_lemma s;
-         assert (p_1 ==> p_2);
-         Flutterbye.Seq.Mem.slice_lemma c';
-         assert (Flutterbye.Seq.Mem.mem_p a c');
-         assert (p_2 ==> p_1);
-         lemma__unique__mem__loop s (i + 1) c' x)
+         unique_loop s (i + 1)
+   else
+      true
+
+private val unique_lemma:
+   s:seq 'a ->
+   i:nat{i <= length s} ->
+   Lemma
+      (requires (unique_p (slice s 0 i)))
+      (ensures (b2t (unique_loop s i) <==> unique_p s))
+      (decreases (length s - i))
+let rec unique_lemma s i =
+   if i < length s then
+      let a = index s i in
+      if Flutterbye.Seq.Mem.mem a (slice s 0 i) then
+         ()
+      else
+         (assert (unique_p (create 1 (index s i))); // learned through create_lemma.
+         unique_lemma s (i + 1))
    else
       ()
 
-// todo: are there disadvantages to combining the two `lemma__unique...` lemmas
-// given that one needs an additional free variable?
-abstract val lemma__unique__mem:
-   x:'a
-   -> s:seq 'a
-   -> Lemma
-      (requires (True))
-      (ensures
-         (Flutterbye.Seq.Mem.mem_p x (unique s) <==>
-            Flutterbye.Seq.Mem.mem_p x s))
-let lemma__unique__mem x s =
-   lemma__unique__mem__loop s 0 createEmpty x
+private val unique: s:seq 'a -> Tot (b:bool{b <==> unique_p s})
+let unique s =
+   unique_lemma s 0;
+   unique_loop s 0
+
+private type deduped_p (#a_t:Type) (s:seq a_t) (s':seq a_t) =
+   unique_p s' /\
+   (forall x.
+      Flutterbye.Seq.Mem.mem_p x s <==> Flutterbye.Seq.Mem.mem_p x s') 
+
+private val dedup_loop:
+   s:seq 'a ->
+   i:nat{i <= length s} ->
+   ac:seq 'a ->
+   Tot (ac':seq 'a)
+      (decreases (length s - i))
+let rec dedup_loop s i ac =
+   if i < length s then
+      let a = index s i in
+      let ac' =
+         if Flutterbye.Seq.Mem.mem a ac then
+            ac
+         else
+            append ac (create 1 a) in
+      dedup_loop s (i + 1) ac'
+   else
+      ac
+
+private val dedup_lemma:
+   s:seq 'a ->
+   i:nat{i <= length s} ->
+   ac:seq 'a ->
+   Lemma
+      (requires (deduped_p (slice s 0 i) ac))
+      (ensures (deduped_p s (dedup_loop s i ac)))
+      (decreases (length s - i))
+let rec dedup_lemma s i ac =
+   if i < length s then
+      let a = index s i in
+      let ac' =
+         if Flutterbye.Seq.Mem.mem a ac then
+            ac
+         else
+            append ac (create 1 a) in
+      dedup_lemma s (i + 1) ac'
+   else
+      ()
+
+val dedup: (s:seq 'a) -> Tot (s':seq 'a{deduped_p s s'})
+let dedup s =
+   dedup_lemma s 0 createEmpty;
+   dedup_loop s 0 createEmpty
