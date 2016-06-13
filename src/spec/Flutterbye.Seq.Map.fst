@@ -19,7 +19,7 @@
 module Flutterbye.Seq.Map
 open FStar.Seq
 
-type mapping_p (#a_t:Type) (#b_t:Type) (f:a_t -> Tot b_t) (s_a: seq a_t) (s_b:seq b_t) =
+private type mapping_p (#a_t:Type) (#b_t:Type) (f:a_t -> Tot b_t) (s_a: seq a_t) (s_b:seq b_t) =
    b2t (length s_a = length s_b) /\
    (length s_a = 0 \/
       (forall (x:nat).

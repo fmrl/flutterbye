@@ -20,7 +20,7 @@ module Flutterbye.Seq.Find
 open FStar.Seq
 open Flutterbye.Option
 
-type found_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
+private type found_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
    // if not found...
    (is_None i <==>
       // ...then no element is `s` can satisfy predicate `f`.
