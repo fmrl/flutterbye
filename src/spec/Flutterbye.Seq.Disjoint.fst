@@ -18,50 +18,50 @@
 
 module Flutterbye.Seq.Disjoint
 open FStar.Seq
-open FStar.Set
-open Flutterbye.Seq.Unique
 
-type disjoint_t (#a:Type) (s_1:seq a) (s_2:seq a) =
-   FStar.Set.equal empty (intersect (to_set (unique s_1)) (to_set (unique s_2)))
+// todo: /\ FStar.Set.equal empty (intersect (to_set s_1) (to_set s_2))
+type disjoint_p (#a_t:Type) (s_1:seq a_t) (s_2:seq a_t) =
+   forall x.
+      ~ (Flutterbye.Seq.Mem.mem_p x s_1 /\ Flutterbye.Seq.Mem.mem_p x s_2)
 
-abstract val lemma__intersect:
-   s_1:seq 'a
-   -> s_2:seq 'a
-   -> Lemma
-      (requires
-         (FStar.Set.equal
-            empty
-            (intersect
-               (to_set (unique s_1))
-               (to_set (unique s_2)))))
-      (ensures (disjoint_t s_1 s_2))
-let lemma__intersect s_1 s_2 =
-   ()
+private val disjoint_loop:
+   s_1:seq 'a ->
+   s_2:seq 'a ->
+   i:nat{i <= length s_1} ->
+   Tot bool
+      (decreases (length s_1 - i))
+let rec disjoint_loop s_1 s_2 i =
+   if i < length s_1 then
+      let a = index s_1 i in
+      if Flutterbye.Seq.Mem.mem a s_2 then
+         false
+      else
+         disjoint_loop s_1 s_2 (i + 1)
+   else
+      true
 
-abstract val lemma__mem:
-x:'a
--> s_1:seq 'a
--> s_2:seq 'a
--> Lemma
-   (requires (disjoint_t s_1 s_2))
-   (ensures
-      ((Flutterbye.Seq.Mem.mem_p x s_1 \/ Flutterbye.Seq.Mem.mem_p x s_2) <==>
-         ((Flutterbye.Seq.Mem.mem_p x s_1 <==>
-            ~ (Flutterbye.Seq.Mem.mem_p x s_2)))))
-let lemma__mem x s_1 s_2 =
-   let t_1 = to_set (unique s_1) in
-   (Flutterbye.Seq.Unique.lemma__unique__mem x (s_1);
-   Flutterbye.Seq.Unique.lemma__to_set x (unique s_1);
-   assert (b2t (mem x t_1) <==> Flutterbye.Seq.Mem.mem_p x s_1));
-   let t_2 = to_set (unique s_2) in
-   (Flutterbye.Seq.Unique.lemma__unique__mem x (s_2);
-   Flutterbye.Seq.Unique.lemma__to_set x (unique s_2);
-   assert (b2t (mem x t_2) <==> Flutterbye.Seq.Mem.mem_p x s_2));
-   if mem x t_1 then
-      (FStar.Set.mem_intersect x t_1 t_2;
-      assert (not (mem x t_2)))
-   else if mem x t_2 then
-      (FStar.Set.mem_intersect x t_1 t_2;
-      assert (not (mem x t_1)))
+private val disjoint_lemma:
+   s_1:seq 'a ->
+   s_2:seq 'a ->
+   i:nat{i <= length s_1} ->
+   Lemma
+      (requires (disjoint_p (slice s_1 0 i) s_2))
+      (ensures (b2t (disjoint_loop s_1 s_2 i) <==> disjoint_p s_1 s_2))
+      (decreases (length s_1 - i))
+let rec disjoint_lemma s_1 s_2 i =
+   if i < length s_1 then
+      let a = index s_1 i in
+      if Flutterbye.Seq.Mem.mem a s_2 then
+         ()
+      else
+         disjoint_lemma s_1 s_2 (i + 1)
    else
       ()
+
+val disjoint:
+   s_1:seq 'a ->
+   s_2:seq 'a ->
+   Tot (b:bool{b2t b <==> disjoint_p s_1 s_2})
+let disjoint s_1 s_2 =
+   disjoint_lemma s_1 s_2 0;
+   disjoint_loop s_1 s_2 0
