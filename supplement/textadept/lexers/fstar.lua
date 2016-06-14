@@ -59,11 +59,11 @@ local keyword = token(l.KEYWORD, word_match{
    'Lemma', 'ensures', 'requires', 'decreases',
    'forall', 'exists',
    'val', 'let', 'rec', 'in',
-   'abstract', 'private',
+   'abstract', 'inline', 'irreducible', 'private', 'unfoldable',
    'fun', 'function',
    'match', 'with',
    'if', 'then', 'else',
-   'true', 'false',
+   'true', 'false', 'or', 'not',
    'assert', 'admit'
 })
 
