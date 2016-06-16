@@ -19,51 +19,24 @@
 module Flutterbye.Seq.Insert
 open FStar.Seq
 
+private type inserted_p (#a_t:Type) (s:seq a_t) (i:nat{i <= length s}) (a:a_t) (s':seq a_t) =
+   length s' = length s + 1 /\
+   index s' i = a /\
+   (forall (x:nat).
+      x < i ==> index s' x = index s x) /\
+   (forall (x:nat).
+      i < x && x < length s' ==>
+         index s' x = index s (x - 1)) /\
+   (i = 0 ==> equal s' (append (create 1 a) s)) /\
+   (i = length s ==> equal s' (append s (create 1 a)))
+
 val insert:
    s:seq 'a
    -> i:nat{i <= length s}
-   -> 'a
-   -> Tot (seq 'a)
+   -> a:'a
+   -> Tot (s':seq 'a{inserted_p s i a s'})
 let insert s i a =
    let l = slice s 0 i in
    let c = create 1 a in
    let r = slice s i (length s) in
    append (append l c) r
-
-abstract val lemma__length:
-   s: seq 'a
-   -> i: nat{i <= length s}
-   -> a: 'a
-   -> Lemma
-      (requires (True))
-      (ensures (length (insert s i a) = length s + 1))
-let lemma__length s i a = ()
-
-abstract val lemma__index:
-   s: seq 'a
-   -> i: nat{i <= length s}
-   -> a: 'a
-   -> Lemma
-      (requires (True))
-      (ensures
-         ((index (insert s i a) i = a)
-         /\ (forall (j:nat).
-               (j < i) ==> (index (insert s i a) j = index s j))
-         /\ (forall (j:nat).
-               (i < j && j < length (insert s i a)) ==>
-                  (index (insert s i a) j = index s (j - 1)))))
-let lemma__index s i a = ()
-
-abstract val lemma__append:
-   s: seq 'a
-   -> i: nat{i <= length s}
-   -> a: 'a
-   -> Lemma
-      (requires (True))
-      (ensures
-         (((i = 0) <==> (equal (insert s 0 a) (append (create 1 a) s)))
-         /\ ((i = length s) <==>
-               (equal (insert s (length s) a) (append s (create 1 a))))))
-// todo: eliminate admission.
-let lemma__append s i a =
-   admit ()
