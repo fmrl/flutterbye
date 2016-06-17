@@ -99,9 +99,11 @@ let unique s =
    
 private type deduped_p (#a_t:Type) (s:seq a_t) (s':seq a_t) =
    unique_p s' /\
+   length s' <= length s /\
+   length s = 0 <==> length s' = 0 /\ 
    (forall x.
-      Flutterbye.Seq.Mem.mem_p x s <==> Flutterbye.Seq.Mem.mem_p x s') 
-
+      Flutterbye.Seq.Mem.mem_p x s <==> Flutterbye.Seq.Mem.mem_p x s')
+       
 private val dedup_loop:
    s:seq 'a ->
    i:nat{i <= length s} ->
@@ -130,14 +132,13 @@ private val dedup_lemma:
       (decreases (length s - i))
 let rec dedup_lemma s i ac =
    if i < length s then
-      (Flutterbye.Seq.Mem.slice_lemma s; // stablizes verification
       let a = index s i in
       let ac' =
          if Flutterbye.Seq.Mem.mem a ac then
             ac
          else
             append ac (create 1 a) in
-      dedup_lemma s (i + 1) ac')
+      dedup_lemma s (i + 1) ac'
    else
       ()
 
