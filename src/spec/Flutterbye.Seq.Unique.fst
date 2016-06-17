@@ -92,10 +92,11 @@ let rec unique_lemma s i =
    else
       ()
 
-private val unique: s:seq 'a -> Tot (b:bool{b <==> unique_p s})
+val unique: s:seq 'a -> Tot (b:bool{b <==> unique_p s})
 let unique s =
    unique_lemma s 0;
    unique_loop s 0
+   
 private type deduped_p (#a_t:Type) (s:seq a_t) (s':seq a_t) =
    unique_p s' /\
    (forall x.
