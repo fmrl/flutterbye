@@ -39,7 +39,7 @@ let mem = Flutterbye.Seq.Mem.mem
 // Verifying module: Flutterbye.Seq.Disjoint
 // Verifying module: Flutterbye.Seq
 // Verifying module: Flutterbye.Seq.Remove
-//let remove = Flutterbye.Seq.Remove.remove
+let remove = Flutterbye.Seq.Remove.remove
 
 let to_set = Flutterbye.Seq.ToSet.to_set
 let unique = Flutterbye.Seq.Unique.unique
