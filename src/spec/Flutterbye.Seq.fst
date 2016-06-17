@@ -30,7 +30,16 @@ let find = Flutterbye.Seq.Find.find
 let insert = Flutterbye.Seq.Insert.insert
 let map = Flutterbye.Seq.Map.map
 let mem = Flutterbye.Seq.Mem.mem
-// todo: identifier not found?
-// let remove = Flutterbye.Seq.Remove.remove
+
+// bug: identifier not found. 
+// 
+// verification order appears to be wrong in F* output:
+// 
+// ...
+// Verifying module: Flutterbye.Seq.Disjoint
+// Verifying module: Flutterbye.Seq
+// Verifying module: Flutterbye.Seq.Remove
+//let remove = Flutterbye.Seq.Remove.remove
+
 let to_set = Flutterbye.Seq.ToSet.to_set
 let unique = Flutterbye.Seq.Unique.unique
