@@ -19,35 +19,22 @@
 module Flutterbye.Seq.Remove
 open FStar.Seq
 
+private type removed_p (#a_t:Type) (s:seq a_t{length s > 0}) (i:nat{i < length s}) (a:a_t) (s':seq a_t) =
+   length s' = length s - 1 /\
+   (forall (x:nat).
+      x < i ==> index s' x = index s x) /\
+   (forall (x:nat).
+      i < x && x < length s' ==>
+         index s' x = index s (x + 1))(* /\
+   (i = 0 ==> equal s' (slice s 1 (length s - 1))) /\
+   (i = length s ==> equal s' (slice s 0 (length s - 2)))
+
 val remove:
    s:seq 'a{length s > 0}
    -> i:nat{i < length s}
-   -> 'a
-   -> Tot (seq 'a)
+   -> a:'a
+   -> Tot (s':seq 'a{removed_p s i a s'})
 let remove s i a =
    let l = slice s 0 i in
    let r = slice s (i + 1) (length s) in
    append l r
-
-abstract val lemma__length:
-   s:seq 'a{length s > 0}
-   -> i:nat{i < length s}
-   -> a:'a
-   -> Lemma
-      (requires (True))
-      (ensures (length (remove s i a) = length s - 1))
-let lemma__length s i a = ()
-
-abstract val lemma__index:
-   s:seq 'a{length s > 0}
-   -> i:nat{i < length s}
-   -> a:'a
-   -> Lemma
-      (requires (True))
-      (ensures
-         ((forall (j:nat).
-            (j < i) ==> (index (remove s i a) j = index s j))
-         /\ (forall (j:nat).
-            (i <= j && j < length (remove s i a)) ==>
-               (index (remove s i a) j = index s (j + 1)))))
-let lemma__index s i a = ()
