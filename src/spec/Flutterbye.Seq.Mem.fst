@@ -70,13 +70,11 @@ abstract val create_lemma:
    n:nat ->
    a:'a ->
    Lemma
-      (requires (True)) // required to avoid type error in SMTPat expression.
       (ensures
          // if we are creating an empty sequence, then null membership applies.
          ((n = 0 <==> empty_p (create n a)) /\
          // otherwise, only `a` can be a member of the resulting sequence.
          (n > 0 <==> mem_p a (create n a))))
-      [SMTPat (create n a)]
 let create_lemma n a =
    if n = 0 then
       ()

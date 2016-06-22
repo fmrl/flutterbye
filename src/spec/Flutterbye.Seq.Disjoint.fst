@@ -18,11 +18,12 @@
 
 module Flutterbye.Seq.Disjoint
 open FStar.Seq
+open Flutterbye.Seq.Mem
 
 // todo: /\ FStar.Set.equal empty (intersect (to_set s_1) (to_set s_2))
 type disjoint_p (#a_t:Type) (s_1:seq a_t) (s_2:seq a_t) =
    forall x.
-      ~ (Flutterbye.Seq.Mem.mem_p x s_1 /\ Flutterbye.Seq.Mem.mem_p x s_2)
+      ~ (mem_p x s_1 /\ mem_p x s_2)
 
 private val disjoint_loop:
    s_1:seq 'a ->
@@ -33,7 +34,7 @@ private val disjoint_loop:
 let rec disjoint_loop s_1 s_2 i =
    if i < length s_1 then
       let a = index s_1 i in
-      if Flutterbye.Seq.Mem.mem a s_2 then
+      if mem a s_2 then
          false
       else
          disjoint_loop s_1 s_2 (i + 1)
@@ -49,9 +50,10 @@ private val disjoint_lemma:
       (ensures (b2t (disjoint_loop s_1 s_2 i) <==> disjoint_p s_1 s_2))
       (decreases (length s_1 - i))
 let rec disjoint_lemma s_1 s_2 i =
+   slice_lemma s_1;
    if i < length s_1 then
       let a = index s_1 i in
-      if Flutterbye.Seq.Mem.mem a s_2 then
+      if mem a s_2 then
          ()
       else
          disjoint_lemma s_1 s_2 (i + 1)
