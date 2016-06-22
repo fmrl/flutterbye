@@ -18,6 +18,7 @@
 
 module Flutterbye.Seq.Filter
 open FStar.Seq
+open Flutterbye.Seq.Mem
 
 // todo: maintain ordering.
 // todo: maintain counts for elements that satisfy `f`.
@@ -40,7 +41,7 @@ type filtered_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
                   // satisfies `f`.
                   (f (index s' x) &&
                   // and is a member of `s`.
-                  Flutterbye.Seq.Mem.mem (index s' x) s))))))
+                  mem (index s' x) s))))))
 
 private val filter_loop:
    f:('a -> Tot bool) ->
@@ -71,6 +72,7 @@ private val filter_loop_lemma:
       (ensures (filtered_p f s (filter_loop f s i ac)))
       (decreases (length s - i))
 let rec filter_loop_lemma f s i ac =
+   slice_lemma s;
    if i < length s then
       let a = index s i in
       let ac' =

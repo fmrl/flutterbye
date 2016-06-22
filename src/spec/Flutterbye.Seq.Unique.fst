@@ -49,9 +49,7 @@ abstract val create_lemma:
    n:nat ->
    a:'a ->
    Lemma
-      (requires (True))
       (ensures (n <= 1 <==> unique_p (create n a)))
-      [SMTPat (create n a)]
 let create_lemma n a =
    let s = create n a in
    if n <= 1 then
@@ -96,14 +94,14 @@ val unique: s:seq 'a -> Tot (b:bool{b <==> unique_p s})
 let unique s =
    unique_lemma s 0;
    unique_loop s 0
-   
+
 private type deduped_p (#a_t:Type) (s:seq a_t) (s':seq a_t) =
    unique_p s' /\
    length s' <= length s /\
-   length s = 0 <==> length s' = 0 /\ 
+   length s = 0 <==> length s' = 0 /\
    (forall x.
       Flutterbye.Seq.Mem.mem_p x s <==> Flutterbye.Seq.Mem.mem_p x s')
-       
+
 private val dedup_loop:
    s:seq 'a ->
    i:nat{i <= length s} ->

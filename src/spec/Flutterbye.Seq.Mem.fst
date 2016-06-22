@@ -29,14 +29,14 @@ let mem a s =
    is_Some (find (fun a' -> a = a') s)
 
 abstract val index_lemma:
-   s:seq 'a -> 
+   s:seq 'a ->
    Lemma
       (ensures
-         // an element obtained from a sequence is a member of that sequence.  
-         (length s > 0 ==> 
+         // an element obtained from a sequence is a member of that sequence.
+         (length s > 0 ==>
             (forall (x:nat).
                x < length s ==> mem_p (index s x) s)))
-let index_lemma s = 
+let index_lemma s =
    ()
 
 abstract val slice_lemma:
@@ -44,9 +44,9 @@ abstract val slice_lemma:
    Lemma
       (ensures
          (forall (x:nat) (y:nat) (sl:seq 'a).
-            // if [x, y) describe a slice of `s`, `sl`... 
-            (y < length s /\ x <= y /\ equal sl (slice s x y)) ==>
-               // ...then any member of the slice is a member of `s`.
+            // if [x, y) describes a non-empty (where x < y) slice of `s`, `sl`...
+            (y <= length s /\ x < y /\ equal sl (slice s x y)) ==>
+               // then any member of the slice is a member of `s`.
                (forall (z:nat).
                   z < length sl ==> mem_p (index sl z) s)))
 let slice_lemma s =
@@ -59,7 +59,7 @@ private type empty_p (#a_t:Type) (s:seq a_t) =
 abstract val empty_lemma:
    s:seq 'a ->
    Lemma (ensures (length s = 0 <==> empty_p s))
-let empty_lemma s = 
+let empty_lemma s =
    if length s = 0 then
       ()
    else
@@ -67,16 +67,14 @@ let empty_lemma s =
       assert (~ (empty_p s)))
 
 abstract val create_lemma:
-   n:nat -> 
+   n:nat ->
    a:'a ->
    Lemma
-      (requires (True)) // required to avoid type error in SMTPat expression.
-      (ensures 
+      (ensures
          // if we are creating an empty sequence, then null membership applies.
          ((n = 0 <==> empty_p (create n a)) /\
          // otherwise, only `a` can be a member of the resulting sequence.
          (n > 0 <==> mem_p a (create n a))))
-      [SMTPat (create n a)]
 let create_lemma n a =
    if n = 0 then
       ()

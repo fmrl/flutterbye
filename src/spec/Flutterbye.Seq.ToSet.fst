@@ -48,6 +48,7 @@ private val to_set_lemma:
       (ensures (from_seq_p s (to_set_loop s i ac)))
       (decreases (length s - i))
 let rec to_set_lemma s i ac =
+   Flutterbye.Seq.Mem.slice_lemma s;
    if i < length s then
       let a = index s i in
       let ac' = union ac (singleton a) in
