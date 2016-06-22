@@ -29,9 +29,9 @@ abstract val slice_lemma:
    s:seq 'a{unique_p s} ->
    Lemma
       (ensures
-         (forall (x:nat) (y:nat) (sl:seq 'a).
-            // if [x, y) describe a slice of `s`, `sl`, then that slice is unique.
-            (y < length s /\ x <= y /\ FStar.Seq.equal sl (slice s x y)) ==> unique_p sl))
+         (forall (x:nat) (y:nat).
+            // if [x, y) describe a slice of `s`, then that slice is unique.
+            y <= length s && x <= y ==> unique_p (slice s x y)))
 let slice_lemma s =
    ()
 
