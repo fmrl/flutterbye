@@ -33,8 +33,7 @@ private type antisymmetric_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
 
 private type transitive_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
    forall x y z.
-      mem x s && mem y s && mem z s && f x y && f y z <==>
-         mem x s && mem y s && mem z s && f x z
+      mem_p x s /\ mem_p y s /\ mem_p z s /\ b2t (f x y && f y z) ==> f x z
 
 type pordered_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
    reflexive_p f s /\ antisymmetric_p f s /\ transitive_p f s
@@ -46,7 +45,7 @@ private val reflexive_loop:
    Tot (b:bool{b2t b <==> reflexive_p f s})
       (decreases (length s - i))
 let rec reflexive_loop f s i =
-   slice_lemma s; // optimization
+   slice_lemma s;
    if i < length s then
       let a = index s i in
       if f a a then
@@ -68,7 +67,7 @@ private val antisymmetric_inner_loop:
    Tot (b:bool{b2t b <==> antisymmetric_inner_p f s a})
       (decreases (length s - i))
 let rec antisymmetric_inner_loop f s a i =
-   slice_lemma s; // optimization
+   slice_lemma s;
    if i < length s then
       let a' = index s i in
       if (a = a') = (f a a' && f a' a) then
@@ -85,13 +84,39 @@ private val antisymmetric_loop:
    Tot (b:bool{b2t b <==> antisymmetric_p f s})
       (decreases (length s - i))
 let rec antisymmetric_loop f s i =
-   slice_lemma s; // optimization
+   slice_lemma s;
    if i < length s then
       let a = index s i in
       if antisymmetric_inner_loop f s a 0 then
          antisymmetric_loop f s (i + 1)
       else
          false
+   else
+      true
+
+private type transitive_loop_z_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) (a_1:a_t) (a_2:a_t) =
+   forall z.
+      (mem_p z s /\ b2t (f a_1 a_2 && f a_2 z)) ==> f a_1 z
+
+private val transitive_loop_z:
+   f:cmp_t 'a ->
+   s:seq 'a ->
+   a_1:'a ->
+   a_2:'a ->
+   i:nat{i <= length s /\ transitive_loop_z_p f (slice s 0 i) a_1 a_2} ->
+   Tot (b:bool{b2t b <==> transitive_loop_z_p f s a_1 a_2})
+      (decreases (length s - i))
+let rec transitive_loop_z f s a_1 a_2 i =
+   slice_lemma s;
+   if i < length s then
+      let a_3 = index s i in
+      if f a_1 a_2 && f a_2 a_3 then
+         (if f a_1 a_3 then
+            transitive_loop_z f s a_1 a_2 (i + 1)
+         else
+            false)
+      else
+         transitive_loop_z f s a_1 a_2 (i + 1)
    else
       true
 
