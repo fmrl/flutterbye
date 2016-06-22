@@ -84,8 +84,7 @@ let rec unique_lemma s i =
       if Flutterbye.Seq.Mem.mem a (slice s 0 i) then
          ()
       else
-         (assert (unique_p (create 1 (index s i))); // learned through create_lemma.
-         unique_lemma s (i + 1))
+         unique_lemma s (i + 1)
    else
       ()
 
