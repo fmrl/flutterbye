@@ -46,6 +46,7 @@ private val reflexive_loop:
    Tot (b:bool{b2t b <==> reflexive_p f s})
       (decreases (length s - i))
 let rec reflexive_loop f s i =
+   slice_lemma s; // optimization
    if i < length s then
       let a = index s i in
       if f a a then
@@ -67,6 +68,7 @@ private val antisymmetric_inner_loop:
    Tot (b:bool{b2t b <==> antisymmetric_inner_p f s a})
       (decreases (length s - i))
 let rec antisymmetric_inner_loop f s a i =
+   slice_lemma s; // optimization
    if i < length s then
       let a' = index s i in
       if (a = a') = (f a a' && f a' a) then
@@ -83,19 +85,17 @@ private val antisymmetric_loop:
    Tot (b:bool{b2t b <==> antisymmetric_p f s})
       (decreases (length s - i))
 let rec antisymmetric_loop f s i =
+   slice_lemma s; // optimization
    if i < length s then
       let a = index s i in
       if antisymmetric_inner_loop f s a 0 then
-         (assert (antisymmetric_p f (slice s 0 (i + 1))); // optimization
-         antisymmetric_loop f s (i + 1))
+         antisymmetric_loop f s (i + 1)
       else
          false
    else
       true
 
 (*
-
-
 private val antisymmetric_lemma:
    f:cmp_t 'a ->
    s:seq 'a ->
