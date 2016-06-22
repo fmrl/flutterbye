@@ -18,7 +18,6 @@
 
 module Flutterbye.Seq.Unique
 open FStar.Seq
-open FStar.Set
 
 type unique_p (#a_t:Type) (s:seq a_t) =
    0 = length s \/
