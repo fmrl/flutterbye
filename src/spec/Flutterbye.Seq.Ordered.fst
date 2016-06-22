@@ -27,9 +27,9 @@ private type reflexive_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t)  =
       mem_p x s ==> b2t (f x x)
 
 private type antisymmetric_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
-   forall x y.
-      mem x s && mem y s && f x y && f y x <==>
-         mem x s && mem y s && y = x
+   length s = 0 \/
+   (forall x y.
+      mem_p x s /\ mem_p y s ==> (f x y && f y x <==> y = x))
 
 private type transitive_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
    forall x y z.
@@ -58,7 +58,7 @@ let rec reflexive_loop f s i =
 
 private type antisymmetric_inner_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) (a:a_t) =
    forall x.
-      mem x s && f x a && f a x <==> mem x s && a = x
+      mem_p x s ==> (f x a && f a x <==> mem_p x s /\ a = x)
 
 private val antisymmetric_inner_loop:
    f:cmp_t 'a ->
