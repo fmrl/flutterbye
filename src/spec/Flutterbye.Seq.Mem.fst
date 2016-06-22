@@ -43,12 +43,12 @@ abstract val slice_lemma:
    s:seq 'a ->
    Lemma
       (ensures
-         (forall (x:nat) (y:nat) (sl:seq 'a).
-            // if [x, y) describes a non-empty (where x < y) slice of `s`, `sl`...
-            (y <= length s /\ x < y /\ equal sl (slice s x y)) ==>
+         (forall (x:nat) (y:nat).
+            // if [x, y) describes a non-empty (where x < y) slice of `s`...
+            (y <= length s /\ x < y) ==>
                // then any member of the slice is a member of `s`.
-               (forall (z:nat).
-                  z < length sl ==> mem_p (index sl z) s)))
+               (forall z.
+                  mem_p z (slice s x y) ==> mem_p z s)))
 let slice_lemma s =
    ()
 
