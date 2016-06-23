@@ -111,54 +111,86 @@ let rec transitive_loop_z f s a_1 a_2 i =
    if i < length s then
       let a_3 = index s i in
       if f a_1 a_2 && f a_2 a_3 then
-         (if f a_1 a_3 then
-            transitive_loop_z f s a_1 a_2 (i + 1)
-         else
-            false)
+         f a_1 a_3 && transitive_loop_z f s a_1 a_2 (i + 1)
       else
          transitive_loop_z f s a_1 a_2 (i + 1)
    else
       true
 
-(*
-private val antisymmetric_lemma:
-   f:cmp_t 'a ->
-   s:seq 'a ->
-   a:'a ->
-   Lemma
-      (ensures (pordered_p f (append s (create 1 a))))
-let antisymmetric_lemma f s a =
-   admit ()
+private type transitive_loop_yz_p 
+      (#a_t:Type) 
+      (f:cmp_t a_t) 
+      (s:seq a_t) 
+      (a_1:a_t) 
+      (i:nat{i <= length s})
+      =
+   forall y z.
+      (
+         mem_p y (slice s 0 i) 
+         /\ mem_p z s 
+         /\ b2t (f a_1 y && f y z)
+      ) 
+      ==> f a_1 z
 
-private val pordered_loop:
+private val transitive_loop_yz:
    f:cmp_t 'a ->
    s:seq 'a ->
-   i:nat{i <= length s /\ pordered_p f (slice s 0 i)} ->
-   Tot (b:bool{b2t b <==> pordered_p f s})
+   a_1:'a ->
+   i:nat{i <= length s /\ transitive_loop_yz_p f s a_1 i} ->
+   Tot (b:bool{b2t b <==> transitive_loop_yz_p f s a_1 (length s)})
       (decreases (length s - i))
-let rec pordered_loop f s i =
+let rec transitive_loop_yz f s a_1 i =
+   slice_lemma s;
    if i < length s then
-      let a = index s i in
-      if f a a then //
-         begin
-            if i = 0 then
-               pordered_loop f s 1
-            else
-               let a' = index s (i - 1) in
-               if f a' a then
-                  let sl = slice s 0 (i + 1) in
-                  antisymmetric_lemma f (slice s 0 i) a;
-                  assert (antisymmetric_p f sl);
-                  pordered_loop f s (i + 1)
-               else
-                  false
-         end
+      let a_2 = index s i in
+      if transitive_loop_z f s a_1 a_2 0 then
+         transitive_loop_yz f s a_1 (i + 1)
       else
          false
    else
       true
 
-val pordered: f:cmp_t 'a -> s:seq 'a -> Tot (b:bool{b <==> pordered_p f s})
+private type transitive_loop_xyz_p 
+      (#a_t:Type) 
+      (f:cmp_t a_t) 
+      (s:seq a_t) 
+      (i:nat{i <= length s})
+      =
+   forall x y z.
+      (
+         mem_p x (slice s 0 i) 
+         /\ mem_p y s 
+         /\ mem_p z s 
+         /\ b2t (f x y && f y z)
+      ) 
+      ==> f x z
+
+private val transitive_loop_xyz:
+   f:cmp_t 'a ->
+   s:seq 'a ->
+   i:nat{i <= length s /\ transitive_loop_xyz_p f s i} ->
+   Tot (b:bool{b2t b <==> transitive_loop_xyz_p f s (length s)})
+      (decreases (length s - i))
+let rec transitive_loop_xyz f s i =
+   slice_lemma s;
+   if i < length s then
+      let a_1 = index s i in
+      if transitive_loop_yz f s a_1 0 then
+         transitive_loop_xyz f s (i + 1)
+      else
+         false
+   else
+      true
+
+private val transitive:
+   f:cmp_t 'a ->
+   s:seq 'a ->
+   Tot (b:bool{b2t b <==> transitive_p f s})
+let transitive f s =
+   transitive_loop_xyz f s 0
+
+val pordered: f:cmp_t 'a -> s:seq 'a -> Tot (b:bool{b2t b <==> pordered_p f s})
 let pordered f s =
-   pordered_loop f s 0
-*)
+   reflexive_loop f s 0
+   && antisymmetric_loop f s 0
+   && transitive f s
