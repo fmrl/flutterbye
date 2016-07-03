@@ -63,6 +63,7 @@ local keyword = token(l.KEYWORD, word_match{
    'fun', 'function',
    'match', 'with',
    'if', 'then', 'else',
+   'begin', 'end',
    'true', 'false', 'or', 'not',
    'assert', 'admit'
 })
