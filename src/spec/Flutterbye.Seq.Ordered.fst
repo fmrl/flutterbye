@@ -36,18 +36,23 @@ private type transitive_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
       mem_p x s /\ mem_p y s /\ mem_p z s /\ b2t (f x y && f y z) ==> f x z
 
 private type sequenced_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
-   length s < 2
-   \/ (forall (x:nat) (y:nat).
-         (x < length s && y < length s && x < y)
-         ==> (
-            x < length s && y < length s
-            && (
-               let a_x = index s x in
-               let a_y = index s y in
-               not (f a_y a_x) && (f a_x a_y)
+   transitive_p f s
+   /\ (
+      length s < 2
+      \/ (
+         forall (x:nat) (y:nat). (
+            (x < length s && y < length s && x < y)
+            ==> (
+               x < length s && y < length s
+               && (
+                  let a_x = index s x in
+                  let a_y = index s y in
+                  not (f a_y a_x) && (f a_x a_y)
+               )
             )
          )
       )
+   )
 
 type pordered_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
    reflexive_p f s
@@ -266,35 +271,23 @@ abstract val slice_lemma:
 let slice_lemma f s =
    ()
 
-private val append_lemma_for_sequenced:
-   f:cmp_t 'a ->
-   s_1:seq 'a{sequenced_p f s_1} ->
-   s_2:seq 'a{sequenced_p f s_2} ->
-   Lemma
-      (ensures (sequenced_p f (append s_1 s_2)))
-let append_lemma_for_sequenced f s_1 s_2 =
-   if length s_1 = 0 || length s_2 = 0 then
-      ()
-   else
-      admit ()
-
 abstract val append_lemma:
    f:cmp_t 'a ->
    s_1:seq 'a{pordered_p f s_1} ->
    s_2:seq 'a{pordered_p f s_2} ->
    Lemma
-(*      (requires (
-         length s_1 > 0  && length s_2 > 0
-         ==> (
+      (requires (
+         length s_1 = 0
+         || length s_2 = 0
+         || (
             let a_1 = index s_1 (length s_1 - 1) in
             let a_2 = index s_2 0 in
-            not (f a_2 a_1) && (f a_1 a_2)
+            not (f a_2 a_1) && (f a_2 a_1)
          )
-      ))*)
-      //(requires (sequenced_p f (append s_1 s_2))) // needed to prove.
+      ))
       (ensures (pordered_p f (append s_1 s_2)))
 let append_lemma f s_1 s_2 =
-   append_lemma_for_sequenced f s_1 s_2
+   ()
 
 
 
