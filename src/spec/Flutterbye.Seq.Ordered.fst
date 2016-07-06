@@ -273,35 +273,20 @@ let slice_lemma f s =
 
 abstract val append_lemma:
    f:cmp_t 'a ->
-   s_1:seq 'a ->
-   s_2:seq 'a ->
+   s_1:seq 'a{pordered_p f s_1} ->
+   s_2:seq 'a{pordered_p f s_2} ->
    Lemma
-      (ensures ((
-            pordered_p f s_1
-            /\ pordered_p f s_2
-            /\ (
-               // either `s_1` or `s_2` are of zero length
-               length s_1 = 0 || length s_2 = 0
-               // or the first element of `s_2` must not be less than the final element of `s_1`.
-               || (
-                  let a_1 = index s_1 (length s_1 - 1) in
-                  let a_2 = index s_2 0 in
-                  not (f a_2 a_1) && (f a_2 a_1)
-               )
-            )
+      (requires (
+         // either `s_1` or `s_2` are of zero length
+         length s_1 = 0 || length s_2 = 0
+         // or the first element of `s_2` must not be less than the final element of `s_1`.
+         || (
+            let a_1 = index s_1 (length s_1 - 1) in
+            let a_2 = index s_2 0 in
+            not (f a_2 a_1) && (f a_2 a_1)
          )
-         // bug: changing the following `==>` to `<==>` causes a segmentation fault:
-         // ```
-         // Segmentation fault
-         // Thread 21 killed on uncaught exception End_of_file
-         // Raised at file "pervasives.ml", line 417, characters 20-31
-         // Called from file "FStar_Util.ml", line 80, characters 27-45
-         // Called from file "thread.ml", line 39, characters 8-14
-         // Error: Unexpected error; please file a bug report, ideally with a minimized version of the source program that triggered the error.
-         // Failure("Got output lines: \n")
-         // ```
-         ==> (pordered_p f (append s_1 s_2))
       ))
+      (ensures (pordered_p f (append s_1 s_2)))
 let append_lemma f s_1 s_2 =
    ()
 
