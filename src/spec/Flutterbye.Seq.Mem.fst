@@ -81,3 +81,18 @@ let create_lemma n a =
    else
       let s = create n a in
       assert (index s 0 = a) // required witness
+
+abstract val append_lemma:
+   s_1:seq 'a ->
+   s_2:seq 'a ->
+   Lemma
+      (ensures
+         (forall x.
+            mem_p x s_1 ==> mem_p x (append s_1 s_2))
+         \/ (forall x.
+               mem_p x s_2 ==> mem_p x (append s_1 s_2))
+         // the following clause isn't successfully proven without the previous two.
+         \/ (forall x.
+            mem_p x (append s_1 s_2) <==> (mem_p x s_1 \/ mem_p x s_2)))
+let append_lemma s_1 s_2 =
+   ()
