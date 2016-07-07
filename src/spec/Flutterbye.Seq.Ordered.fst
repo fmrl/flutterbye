@@ -22,126 +22,111 @@ open Flutterbye.Seq.Mem
 
 type cmp_t 'a = 'a -> 'a -> Tot bool
 
-private type reflexive_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t)  =
+private type reflexive_p (#a_t:Type) (lte:cmp_t a_t) (s:seq a_t)  =
    forall x.
-      mem_p x s ==> b2t (f x x)
+      mem_p x s ==> b2t (lte x x)
 
-private type antisymmetric_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
+private type antisymmetric_p (#a_t:Type) (lte:cmp_t a_t) (s:seq a_t) =
    length s = 0 \/
-   (forall x y.
-      mem_p x s /\ mem_p y s ==> (f x y && f y x <==> y = x))
+   (forall (x:a_t{mem_p x s}) (y:a_t{mem_p y s}).
+      (lte x y && lte y x) <==> (y = x))
 
-private type transitive_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
+private type transitive_p (#a_t:Type) (lte:cmp_t a_t) (s:seq a_t) =
    forall x y z.
-      mem_p x s /\ mem_p y s /\ mem_p z s /\ b2t (f x y && f y z) ==> f x z
+      mem_p x s /\ mem_p y s /\ mem_p z s /\ b2t (lte x y && lte y z) ==> lte x z
 
-private type sequenced_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
-   transitive_p f s
-   /\ (
-      length s < 2
-      \/ (
-         forall (x:nat) (y:nat). (
-            (x < length s && y < length s && x < y)
-            ==> (
-               x < length s && y < length s
-               && (
-                  let a_x = index s x in
-                  let a_y = index s y in
-                  not (f a_y a_x) && (f a_x a_y)
-               )
-            )
-         )
-      )
-   )
+private type sequenced_p (#a_t:Type) (lte:cmp_t a_t) (s:seq a_t) =
+   forall (x:nat{x < length s}) (y:nat{y < length s}).
+      (x <= y) <==> (lte (index s x) (index s y))
 
-type pordered_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) =
-   reflexive_p f s
-   /\ antisymmetric_p f s
-   /\ transitive_p f s
-   /\ sequenced_p f s
+type pordered_p (#a_t:Type) (lte:cmp_t a_t) (s:seq a_t) =
+   reflexive_p lte s
+   /\ antisymmetric_p lte s
+   /\ transitive_p lte s
+   /\ sequenced_p lte s
 
 private val reflexive_loop:
-   f:cmp_t 'a ->
+   lte:cmp_t 'a ->
    s:seq 'a ->
-   i:nat{i <= length s /\ reflexive_p f (slice s 0 i)} ->
-   Tot (b:bool{b2t b <==> reflexive_p f s})
+   i:nat{i <= length s /\ reflexive_p lte (slice s 0 i)} ->
+   Tot (b:bool{b2t b <==> reflexive_p lte s})
       (decreases (length s - i))
-let rec reflexive_loop f s i =
+let rec reflexive_loop lte s i =
    Flutterbye.Seq.Mem.slice_lemma s;
    if i < length s then
       let a = index s i in
-      if f a a then
-         reflexive_loop f s (i + 1)
+      if lte a a then
+         reflexive_loop lte s (i + 1)
       else
          false
    else
       true
 
-private type antisymmetric_inner_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) (a:a_t) =
+private type antisymmetric_inner_p (#a_t:Type) (lte:cmp_t a_t) (s:seq a_t) (a:a_t) =
    forall x.
-      mem_p x s ==> (f x a && f a x <==> mem_p x s /\ a = x)
+      mem_p x s ==> (lte x a && lte a x <==> mem_p x s /\ a = x)
 
 private val antisymmetric_inner_loop:
-   f:cmp_t 'a ->
+   lte:cmp_t 'a ->
    s:seq 'a ->
    a:'a ->
-   i:nat{i <= length s /\ antisymmetric_inner_p f (slice s 0 i) a} ->
-   Tot (b:bool{b2t b <==> antisymmetric_inner_p f s a})
+   i:nat{i <= length s /\ antisymmetric_inner_p lte (slice s 0 i) a} ->
+   Tot (b:bool{b2t b <==> antisymmetric_inner_p lte s a})
       (decreases (length s - i))
-let rec antisymmetric_inner_loop f s a i =
+let rec antisymmetric_inner_loop lte s a i =
    Flutterbye.Seq.Mem.slice_lemma s;
    if i < length s then
       let a' = index s i in
-      if (a = a') = (f a a' && f a' a) then
-         antisymmetric_inner_loop f s a (i + 1)
+      if (a = a') = (lte a a' && lte a' a) then
+         antisymmetric_inner_loop lte s a (i + 1)
       else
          false
    else
       true
 
 private val antisymmetric_loop:
-   f:cmp_t 'a ->
+   lte:cmp_t 'a ->
    s:seq 'a ->
-   i:nat{i <= length s /\ antisymmetric_p f (slice s 0 i)} ->
-   Tot (b:bool{b2t b <==> antisymmetric_p f s})
+   i:nat{i <= length s /\ antisymmetric_p lte (slice s 0 i)} ->
+   Tot (b:bool{b2t b <==> antisymmetric_p lte s})
       (decreases (length s - i))
-let rec antisymmetric_loop f s i =
+let rec antisymmetric_loop lte s i =
    Flutterbye.Seq.Mem.slice_lemma s;
    if i < length s then
       let a = index s i in
-      if antisymmetric_inner_loop f s a 0 then
-         antisymmetric_loop f s (i + 1)
+      if antisymmetric_inner_loop lte s a 0 then
+         antisymmetric_loop lte s (i + 1)
       else
          false
    else
       true
 
-private type transitive_loop_z_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) (a_1:a_t) (a_2:a_t) =
+private type transitive_loop_z_p (#a_t:Type) (lte:cmp_t a_t) (s:seq a_t) (a_1:a_t) (a_2:a_t) =
    forall z.
-      (mem_p z s /\ b2t (f a_1 a_2 && f a_2 z)) ==> f a_1 z
+      (mem_p z s /\ b2t (lte a_1 a_2 && lte a_2 z)) ==> lte a_1 z
 
 private val transitive_loop_z:
-   f:cmp_t 'a ->
+   lte:cmp_t 'a ->
    s:seq 'a ->
    a_1:'a ->
    a_2:'a ->
-   i:nat{i <= length s /\ transitive_loop_z_p f (slice s 0 i) a_1 a_2} ->
-   Tot (b:bool{b2t b <==> transitive_loop_z_p f s a_1 a_2})
+   i:nat{i <= length s /\ transitive_loop_z_p lte (slice s 0 i) a_1 a_2} ->
+   Tot (b:bool{b2t b <==> transitive_loop_z_p lte s a_1 a_2})
       (decreases (length s - i))
-let rec transitive_loop_z f s a_1 a_2 i =
+let rec transitive_loop_z lte s a_1 a_2 i =
    Flutterbye.Seq.Mem.slice_lemma s;
    if i < length s then
       let a_3 = index s i in
-      if f a_1 a_2 && f a_2 a_3 then
-         f a_1 a_3 && transitive_loop_z f s a_1 a_2 (i + 1)
+      if lte a_1 a_2 && lte a_2 a_3 then
+         lte a_1 a_3 && transitive_loop_z lte s a_1 a_2 (i + 1)
       else
-         transitive_loop_z f s a_1 a_2 (i + 1)
+         transitive_loop_z lte s a_1 a_2 (i + 1)
    else
       true
 
 private type transitive_loop_yz_p
       (#a_t:Type)
-      (f:cmp_t a_t)
+      (lte:cmp_t a_t)
       (s:seq a_t)
       (a_1:a_t)
       (i:nat{i <= length s})
@@ -150,23 +135,23 @@ private type transitive_loop_yz_p
       (
          mem_p y (slice s 0 i)
          /\ mem_p z s
-         /\ b2t (f a_1 y && f y z)
+         /\ b2t (lte a_1 y && lte y z)
       )
-      ==> f a_1 z
+      ==> lte a_1 z
 
 private val transitive_loop_yz:
-   f:cmp_t 'a ->
+   lte:cmp_t 'a ->
    s:seq 'a ->
    a_1:'a ->
-   i:nat{i <= length s /\ transitive_loop_yz_p f s a_1 i} ->
-   Tot (b:bool{b2t b <==> transitive_loop_yz_p f s a_1 (length s)})
+   i:nat{i <= length s /\ transitive_loop_yz_p lte s a_1 i} ->
+   Tot (b:bool{b2t b <==> transitive_loop_yz_p lte s a_1 (length s)})
       (decreases (length s - i))
-let rec transitive_loop_yz f s a_1 i =
+let rec transitive_loop_yz lte s a_1 i =
    Flutterbye.Seq.Mem.slice_lemma s;
    if i < length s then
       let a_2 = index s i in
-      if transitive_loop_z f s a_1 a_2 0 then
-         transitive_loop_yz f s a_1 (i + 1)
+      if transitive_loop_z lte s a_1 a_2 0 then
+         transitive_loop_yz lte s a_1 (i + 1)
       else
          false
    else
@@ -174,7 +159,7 @@ let rec transitive_loop_yz f s a_1 i =
 
 private type transitive_loop_xyz_p
       (#a_t:Type)
-      (f:cmp_t a_t)
+      (lte:cmp_t a_t)
       (s:seq a_t)
       (i:nat{i <= length s})
       =
@@ -182,113 +167,160 @@ private type transitive_loop_xyz_p
       mem_p x (slice s 0 i)
       /\ mem_p y s
       /\ mem_p z s
-      /\ b2t (f x y && f y z)
+      /\ b2t (lte x y && lte y z)
    )
-   ==> f x z
+   ==> lte x z
 
 private val transitive_loop_xyz:
-   f:cmp_t 'a ->
+   lte:cmp_t 'a ->
    s:seq 'a ->
-   i:nat{i <= length s /\ transitive_loop_xyz_p f s i} ->
-   Tot (b:bool{b2t b <==> transitive_loop_xyz_p f s (length s)})
+   i:nat{i <= length s /\ transitive_loop_xyz_p lte s i} ->
+   Tot (b:bool{b2t b <==> transitive_loop_xyz_p lte s (length s)})
       (decreases (length s - i))
-let rec transitive_loop_xyz f s i =
+let rec transitive_loop_xyz lte s i =
    Flutterbye.Seq.Mem.slice_lemma s;
    if i < length s then
       let a_1 = index s i in
-      if transitive_loop_yz f s a_1 0 then
-         transitive_loop_xyz f s (i + 1)
+      if transitive_loop_yz lte s a_1 0 then
+         transitive_loop_xyz lte s (i + 1)
       else
          false
    else
       true
 
 private val transitive:
-   f:cmp_t 'a ->
+   lte:cmp_t 'a ->
    s:seq 'a ->
-   Tot (b:bool{b2t b <==> transitive_p f s})
-let transitive f s =
-   transitive_loop_xyz f s 0
+   Tot (b:bool{b2t b <==> transitive_p lte s})
+let transitive lte s =
+   transitive_loop_xyz lte s 0
 
-private type sequenced_loop_p (#a_t:Type) (f:cmp_t a_t) (s:seq a_t) (i:nat{i <= length s}) =
-   i < 2
-   \/ (forall (x:nat) (y:nat).
-         (x < i && y < i && x < y)
-         ==> (
-            x < i && y < i
-            && (
-               let a_x = index s x in
-               let a_y = index s y in
-               not (f a_y a_x) && (f a_x a_y)
-            )
-         )
-      )
+private type sequenced_loop2_p (#a_t:Type) (lte:cmp_t a_t) (s:seq a_t) (y:nat{y < length s}) (i:nat{i <= length s}) =
+   forall (x:nat{x < i}).
+      (x <= y) <==> (lte (index s x) (index s y))
 
-private val sequenced_loop:
-   f:cmp_t 'a ->
-   s:seq 'a{transitive_p f s} ->
-   i:nat{i <= length s /\ sequenced_loop_p f s i} ->
-   Tot (b:bool{b2t b <==> sequenced_loop_p f s (length s)})
+
+
+private val sequenced_loop2:
+   lte:cmp_t 'a ->
+   s:seq 'a ->
+   y:nat{y < length s} ->
+   i:nat{i <= length s /\ sequenced_loop2_p lte s y i} ->
+   Tot (b:bool{b2t b <==> sequenced_loop2_p lte s y (length s)})
       (decreases (length s - i))
-let rec sequenced_loop f s i =
+let rec sequenced_loop2 lte s y i =
    if i < length s then
       begin
-         if i = 0 then
-            sequenced_loop f s 1
+         if (i <= y) = (lte (index s i) (index s y)) then
+            sequenced_loop2 lte s y (i + 1)
          else
-            let a_0 = index s (i - 1) in
-            let a_i = index s i in
-            if not (f a_i a_0) && (f a_0 a_i) then
-               sequenced_loop f s (i + 1)
-            else
-               false
+            false
+      end
+   else
+      true
+
+private type sequenced_loop1_p (#a_t:Type) (lte:cmp_t a_t) (s:seq a_t) (i:nat{i <= length s}) =
+   forall (x:nat{x < length s}) (y:nat{y < i}).
+      (x <= y) <==> (lte (index s x) (index s y))
+
+private val sequenced_loop1:
+   lte:cmp_t 'a ->
+   s:seq 'a ->
+   i:nat{i <= length s /\ sequenced_loop1_p lte s i} ->
+   Tot (b:bool{b2t b <==> sequenced_loop1_p lte s (length s)})
+      (decreases (length s - i))
+let rec sequenced_loop1 lte s i =
+   if i < length s then
+      begin
+         if sequenced_loop2 lte s i 0 then
+            sequenced_loop1 lte s (i + 1)
+         else
+            false
       end
    else
       true
 
 private val sequenced:
-   f:cmp_t 'a ->
-   s:seq 'a{transitive_p f s} ->
-   Tot (b:bool{b2t b <==> sequenced_p f s})
-let rec sequenced f s =
-   sequenced_loop f s 0
+   lte:cmp_t 'a ->
+   s:seq 'a ->
+   Tot (b:bool{b2t b <==> sequenced_p lte s})
+let rec sequenced lte s =
+   sequenced_loop1 lte s 0
 
-val pordered: f:cmp_t 'a -> s:seq 'a -> Tot (b:bool{b2t b <==> pordered_p f s})
-let pordered f s =
-   reflexive_loop f s 0
-   && antisymmetric_loop f s 0
-   && transitive f s
-   && sequenced f s
+val pordered: lte:cmp_t 'a -> s:seq 'a -> Tot (b:bool{b2t b <==> pordered_p lte s})
+let pordered lte s =
+   reflexive_loop lte s 0
+   && antisymmetric_loop lte s 0
+   && transitive lte s
+   && sequenced lte s
 
 abstract val slice_lemma:
-   f:cmp_t 'a ->
-   s:seq 'a{pordered_p f s} ->
+   lte:cmp_t 'a ->
+   s:seq 'a{pordered_p lte s} ->
    Lemma
       (ensures
          (forall (x:nat) (y:nat).
             // if [x, y) describe a slice of `s`, then that slice is also partially ordered.
-            y <= length s && x <= y ==> pordered_p f (slice s x y)))
-let slice_lemma f s =
+            y <= length s && x <= y ==> pordered_p lte (slice s x y)))
+let slice_lemma lte s =
    ()
 
-abstract val append_lemma:
-   f:cmp_t 'a ->
-   s_1:seq 'a{pordered_p f s_1} ->
-   s_2:seq 'a{pordered_p f s_2} ->
+abstract val append_lemma_antisymmetry:
+   lte:cmp_t 'a ->
+   s_1:seq 'a{pordered_p lte s_1} ->
+   s_2:seq 'a{pordered_p lte s_2} ->
+   Lemma
+      (ensures (antisymmetric_p lte (append s_1 s_2)))
+let append_lemma_antisymmetry lte s_1 s_2 =
+   admit ()
+
+abstract val append_lemma_transitivity:
+   lte:cmp_t 'a ->
+   s_1:seq 'a{pordered_p lte s_1} ->
+   s_2:seq 'a{pordered_p lte s_2} ->
+   Lemma
+      (ensures (transitive_p lte (append s_1 s_2)))
+let append_lemma_transitivity lte s_1 s_2 =
+   admit ()
+
+abstract val append_lemma_sequencing:
+   lte:cmp_t 'a ->
+   s_1:seq 'a{pordered_p lte s_1} ->
+   s_2:seq 'a{pordered_p lte s_2} ->
    Lemma
       (requires (
          // either `s_1` or `s_2` are of zero length
          length s_1 = 0 || length s_2 = 0
          // or the first element of `s_2` must not be less than the final element of `s_1`.
-         || (
-            let a_1 = index s_1 (length s_1 - 1) in
-            let a_2 = index s_2 0 in
-            not (f a_2 a_1) && (f a_2 a_1)
-         )
+         || lte (index s_1 (length s_1 - 1)) (index s_2 0)
       ))
-      (ensures (pordered_p f (append s_1 s_2)))
-let append_lemma f s_1 s_2 =
-   ()
+      (ensures (sequenced_p lte (append s_1 s_2)))
+let append_lemma_sequencing lte s_1 s_2 =
+   let s' = append s_1 s_2 in
+   assert (b2t (sequenced_loop1 lte s' 0))
 
+abstract val append_lemma:
+   lte:cmp_t 'a ->
+   s_1:seq 'a{pordered_p lte s_1} ->
+   s_2:seq 'a{pordered_p lte s_2} ->
+   Lemma
+      (ensures (pordered_p lte (append s_1 s_2)))
+let append_lemma lte s_1 s_2 =
+   if length s_1 > 0 && length s_2 > 0 then
+      begin
+         let s' = append s_1 s_2 in
+         //assert (reflexive_p lte s'); // understood
+         append_lemma_antisymmetry lte s_1 s_2;
+         append_lemma_transitivity lte s_1 s_2;
+         append_lemma_sequencing lte s_1 s_2;
+         ()
+      end
+   else
+      ()
 
-
+      (*(requires (
+         // either `s_1` or `s_2` are of zero length
+         length s_1 = 0 || length s_2 = 0
+         // or the first element of `s_2` must not be less than the final element of `s_1`.
+         || lte (index s_1 (length s_1 - 1)) (index s_2 0)
+      ))*)
