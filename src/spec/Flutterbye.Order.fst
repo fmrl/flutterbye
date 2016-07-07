@@ -24,7 +24,7 @@ private type reflexive_p (#a_t:Type) (lte:compare_t a_t) =
    forall x. lte x x
 
 private type antisymmetric_p (#a_t:Type) (lte:compare_t a_t) =
-   forall x y. ((lte x y && lte y x) <==> (x = y))
+   forall x y. ((lte x y && lte y x) ==> (x = y))
 
 private type transitive_p (#a_t:Type) (lte:compare_t a_t) =
    forall x y z. ((lte x y && lte y z) ==> lte x z)

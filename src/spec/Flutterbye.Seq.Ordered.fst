@@ -21,9 +21,9 @@ open FStar.Seq
 open Flutterbye.Order
 
 type ordered_p (#a_t:Type) (lte:compare_t a_t{partial_order_p lte}) (s:seq a_t) =
-   length s < 2
+   length s = 0
    \/ (forall (x:nat{x < length s}) (y:nat{y < length s}).
-         ((x <= y) <==> (lte (index s x) (index s y))))
+         (x <= y) = lte (index s x) (index s y))
 
 abstract val slice_lemma:
    lte:compare_t 'a{partial_order_p lte} ->
@@ -36,17 +36,58 @@ abstract val slice_lemma:
 let slice_lemma lte s =
    ()
 
+abstract val append_lemma_loop:
+   lte:compare_t 'a{partial_order_p lte} ->
+   s:seq 'a{ordered_p lte s} ->
+   a: 'a ->
+   Lemma
+      (requires (length s = 0 || lte (index s (length s - 1)) a))
+      (ensures (ordered_p lte (append s (create 1 a))))
+let append_lemma_loop lte s a =
+   if length s > 1 then
+      begin
+         let s' = append s (create 1 a) in
+         admit ()
+      end
+   else
+      ()
+
+      (*
 abstract val append_lemma:
    lte:compare_t 'a{partial_order_p lte} ->
    s_1:seq 'a{ordered_p lte s_1} ->
    s_2:seq 'a{ordered_p lte s_2} ->
    Lemma
+      (*(requires (
+         // either `s_1` or `s_2` are of zero length
+         length s_1 = 0 || length s_2 = 0
+         // or the first element of `s_2` must not be less than the final element of `s_1`.
+         || lte (index s_1 (length s_1 - 1)) (index s_2 0)
+      ))*)
       (ensures (ordered_p lte (append s_1 s_2)))
 let append_lemma lte s_1 s_2 =
    if length s_1 > 0 && length s_2 > 0 then
-      admit ()
+      begin
+         let s' = append s_1 s_2 in
+         assert
+            (forall (x:nat{x < length s_1}) (y:nat{y < length s_1}).
+               ((x <= y) <==> (lte (index s' x) (index s' y))));
+         assert
+            (forall (x:nat{x < length s_2}) (y:nat{y < length s_2}).
+               ((x <= y) <==> (lte (index s' (x + length s_1)) (index s' (y + length s_1)))));
+         assert (length s' = length s_1 + length s_2);
+         assert (length s_1 - 1 >= 0);
+         assert (lte (index s' (length s_1 - 1)) (index s' (length s_1)));
+         assert
+            (forall (x:nat{x <= length s_1}) (y:nat{y <= length s_1}).
+               ((x <= y) <==> (lte (index s' x) (index s' y))));
+         assert
+            (forall (x:nat{x < length s'}) (y:nat{y < length s'}).
+               ((x <= y) <==> (lte (index s' x) (index s' y))));
+         admit ()
+      end
    else
-      ()
+      ()*)
 
       (*(requires (
          // either `s_1` or `s_2` are of zero length
