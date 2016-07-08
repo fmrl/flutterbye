@@ -23,7 +23,7 @@ open Flutterbye.Order
 type ordered_p (#a_t:Type) (lte:compare_t a_t{partial_order_p lte}) (s:seq a_t) =
    length s = 0
    \/ (forall (x:nat{x < length s}) (y:nat{y < length s}).
-         (x <= y) = lte (index s x) (index s y))
+         (x <= y) ==> lte (index s x) (index s y))
 
 abstract val slice_lemma:
    lte:compare_t 'a{partial_order_p lte} ->
@@ -36,6 +36,16 @@ abstract val slice_lemma:
 let slice_lemma lte s =
    ()
 
+val tmp_lemma:
+   lte:compare_t 'a{partial_order_p lte} ->
+   s:seq 'a{ordered_p lte s} ->
+   a: 'a ->
+   Lemma
+      (ensures 
+            (forall (x:nat{x < length s}). lte (index s x) a))
+let tmp_lemma lte s a =
+   admit ()
+
 abstract val append_lemma_loop:
    lte:compare_t 'a{partial_order_p lte} ->
    s:seq 'a{ordered_p lte s} ->
@@ -46,8 +56,8 @@ abstract val append_lemma_loop:
 let append_lemma_loop lte s a =
    if length s > 1 then
       begin
-         let s' = append s (create 1 a) in
-         admit ()
+         tmp_lemma lte s a;
+         ()
       end
    else
       ()
