@@ -36,7 +36,7 @@ abstract val slice_lemma:
 let slice_lemma lte s =
    ()
 
-val append_lemma_loop:
+private val append_lemma_loop:
    lte:compare_t 'a{partial_order_p lte} ->
    s:seq 'a{ordered_p lte s} ->
    a: 'a ->
