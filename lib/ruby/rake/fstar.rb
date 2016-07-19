@@ -81,10 +81,10 @@ module Rake::FStar
       if not Rake::Task.task_defined?("fstar:verify") then
          namespace :fstar do
             desc "verify all F* modules"
-            task :verify, :modules do |t, args|
-               args.with_defaults(:modules => "*")
+            task :verify, :modules, :timeout do |t, args|
+               args.with_defaults(:modules => "*", :timeout => nil)
                modules = @modules_found.keys.select { |m| File.fnmatch(args[:modules], m, File::FNM_CASEFOLD) }
-               sh (format_command modules)
+               sh (format_command(modules, args[:timeout])) 
             end
 
             desc "list F* modules found."
@@ -105,12 +105,17 @@ module Rake::FStar
       end
    end
 
-   def format_command(modules)
+   def format_command(modules, timeout)
       smt = Rake::FStar.SMT.to_s
       # on Windows, unless Z3's path is normalized, F* will fail.
       if ScriptUtils.is_windows? then
          smt.gsub!("/", "\\")
       end
-      return "#{Rake::FStar.FSTAR.to_s} --smt #{smt} #{Rake::FStar.FLAGS} --include #{@include_paths.to_a.map {|p| p.to_s}.sort.join("--include ")} #{modules.sort.map {|m| "#{@modules_found[m].basename}"}.join(" ")}"
+      if timeout.nil? then
+         timeout_s = ""
+      else
+         timeout_s = " --z3timeout #{timeout.to_s}"
+      end
+      return "#{Rake::FStar.FSTAR.to_s} --smt #{smt} #{Rake::FStar.FLAGS}#{timeout_s} --include #{@include_paths.to_a.map {|p| p.to_s}.sort.join("--include ")} #{modules.sort.map {|m| "#{@modules_found[m].basename}"}.join(" ")}"
    end
 end
