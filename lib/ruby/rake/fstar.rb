@@ -86,7 +86,7 @@ module Rake::FStar
                if args[:modules].empty? then                  
                   sh (format_command @modules_found.keys)
                else
-                  sh (format_command @modules_found.keys.select { |m| File.fnmatch(args[:modules][0], m) })
+                  sh (format_command @modules_found.keys.select { |m| File.fnmatch(args[:modules][0], m, File::FNM_CASEFOLD) })
                end
             end
 
