@@ -75,17 +75,19 @@ module Rake::FStar
       end
 
       define_tasks
-      namespace :fstar do
-         task :verify => Rake::FileList[@modules_found.values]
-      end
    end
 
    def define_tasks
       if not Rake::Task.task_defined?("fstar:verify") then
          namespace :fstar do
             desc "verify all F* modules"
-            task :verify do |t, args|
-               sh (format_command @modules_found.keys)
+            task :verify, :modules do |t, args|
+               # todo: i don't quite understand why `args[:modules]` is an array.
+               if args[:modules].empty? then                  
+                  sh (format_command @modules_found.keys)
+               else
+                  sh (format_command @modules_found.keys.select { |m| File.fnmatch(args[:modules][0], m) })
+               end
             end
 
             desc "list F* modules found."
