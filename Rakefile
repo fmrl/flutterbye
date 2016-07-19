@@ -35,7 +35,9 @@ require "scriptutils"
 MADOKO_ROOT = Pathname.new "src/doc/madoko"
 directory MADOKO_ROOT
 
-Rake::FStar.verify Rake::FileList["src/**/*.fst"]
+Rake::FStar.module_path "src/spec"
+Rake::FStar.FSTAR = "./submodules/FStar/bin/fstar.exe"
+Rake::FStar.SMT = "./submodules/z3/build/z3#{ScriptUtils.exe_ext}"
 
 task default: [:verify]
 desc "verify sources"
@@ -69,6 +71,14 @@ namespace :rubrstmp do
       "vim" => "etc/rubrstmp/vim/default",
       "vim-rb" => "etc/rubrstmp/vim/ruby",
       "vim-fst" => "etc/rubrstmp/vim/fstar"
+end
+
+namespace :debug do
+   desc "list all tasks (including file tasks)"
+   task :ls_tasks do |t, args|
+      STDOUT.write Rake::Task.tasks.join("\n")
+      STDOUT.flush
+   end
 end
 
 # $vim-rb:31: vim:set sts=3 sw=3 et ft=ruby:,$

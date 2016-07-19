@@ -21,56 +21,97 @@ require "scriptutils"
 
 module Rake::FStar
    self.extend Rake::DSL
+
+   @modules_found = {}
+   @include_paths = Set.new
    
    module_function
    def FSTAR
-      @fstar ||= Pathname.new "./submodules/FStar/bin/fstar.exe"
+      @fstar ||= Pathname.new "fstar.exe"
       return @fstar 
    end
+   
+   module_function
    def FSTAR= s
       @fstar = Pathname.new(s.to_s) 
+      ScriptUtils.raise_if_not_executable @fstar
    end
 
    module_function
-   def FSTARFLAGS
-      @fstarflags ||= "--universes"
-      return @fstarflags  
+   def SMT
+      @smt ||= Pathname.new "z3#{ScriptUtils.exe_ext}"
+      return @smt
    end
-   def FSTARFLAGS= s; @fstarflags = s end
+
+   module_function
+   def SMT= s
+      @smt = Pathname.new(s.to_s)
+      ScriptUtils.raise_if_not_executable @smt
+   end
+
+   module_function
+   def FLAGS
+      @flags ||= "--universes"
+      return @flags  
+   end
+
+   module_function
+   def FLAGS= s; @flags = s end
    
    module_function
-   def FSTARSMT
-      @fstarsmt ||= Pathname.new "./submodules/z3/build/z3#{ScriptUtils.exe_ext}"
-      return @fstarsmt
-   end
-   def FSTARSMT= s
-      @fstarsmt = Pathname.new(s.to_s) 
-   end
-   
-   module_function
-   def verify(file_list)
+   def module_path(dir_path)
+      dir_path = Pathname.new(dir_path)
+      glob = dir_path.join("**/*.fst").to_s
+      if ScriptUtils.is_windows? then
+         # Rake::FileList doesn't like Windows-style path separators.
+         glob.gsub!("\\", "/")
+      end
+      files = Rake::FileList[glob]
+      
+      files.each do |s|
+         fp = Pathname.new(s)
+         @include_paths << fp.dirname
+         @modules_found[fp.basename(".fst")] = fp
+      end
+
+      define_tasks
       namespace :fstar do
-         desc "verify all f* sources"
-         task :verify => file_list do |t, args|
-            fstar = Rake::FStar.FSTAR
-            ScriptUtils.raise_if_not_executable fstar
-            fstarsmt = Rake::FStar.FSTARSMT
-            ScriptUtils.raise_if_not_executable fstarsmt
-            fstarflags = Rake::FStar.FSTARFLAGS
-            # on Windows, unless Z3's path is normalized, F* will fail.
-            fstarsmt_s = fstarsmt.to_s
-            if ScriptUtils.is_windows? then
-               fstarsmt_s = fstarsmt_s.gsub(File::SEPARATOR,
-     File::ALT_SEPARATOR || File::SEPARATOR)
+         task :verify => Rake::FileList[@modules_found.values]
+      end
+   end
+
+   def define_tasks
+      if not Rake::Task.task_defined?("fstar:verify") then
+         namespace :fstar do
+            desc "verify all F* modules"
+            task :verify do |t, args|
+               sh (format_command @modules_found.keys)
             end
-            sh "#{fstar.to_s} --smt #{fstarsmt_s} #{fstarflags} #{t.prerequisites.join(" ")}"
+
+            desc "list F* modules found."
+            task :ls do |t|
+               STDOUT.write \
+                  (@modules_found.keys.sort.map do |m|
+                     "#{m} (defined in '#{@modules_found[m]}')"
+                  end)
+                  .join("\n")
+               STDOUT.write "\n"
+               STDOUT.flush
+            end
          end
-         desc "list f* sources in project"
-         task :ls do |t|
-            puts "#{file_list.to_a.join("\n")}"
-            STDOUT.flush
+         if Rake.application.options.trace then
+            Rake.application.options.trace_output.write \
+               "'fstar:' namespace is now available.\n"
          end
       end
    end
-   
+
+   def format_command(modules)
+      smt = Rake::FStar.SMT.to_s
+      # on Windows, unless Z3's path is normalized, F* will fail.
+      if ScriptUtils.is_windows? then
+         smt.gsub!("/", "\\")
+      end
+      return "#{Rake::FStar.FSTAR.to_s} --smt #{smt} #{Rake::FStar.FLAGS} --include #{@include_paths.to_a.map {|p| p.to_s}.sort.join("--include ")} #{modules.sort.map {|m| "#{@modules_found[m].basename}"}.join(" ")}"
+   end
 end
