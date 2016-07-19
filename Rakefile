@@ -24,13 +24,17 @@ $LOAD_PATH.unshift prefix.join('lib/ruby').to_s
 
 require "fileutils"
 
-require "rake_performance"
 require "rubrstmp/rake_tasks"
 
 require "rake/fstar"
 require "rake/madoko"
 require "rake/npm"
 require "scriptutils"
+
+# only use `rake_performance` if `--trace` is specified.
+if Rake.application.options.trace then
+   require "rake_performance"
+end
 
 MADOKO_ROOT = Pathname.new "src/doc/madoko"
 directory MADOKO_ROOT

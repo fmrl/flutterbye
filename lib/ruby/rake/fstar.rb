@@ -82,12 +82,9 @@ module Rake::FStar
          namespace :fstar do
             desc "verify all F* modules"
             task :verify, :modules do |t, args|
-               # todo: i don't quite understand why `args[:modules]` is an array.
-               if args[:modules].empty? then                  
-                  sh (format_command @modules_found.keys)
-               else
-                  sh (format_command @modules_found.keys.select { |m| File.fnmatch(args[:modules][0], m, File::FNM_CASEFOLD) })
-               end
+               args.with_defaults(:modules => "*")
+               modules = @modules_found.keys.select { |m| File.fnmatch(args[:modules], m, File::FNM_CASEFOLD) }
+               sh (format_command modules)
             end
 
             desc "list F* modules found."
