@@ -18,4 +18,13 @@
 
 module Flutterbye.Prelude
 
-type id_t = nat
+type address_t = | Address: id:nat -> address_t
+type op_t 'a = | Op: id:nat -> opnd:'a -> op_t 'a
+type effect_t 'a = | Effect: dest:address_t -> op:op_t 'a -> effect_t 'a
+
+type next_t 'a 'b = 
+   | Next: next:'a -> fx:seq (effect_t 'b) -> next_t 'a 'b
+
+type step_t 'a 'b = 
+   a:'a -> b:'b -> Tot (next_t 'a 'b)
+
