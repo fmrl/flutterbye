@@ -19,7 +19,7 @@
 module Flutterbye.Seq.Remove
 open FStar.Seq
 
-private type removed_p (#a_t:Type) (s:seq a_t{length s > 0}) (i:nat{i < length s}) (a:a_t) (s':seq a_t) =
+private type removed_p (#a_t:Type) (s:seq a_t{length s > 0}) (i:nat{i < length s}) (s':seq a_t) =
    length s' = length s - 1 /\
    (forall (x:nat).
       x < i ==> index s' x = index s x) /\
@@ -32,9 +32,8 @@ private type removed_p (#a_t:Type) (s:seq a_t{length s > 0}) (i:nat{i < length s
 val remove:
    s:seq 'a{length s > 0}
    -> i:nat{i < length s}
-   -> a:'a
-   -> Tot (s':seq 'a{removed_p s i a s'})
-let remove s i a =
+   -> Tot (s':seq 'a{removed_p s i s'})
+let remove s i =
    let l = slice s 0 i in
    let r = slice s (i + 1) (length s) in
    append l r
