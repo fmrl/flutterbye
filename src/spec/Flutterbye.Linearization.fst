@@ -26,23 +26,39 @@ type transaction_t 'a = 'a -> 'a
 type pending_t (n:nat) =
    | Pending: id:nat{id < n} -> 'a -> pending_t n
 
-type operation_t (n:nat) =
-   | Step: id:nat{id < n} -> 'a -> operation_t n
-   | Studder: id:nat{id < n} -> 'a -> operation_t n
+type operation_t (a_t:Type) (n:nat) =
+   | Step: id:nat{id < n} -> s:a_t -> operation_t a_t n
+   | Studder: id:nat{id < n} -> s:a_t -> operation_t a_t n
 
-val linearize_loop:
+(*val linearize_loop:
    xs:seq (transaction_t 'a)
-   -> acc_p:seq (transaction_t 'a)
-   -> acc_e:entropy_t 'b
-   -> acc_ops:seq (operation_t 'a)
-   -> Tot (r:(seq (operation_t 'a) * (entropy_t 'b)))
-let rec linearize_loop xs e ops =
-   ()
-
-val linearize:
-   xs:seq (transaction_t 'a)
+   -> s_0:'a
    -> e:entropy_t 'b
-   -> Tot (r:(seq (operation_t 'a) * (entropy_t 'b)))
-let linearize xs e ops =
-   linearize_loop xs e createEmpty
+   -> p:seq (pending_t 'a)
+   -> l:seq (operation_t 'a)
+   -> Tot (l':(seq (operation_t 'a) * (entropy_t 'b)))
+let rec linearize_loop xs e p l =
+   ()*)
+
+type linearized_p (#a_t:Type) (#b_t:Type) (xs:seq (transaction_t a_t)) (s_0:a_t) (e:entropy_t b_t) (t_le:(seq (operation_t a_t (length xs)) * (entropy_t b_t))) =
+   length xs = 0
+   \/ (forall (x:nat{x < length xs}).
+         (exists (y:nat{y < length (fst t_le)}).
+            let op = index (fst t_le) y in
+            is_Step op && Step.id op = x))
+
+(*val linearize:
+   xs:seq (transaction_t 'a)
+   -> s_0:'a
+   -> e:entropy_t 'b
+   -> Tot (l:(seq (operation_t 'a) * (entropy_t 'b)))
+let linearize xs s_0 e =
+   let p = 
+      map
+         (fun i x ->
+            Pending i s_0)
+         xs
+   in
+   linearize_loop xs e p createEmpty
+*)
 

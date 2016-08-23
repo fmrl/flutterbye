@@ -18,13 +18,8 @@
 
 module Flutterbye.Prelude
 
-type address_t = | Address: id:nat -> address_t
-type op_t 'a = | Op: id:nat -> opnd:'a -> op_t 'a
-type effect_t 'a = | Effect: dest:address_t -> op:op_t 'a -> effect_t 'a
-
-type next_t 'a 'b = 
-   | Next: next:'a -> fx:seq (effect_t 'b) -> next_t 'a 'b
-
-type step_t 'a 'b = 
-   a:'a -> b:'b -> Tot (next_t 'a 'b)
-
+// adapted from f* sample code.
+// todo: why is this in lib/prims.fst but not ulib/prims.fst?
+// it appears to still be in mitls (see StatefulLHAE.fst, line 172),
+// which suggests that it is not incompatible with `--universes`
+type Let (#a_t:Type) (x:a_t) (body:(y:a_t{y = x} -> Type)) = body x
