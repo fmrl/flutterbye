@@ -23,12 +23,15 @@ open Flutterbye.Entropy
 
 type transaction_t 'a = 'a -> 'a
 
+type xnid_t (#a_t:Type) (s_xn:seq (transaction_t a_t)) =
+   | XnId: as_nat:nat{as_nat < length s_xn} -> xnid_t s_xn
+
 type pending_t (#a_t:Type) (s_xn:seq (transaction_t a_t)) =
-   | Pending: id:nat{id < length s_xn} -> s:a_t -> pending_t s_xn
+   | Pending: id:xnid_t s_xn -> s:a_t -> pending_t s_xn
 
 type operation_t (#a_t:Type) (s_xn:seq (transaction_t a_t)) =
-   | Step: id:nat{id < length s_xn} -> s:a_t -> operation_t s_xn
-   | Studder: id:nat{id < length s_xn} -> operation_t s_xn
+   | Step: id:xnid_t s_xn -> s:a_t -> operation_t s_xn
+   | Studder: id:xnid_t s_xn -> operation_t s_xn
 
 (*val linearize_loop:
    s_xn:seq (transaction_t 'a)
@@ -42,7 +45,7 @@ let rec linearize_loop s_xn e p l =
 
 type linearized_p (#a_t:Type) (#b_t:Type) (s_xn:seq (transaction_t a_t)) (s_0:a_t) (e:entropy_t b_t) (t_le:(seq (operation_t s_xn) * (entropy_t b_t))) =
    length s_xn = 0
-   \/ (forall (x:nat{x < length s_xn}).
+   \/ (forall (x:xnid_t s_xn).
          (exists (y:nat{y < length (fst t_le)}).
             let op = index (fst t_le) y in
             is_Step op && Step.id op = x))
