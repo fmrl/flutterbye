@@ -33,18 +33,19 @@ type step_t (#a_t:Type) (todo:seq (transaction_t a_t)) =
    | Next: id:xnid_t todo -> step_t todo
    | Studder: id:xnid_t todo -> step_t todo
 
-type next_loop_p:
-   (#a_t:Type)
-   (xns:seq (transaction_t a_t))
-   (a:a_t)
-   (pending:seq (pending_t xns))
-   (steps':seq (step_t xns))
+type next_loop_p: 
+   a_t:Type 
+   -> xns:seq (transaction_t a_t)
+   -> a:a_t
+   -> pending:seq (pending_t xns)
+   -> steps':seq (step_t xns)
 =
-   length xns > 0
-   /\ (exists (x:nat{x < length pending}).
-         Pending.s (index pending x) = a)
-   /\ (exists (x:nat{x < length steps'}).
-         is_Next step (index steps' x)
+   fun a_t xns a pending steps' ->
+      length xns > 0
+      /\ ((exists (x:nat{x < length steps'}).
+            is_Next (index steps' x))
+          \/ (exists (x:nat{x < length pending}).
+                Pending.s (index pending x) = a))
 
 val next_loop:
    xns:seq (transaction_t 'a)
@@ -52,22 +53,20 @@ val next_loop:
    -> pending:seq (pending_t xns)
    -> steps:seq (step_t xns)
    -> Tot (steps':seq (step_t xns){next_loop_p xns a pending steps'})
-      decreases (length p)
+      decreases (length pending)
 let rec next_loop xns a pending steps =
-   if length p = 0 then
-      steps
+   let i = 0 in
+   let p = index pending i in
+   let id = Pending.id p in
+   let allow = (Pending.s p = a) in
+   if allow then
+      append (create (Step id) 1)
    else
-      let i = 0 in
-      let pending = index p i in
-      let xnid = Pending.id pending in
-      let allow = (Pending.s pending = a) in
-      if allow
-         append (create (Step xnid) 1) in
-      else
-         let steps' = append (create (Studder xnid) 1) in
-         let retry = Pending xnid a in
-         let p' = append (remove p i) (create retry 1) in
-         linearize_loop xns a p' steps'
+      let steps' = append (create (Studder id) 1) in
+      let retry = Pending id a in
+      let pending' = remove pending i in
+      next_loop xns a pending' steps'
+
 
 (*type linearized_p (#a_t:Type) (#b_t:Type) (todo:seq (transaction_t a_t)) (s_0:a_t) (l:seq (step_t todo)) =
    length todo = 0
@@ -90,5 +89,5 @@ let linearize todo s_0 =
             Pending i s_0)
          todo
    in
-   linearize_loop todo p createEmpty*)
+   linearize_loop todo p createEmpty
 *)
