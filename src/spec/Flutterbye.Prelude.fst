@@ -22,4 +22,4 @@ module Flutterbye.Prelude
 // todo: why is this in lib/prims.fst but not ulib/prims.fst?
 // it appears to still be in mitls (see StatefulLHAE.fst, line 172),
 // which suggests that it is not incompatible with `--universes`
-type Let (#a_t:Type) (x:a_t) (body:(y:a_t{y = x} -> Type)) = body x
+type let_t (#a_t:Type) (x:a_t) (body:(y:a_t{y = x} -> Type)) = body x
