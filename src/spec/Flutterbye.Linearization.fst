@@ -23,50 +23,59 @@ open Flutterbye.Entropy
 
 type transaction_t 'a = 'a -> 'a
 
-type xnid_t (#a_t:Type) (todo:seq (transaction_t a_t)) =
-   | XnId: as_nat:nat{as_nat < length todo} -> xnid_t todo
+type xnid_t (#a_t:Type) (xns:seq (transaction_t a_t)) =
+   | XnId: as_nat:nat{as_nat < length xns} -> xnid_t xns
 
-type pending_t (#a_t:Type) (todo:seq (transaction_t a_t)) =
-   | Pending: id:xnid_t todo -> s:a_t -> pending_t todo
+type pending_t (#a_t:Type) (xns:seq (transaction_t a_t)) =
+   | Pending: id:xnid_t xns -> s:a_t -> pending_t xns
 
-type step_t (#a_t:Type) (todo:seq (transaction_t a_t)) =
-   | Next: id:xnid_t todo -> step_t todo
-   | Studder: id:xnid_t todo -> step_t todo
+type step_t (#a_t:Type) (xns:seq (transaction_t a_t)) =
+   | Next: id:xnid_t xns -> step_t xns
+   | Studder: id:xnid_t xns -> step_t xns
 
-type next_loop_p: 
-   a_t:Type 
+type next_p: 
+   #a_t:Type 
    -> xns:seq (transaction_t a_t)
-   -> a:a_t
+   -> state:a_t
    -> pending:seq (pending_t xns)
-   -> steps':seq (step_t xns)
+   -> steps:seq (step_t xns)
 =
-   fun a_t xns a pending steps' ->
+   fun a_t xns state pending steps ->
       length xns > 0
-      /\ ((exists (x:nat{x < length steps'}).
-            is_Next (index steps' x))
+      /\ (   (exists (x:nat{x < length steps}).
+                is_Next (index steps' x))
           \/ (exists (x:nat{x < length pending}).
-                Pending.s (index pending x) = a))
+                Pending.s (index pending x) = state))
 
 val next_loop:
    xns:seq (transaction_t 'a)
-   -> a:'a
+   -> state:'a
    -> pending:seq (pending_t xns)
    -> steps:seq (step_t xns)
-   -> Tot (steps':seq (step_t xns){next_loop_p xns a pending steps'})
+   -> Tot (steps':seq (step_t xns))
       decreases (length pending)
 let rec next_loop xns a pending steps =
    let i = 0 in
    let p = index pending i in
    let id = Pending.id p in
-   let allow = (Pending.s p = a) in
+   let allow = (Pending.s p = state) in
    if allow then
       append (create (Step id) 1)
    else
-      let steps' = append (create (Studder id) 1) in
-      let retry = Pending id a in
+      let steps' = append steps (create (Studder id) 1) in
+      let retry = Pending id state in
       let pending' = remove pending i in
-      next_loop xns a pending' steps'
+      next_loop xns state pending' steps'
 
+(*val next_lemma:
+   xns:seq (transaction_t 'a)
+   -> a:'a
+   -> pending:seq (pending_t xns)
+   -> steps:seq (step_t xns)
+   -> Lemma
+      requires (step_p )
+      ensures (step_p )
+      decreases (length pending)*)
 
 (*type linearized_p (#a_t:Type) (#b_t:Type) (todo:seq (transaction_t a_t)) (s_0:a_t) (l:seq (step_t todo)) =
    length todo = 0
