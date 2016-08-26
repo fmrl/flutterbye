@@ -18,8 +18,8 @@
 
 module Flutterbye.Linearization
 open FStar.Seq
-open Flutterbye.Seq
-open Flutterbye.Entropy
+// bug: see note about bug in `Flutterbye.Seq.fst`.
+open Flutterbye.Seq.Remove
 
 type transaction_t 'a = 'a -> 'a
 
@@ -43,7 +43,7 @@ type next_p:
    fun a_t xns state pending steps ->
       length xns > 0
       /\ (   (exists (x:nat{x < length steps}).
-                is_Next (index steps' x))
+                is_Next (index steps x))
           \/ (exists (x:nat{x < length pending}).
                 Pending.s (index pending x) = state))
 
@@ -54,13 +54,13 @@ val next_loop:
    -> steps:seq (step_t xns)
    -> Tot (steps':seq (step_t xns))
       decreases (length pending)
-let rec next_loop xns a pending steps =
+let rec next_loop xns state pending steps =
    let i = 0 in
    let p = index pending i in
    let id = Pending.id p in
    let allow = (Pending.s p = state) in
    if allow then
-      append (create (Step id) 1)
+      append (create (Next id) 1)
    else
       let steps' = append steps (create (Studder id) 1) in
       let retry = Pending id state in
