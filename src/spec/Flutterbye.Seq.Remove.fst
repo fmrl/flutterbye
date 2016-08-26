@@ -20,14 +20,17 @@ module Flutterbye.Seq.Remove
 open FStar.Seq
 
 private type removed_p (#a_t:Type) (s:seq a_t{length s > 0}) (i:nat{i < length s}) (s':seq a_t) =
-   length s' = length s - 1 /\
-   (forall (x:nat).
-      x < i ==> index s' x = index s x) /\
-   (forall (x:nat).
-      i < x && x < length s' ==>
-         index s' x = index s (x + 1))(* /\
-   (i = 0 ==> equal s' (slice s 1 (length s - 1))) /\
-   (i = length s ==> equal s' (slice s 0 (length s - 2)))
+   (length s > 0)
+   /\ (length s' = length s - 1) 
+   /\ (forall (x:nat).
+         x < i ==> index s' x = index s x) 
+   /\ (forall (x:nat).
+         i < x && x < length s' ==>
+            index s' x = index s (x + 1)) 
+   /\ (i = 0 ==> equal s' (slice s 1 (length s))) 
+   /\ (i = length s ==> equal s' (slice s 0 (length s - 1)))
+
+// bug: an unmatched (* will not be reported properly by f*.
 
 val remove:
    s:seq 'a{length s > 0}
