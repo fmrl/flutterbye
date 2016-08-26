@@ -18,8 +18,7 @@
 
 module Flutterbye.Linearization
 open FStar.Seq
-// bug: see note about bug in `Flutterbye.Seq.fst`.
-open Flutterbye.Seq.Remove
+open Flutterbye.Seq
 
 type transaction_t 'a = 'a -> 'a
 
@@ -39,9 +38,11 @@ type next_p:
    -> state:a_t
    -> pending:seq (pending_t xns)
    -> steps:seq (step_t xns)
+   -> Type
 =
-   fun a_t xns state pending steps ->
-      length xns > 0
+   fun #a_t xns state pending steps ->
+      (length xns > 0)
+      /\ (length xns = length pending + length steps)
       /\ (   (exists (x:nat{x < length steps}).
                 is_Next (index steps x))
           \/ (exists (x:nat{x < length pending}).
@@ -53,19 +54,24 @@ val next_loop:
    -> pending:seq (pending_t xns)
    -> steps:seq (step_t xns)
    -> Tot (steps':seq (step_t xns))
-      decreases (length pending)
+      (decreases (length pending))
 let rec next_loop xns state pending steps =
-   let i = 0 in
-   let p = index pending i in
-   let id = Pending.id p in
-   let allow = (Pending.s p = state) in
-   if allow then
-      append (create (Next id) 1)
-   else
-      let steps' = append steps (create (Studder id) 1) in
-      let retry = Pending id state in
+   if 0 = length pending then
+      steps
+   else begin
+      let i = 0 in
+      let p = index pending i in
+      let id = Pending.id p in
+      let step' =
+         if Pending.s p = state then
+            Next id
+         else
+            Studder id
+      in
+      let steps' = append steps (create 1 step') in
       let pending' = remove pending i in
       next_loop xns state pending' steps'
+   end
 
 (*val next_lemma:
    xns:seq (transaction_t 'a)
