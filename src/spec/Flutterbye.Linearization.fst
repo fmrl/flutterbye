@@ -20,7 +20,7 @@ module Flutterbye.Linearization
 open FStar.Seq
 open Flutterbye.Seq
 
-type transaction_t 'a = 'a -> 'a
+type transaction_t 'a = 'a -> Tot 'a
 
 type xnid_t (#a_t:Type) (xns:seq (transaction_t a_t)) =
    | XnId: as_nat:nat{as_nat < length xns} -> xnid_t xns
@@ -62,15 +62,23 @@ let rec next xns state pending steps =
       let i = 0 in
       let p = index pending i in
       let id = Pending.id p in
+      let commitable = (Pending.s p = state) in
       let step' =
-         if Pending.s p = state then
+         if commitable then
             Next id
          else
             Studder id
       in
+      let state' =
+         if commitable then
+            let f = index xns (XnId.as_nat id) in
+            f state
+         else
+           state
+      in
       let steps' = append steps (create 1 step') in
       let pending' = remove pending i in
-      next xns state pending' steps'
+      next xns state' pending' steps'
    end
 
 val next_lemma:
@@ -89,15 +97,23 @@ let rec next_lemma xns state pending steps =
       let i = 0 in
       let p = index pending i in
       let id = Pending.id p in
+      let commitable = (Pending.s p = state) in
       let step' =
-         if Pending.s p = state then
+         if commitable then
             Next id
          else
             Studder id
       in
+      let state' =
+         if commitable then
+            let f = index xns (XnId.as_nat id) in
+            f state
+         else
+           state
+      in
       let steps' = append steps (create 1 step') in
       let pending' = remove pending i in
-      next_lemma xns state pending' steps'
+      next_lemma xns state' pending' steps'
    end
 
 (*type linearized_p (#a_t:Type) (#b_t:Type) (todo:seq (transaction_t a_t)) (s_0:a_t) (l:seq (step_t todo)) =
