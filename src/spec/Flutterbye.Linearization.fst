@@ -43,19 +43,19 @@ type next_p:
    fun #a_t xns state pending steps ->
       (length xns > 0)
       /\ (length xns = length pending + length steps)
-      /\ (   (exists (x:nat{x < length steps}).
+      (*/\ (   (exists (x:nat{x < length steps}).
                 is_Next (index steps x))
           \/ (exists (x:nat{x < length pending}).
-                Pending.s (index pending x) = state))
+                Pending.s (index pending x) = state))*)
 
-val next_loop:
+val next:
    xns:seq (transaction_t 'a)
    -> state:'a
    -> pending:seq (pending_t xns)
    -> steps:seq (step_t xns)
    -> Tot (steps':seq (step_t xns))
       (decreases (length pending))
-let rec next_loop xns state pending steps =
+let rec next xns state pending steps =
    if 0 = length pending then
       steps
    else begin
@@ -70,18 +70,35 @@ let rec next_loop xns state pending steps =
       in
       let steps' = append steps (create 1 step') in
       let pending' = remove pending i in
-      next_loop xns state pending' steps'
+      next xns state pending' steps'
    end
 
-(*val next_lemma:
+val next_lemma:
    xns:seq (transaction_t 'a)
-   -> a:'a
+   -> state:'a
    -> pending:seq (pending_t xns)
    -> steps:seq (step_t xns)
-   -> Lemma
-      requires (step_p )
-      ensures (step_p )
-      decreases (length pending)*)
+   -> Lemma 
+      (requires (next_p xns state pending steps))
+      (ensures (next_p xns state createEmpty (next xns state pending steps))) 
+      (decreases (length pending))
+let rec next_lemma xns state pending steps =
+   if 0 = length pending then
+      ()
+   else begin
+      let i = 0 in
+      let p = index pending i in
+      let id = Pending.id p in
+      let step' =
+         if Pending.s p = state then
+            Next id
+         else
+            Studder id
+      in
+      let steps' = append steps (create 1 step') in
+      let pending' = remove pending i in
+      next_lemma xns state pending' steps'
+   end
 
 (*type linearized_p (#a_t:Type) (#b_t:Type) (todo:seq (transaction_t a_t)) (s_0:a_t) (l:seq (step_t todo)) =
    length todo = 0
