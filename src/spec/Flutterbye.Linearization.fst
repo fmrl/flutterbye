@@ -32,30 +32,32 @@ type step_t (#a_t:Type) (xns:seq (transaction_t a_t)) =
    | Next: id:xnid_t xns -> step_t xns
    | Studder: id:xnid_t xns -> step_t xns
 
-type next_p: 
+type next_loop_p: 
    #a_t:Type 
    -> xns:seq (transaction_t a_t)
    -> state:a_t
+   -> pending0:seq (pending_t xns)
    -> pending:seq (pending_t xns)
    -> steps:seq (step_t xns)
    -> Type
 =
-   fun #a_t xns state pending steps ->
-      (length xns > 0)
-      /\ (length xns = length pending + length steps)
+   fun #a_t xns state pending0 pending steps ->
+      (length pending0 <= length xns)
+      /\ (length pending <= length pending0)
       (*/\ (   (exists (x:nat{x < length steps}).
                 is_Next (index steps x))
           \/ (exists (x:nat{x < length pending}).
                 Pending.s (index pending x) = state))*)
 
-val next:
+val next_loop:
    xns:seq (transaction_t 'a)
    -> state:'a
+   -> pending0:seq (pending_t xns)
    -> pending:seq (pending_t xns)
    -> steps:seq (step_t xns)
    -> Tot (steps':seq (step_t xns))
       (decreases (length pending))
-let rec next xns state pending steps =
+let rec next_loop xns state pending0 pending steps =
    if 0 = length pending then
       steps
    else begin
@@ -78,19 +80,20 @@ let rec next xns state pending steps =
       in
       let steps' = append steps (create 1 step') in
       let pending' = remove pending i in
-      next xns state' pending' steps'
+      next_loop xns state' pending0 pending' steps'
    end
 
-val next_lemma:
+val next_loop_lemma:
    xns:seq (transaction_t 'a)
    -> state:'a
+   -> pending0:seq (pending_t xns)
    -> pending:seq (pending_t xns)
    -> steps:seq (step_t xns)
    -> Lemma 
-      (requires (next_p xns state pending steps))
-      (ensures (next_p xns state createEmpty (next xns state pending steps))) 
+      (requires (next_loop_p xns state pending0 pending steps))
+      (ensures (next_loop_p xns state pending0 createEmpty (next_loop xns state pending0 pending steps))) 
       (decreases (length pending))
-let rec next_lemma xns state pending steps =
+let rec next_loop_lemma xns state pending0 pending steps =
    if 0 = length pending then
       ()
    else begin
@@ -113,8 +116,28 @@ let rec next_lemma xns state pending steps =
       in
       let steps' = append steps (create 1 step') in
       let pending' = remove pending i in
-      next_lemma xns state' pending' steps'
+      next_loop_lemma xns state' pending0 pending' steps'
    end
+
+(*type next_p: 
+   #a_t:Type 
+   -> xns:seq (transaction_t a_t)
+   -> state:a_t
+   -> pending:seq (pending_t xns)
+   -> steps:seq (step_t xns)
+   -> Type
+=
+   fun #a_t xns state pending steps ->
+      length pending <= length xns*)
+
+val next:
+   xns:seq (transaction_t 'a)
+   -> state:'a
+   -> pending:seq (pending_t xns){next_loop_p xns state pending pending createEmpty}
+   -> Tot (steps:seq (step_t xns))
+let next xns state pending =
+   next_loop_lemma xns state pending pending createEmpty;
+   next_loop xns state pending pending createEmpty
 
 (*type linearized_p (#a_t:Type) (#b_t:Type) (todo:seq (transaction_t a_t)) (s_0:a_t) (l:seq (step_t todo)) =
    length todo = 0
