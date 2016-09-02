@@ -22,9 +22,6 @@ open Flutterbye.Seq
 
 type transaction_t 'a = 'a -> Tot 'a
 
-type xnid_t (#a_t:Type) (xns:seq (transaction_t a_t)) =
-   | XnId: as_nat:nat{as_nat < length xns} -> xnid_t xns
-
 type pending_t (#a_t:Type) (xns:seq (transaction_t a_t)) =
    | Pending: id:xnid_t xns -> s:a_t -> pending_t xns
 
@@ -41,6 +38,16 @@ type has_next_step_p:
       exists (x:nat{x < length steps}).
          is_Next (index steps x)
 
+type has_fresh_pending_p: 
+   #a_t:Type 
+   -> xns:seq (transaction_t a_t)
+   -> pending:seq (pending_t xns)
+   -> state:a_t      
+   -> Type
+= fun #a_t xns pending state ->
+      exists (x:nat{x < length pending}).
+         Pending.s (index pending x) = state
+
 type next_loop_p: 
    #a_t:Type 
    -> xns:seq (transaction_t a_t)
@@ -49,14 +56,11 @@ type next_loop_p:
    -> pending:seq (pending_t xns)
    -> steps:seq (step_t xns)      
    -> Type
-=
-   fun #a_t xns pending0 state pending steps ->
+= fun #a_t xns pending0 state pending steps ->
       (length pending0 <= length xns)
       /\ (length pending <= length pending0)
-      (*/\ (   (exists (x:nat{x < length steps}).
-                is_Next (index steps x))
-          \/ (exists (x:nat{x < length pending}).
-                Pending.s (index pending x) = state))*)
+      /\ (has_next_step_p xns steps
+         \/ has_fresh_pending_p xns pending state)
 
 val next_loop:
    xns:seq (transaction_t 'a)
@@ -94,7 +98,7 @@ let rec next_loop xns pending0 state pending steps =
 
 val next_loop_lemma:
    xns:seq (transaction_t 'a)
-   -> pending0:seq (pending_t xns)
+   -> pending0:seq (pending_t xns){length pending <= xns}
    -> state:'a
    -> pending:seq (pending_t xns)
    -> steps:seq (step_t xns)
@@ -142,7 +146,8 @@ type next_p:
 val next:
    xns:seq (transaction_t 'a)
    -> state:'a
-   -> pending:seq (pending_t xns){length pending <= length xns}
+   // todo: eliminiate need for `has_fresh_pending_p`.
+   -> pending:seq (pending_t xns){length pending <= length xns /\ has_fresh_pending_p xns pending state}
    -> Tot (steps:seq (step_t xns){next_p xns pending state steps})
 let next xns state pending =
    next_loop_lemma xns pending state pending createEmpty;
