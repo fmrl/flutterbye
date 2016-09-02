@@ -20,37 +20,23 @@ module Flutterbye.Linearization
 open FStar.Seq
 open Flutterbye.Seq
 
-type transaction_t 'a = 'a -> Tot 'a
+type pending_t 'a =
+   | Pending: op:('a -> Tot 'a) -> observed:'a -> pending_t 'a
 
-type pending_t (#a_t:Type) (xns:seq (transaction_t a_t)) =
-   | Pending: id:xnid_t xns -> s:a_t -> pending_t xns
+type step_t 'a =
+   | Commit: op:('a -> Tot 'a) -> step_t 'a
+   | Stale: op:('a -> Tot 'a) -> step_t 'a
 
-type step_t (#a_t:Type) (xns:seq (transaction_t a_t)) =
-   | Next: id:xnid_t xns -> step_t xns
-   | Studder: id:xnid_t xns -> step_t xns
+type contains_commit_p (#a_t:Type) (steps:seq (step_t a_t)) =
+   exists (x:nat{x < length steps}).
+      is_Commit (index steps x)
 
-type has_next_step_p: 
+type contains_fresh_p (#a_t:Type) (pending:seq (pending_t a_t)) (state:a_t) = 
+   exists (x:nat{x < length pending}).
+      Pending.observed (index pending x) = state
+
+(*type advance_loop_p: 
    #a_t:Type 
-   -> xns:seq (transaction_t a_t)
-   -> steps:seq (step_t xns)      
-   -> Type
-= fun #a_t xns steps ->
-      exists (x:nat{x < length steps}).
-         is_Next (index steps x)
-
-type has_fresh_pending_p: 
-   #a_t:Type 
-   -> xns:seq (transaction_t a_t)
-   -> pending:seq (pending_t xns)
-   -> state:a_t      
-   -> Type
-= fun #a_t xns pending state ->
-      exists (x:nat{x < length pending}).
-         Pending.s (index pending x) = state
-
-type next_loop_p: 
-   #a_t:Type 
-   -> xns:seq (transaction_t a_t)
    -> pending0:seq (pending_t xns)
    -> state:a_t                                       
    -> pending:seq (pending_t xns)
@@ -59,99 +45,87 @@ type next_loop_p:
 = fun #a_t xns pending0 state pending steps ->
       (length pending0 <= length xns)
       /\ (length pending <= length pending0)
-      /\ (has_next_step_p xns steps
-         \/ has_fresh_pending_p xns pending state)
+      /\ (contains_commit_p xns steps
+         \/ contains_fresh_p xns pending state)*)
 
-val next_loop:
-   xns:seq (transaction_t 'a)
-   -> pending0:seq (pending_t xns)
+val advance_loop:
+      pending0:seq (pending_t 'a)
+   -> pending:seq (pending_t 'a)
    -> state:'a
-   -> pending:seq (pending_t xns)
-   -> steps:seq (step_t xns)
-   -> Tot (steps':seq (step_t xns))
+   -> steps:seq (step_t 'a)
+   -> Tot (steps':seq (step_t 'a))
       (decreases (length pending))
-let rec next_loop xns pending0 state pending steps =
+let rec advance_loop pending0 pending state steps =
    if 0 = length pending then
       steps
    else begin
       let i = 0 in
       let p = index pending i in
-      let id = Pending.id p in
-      let commitable = (Pending.s p = state) in
+      let fresh = (Pending.observed p = state) in
+      let op = Pending.op p in
       let step' =
-         if commitable then
-            Next id
+         if fresh then
+            Commit op
          else
-            Studder id
+            Stale op
       in
       let state' =
-         if commitable then
-            let f = index xns (XnId.as_nat id) in
-            f state
+         if fresh then
+            op state
          else
-           state
+            state
       in
       let steps' = append steps (create 1 step') in
       let pending' = remove pending i in
-      next_loop xns pending0 state' pending' steps'
+      advance_loop pending0 pending' state' steps'
    end
 
-val next_loop_lemma:
-   xns:seq (transaction_t 'a)
-   -> pending0:seq (pending_t xns){length pending <= xns}
+val advance_loop_lemma:
+      pending0:seq (pending_t 'a)
+   -> pending:seq (pending_t 'a)
    -> state:'a
-   -> pending:seq (pending_t xns)
-   -> steps:seq (step_t xns)
+   -> steps:seq (step_t 'a)
    -> Lemma 
-      (requires (next_loop_p xns pending0 state pending steps))
-      (ensures (next_loop_p xns pending0 state createEmpty (next_loop xns pending0 state pending steps))) 
+      (requires (True))
+      (ensures (True)) 
       (decreases (length pending))
-let rec next_loop_lemma xns pending0 state pending steps =
+let rec advance_loop_lemma pending0 pending state steps =
    if 0 = length pending then
       ()
    else begin
       let i = 0 in
       let p = index pending i in
-      let id = Pending.id p in
-      let commitable = (Pending.s p = state) in
+      let fresh = (Pending.observed p = state) in
+      let op = Pending.op p in
       let step' =
-         if commitable then
-            Next id
+         if fresh then
+            Commit op
          else
-            Studder id
+            Stale op
       in
       let state' =
-         if commitable then
-            let f = index xns (XnId.as_nat id) in
-            f state
+         if fresh then
+            op state
          else
-           state
+            state
       in
       let steps' = append steps (create 1 step') in
       let pending' = remove pending i in
-      next_loop_lemma xns pending0 state' pending' steps'
+      advance_loop_lemma pending0 pending' state' steps'
    end
 
-type next_p: 
-   #a_t:Type 
-   -> xns:seq (transaction_t a_t)
-   -> pending:seq (pending_t xns)
-   -> state:a_t
-   -> steps:seq (step_t xns)
-   -> Type
-=
-   fun #a_t xns pending state steps ->
-      length pending <= length xns
+(*type advanced_p (pending:seq (pending_t 'a)) (state:'a) (steps:seq (step_t 'a)) =
+   length pending <= length xns
 
-val next:
+val advance:
    xns:seq (transaction_t 'a)
    -> state:'a
-   // todo: eliminiate need for `has_fresh_pending_p`.
+   // todo: eliminiate need for `has_fresh_p`.
    -> pending:seq (pending_t xns){length pending <= length xns /\ has_fresh_pending_p xns pending state}
-   -> Tot (steps:seq (step_t xns){next_p xns pending state steps})
-let next xns state pending =
-   next_loop_lemma xns pending state pending createEmpty;
-   next_loop xns pending state pending createEmpty
+   -> Tot (steps:seq (step_t xns){advance_p xns pending state steps})
+let advance xns state pending =
+   advance_loop_lemma xns pending state pending createEmpty;
+   advance_loop xns pending state pending createEmpty*)
 
 (*type linearized_p (#a_t:Type) (#b_t:Type) (todo:seq (transaction_t a_t)) (s_0:a_t) (l:seq (step_t todo)) =
    length todo = 0
