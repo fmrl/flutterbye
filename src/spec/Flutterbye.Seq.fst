@@ -31,6 +31,7 @@ let insert = Flutterbye.Seq.Insert.insert
 let map = Flutterbye.Seq.Map.map
 let mem = Flutterbye.Seq.Mem.mem
 let remove = Flutterbye.Seq.Remove.remove
+let satisfies = Flutterbye.Seq.Satisfies.satisfies
 
 let to_set = Flutterbye.Seq.ToSet.to_set
 let unique = Flutterbye.Seq.Unique.unique
