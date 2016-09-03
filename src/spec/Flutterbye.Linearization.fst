@@ -27,17 +27,17 @@ type step_t 'a =
    | Commit: op:('a -> Tot 'a) -> step_t 'a
    | Stale: op:('a -> Tot 'a) -> step_t 'a
 
-type contains_commit_p (#a_t:Type) (steps:seq (step_t a_t)) =
+type satisfies_commit_p (#a_t:Type) (steps:seq (step_t a_t)) =
    satisfies_p is_Commit steps
 
-type contains_fresh_p (#a_t:Type) (pending:seq (pending_t a_t)) (state:a_t) =
+type satisfies_fresh_p (#a_t:Type) (pending:seq (pending_t a_t)) (state:a_t) =
    satisfies_p (fun p -> Pending.observed p = state) pending
 
 val advance_loop:
       pending:seq (pending_t 'a)
    -> state:'a
-   -> steps:seq (step_t 'a){contains_commit_p steps \/ contains_fresh_p pending state}
-   -> Tot (steps':seq (step_t 'a){contains_commit_p steps'})
+   -> steps:seq (step_t 'a){satisfies_commit_p steps \/ satisfies_fresh_p pending state}
+   -> Tot (steps':seq (step_t 'a){satisfies_commit_p steps'})
       (decreases (length pending))
 let rec advance_loop pending state steps =
    if 0 = length pending then
@@ -53,17 +53,17 @@ let rec advance_loop pending state steps =
          let steps' = append steps (create 1 step') in
          let pending' = remove pending i in
          Flutterbye.Seq.Satisfies.create_lemma 1 step';
-         assert (contains_commit_p (create 1 step'));
+         assert (satisfies_commit_p (create 1 step'));
          Flutterbye.Seq.Satisfies.append_lemma steps (create 1 step');
-         assert (contains_commit_p steps');
+         assert (satisfies_commit_p steps');
          advance_loop pending' state' steps'
       end else begin
          let step' = Stale op in
          let steps' = append steps (create 1 step') in
          let pending' = remove pending i in
          Flutterbye.Seq.Satisfies.append_lemma steps (create 1 step');
-         assert (contains_commit_p steps <==> contains_commit_p steps');
-         admitP (contains_fresh_p pending state <==> contains_fresh_p pending' state);
+         assert (satisfies_commit_p steps <==> satisfies_commit_p steps');
+         admitP (satisfies_fresh_p pending state <==> satisfies_fresh_p pending' state);
          advance_loop pending' state steps'
       end         
    end
