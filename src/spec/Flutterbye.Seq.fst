@@ -20,6 +20,7 @@ module Flutterbye.Seq
 
 type disjoint_p = Flutterbye.Seq.Disjoint.disjoint_p
 type mem_p = Flutterbye.Seq.Mem.mem_p
+type satisfies_p = Flutterbye.Seq.Satisfies.satisfies_p
 type unique_p = Flutterbye.Seq.Unique.unique_p
 
 let count = Flutterbye.Seq.Count.count
