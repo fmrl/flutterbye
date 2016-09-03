@@ -37,15 +37,6 @@ type contains_fresh_p (#a_t:Type) (pending:seq (pending_t a_t)) (state:a_t) =
    /\ (exists (x:nat{x < length pending}).
          Pending.observed (index pending x) = state)
 
-(*type advance_loop_invariants_p 
-   (#a_t:Type) 
-   (pending0:seq (pending_t a_t)) 
-   (pending:seq (pending_t a_t))
-   (state:'a)
-   (steps:seq (step_t a_t))
-=     (length pending <= length pending0)
-   /\ (contains_commit_p steps \/ contains_fresh_p pending state)*)
-
 val advance_loop:
       pending:seq (pending_t 'a)
    -> state:'a
@@ -61,54 +52,21 @@ let rec advance_loop pending state steps =
       let op = Pending.op p in
       let fresh = (Pending.observed p = state) in
       if fresh then begin
-         admit ();
          let step' = Commit op in
          let state' = op state in
          let steps' = append steps (create 1 step') in
          let pending' = remove pending i in
+         admitP (contains_commit_p steps');
          advance_loop pending' state' steps'
       end else begin
-         admit ();
          let step' = Stale op in
          let steps' = append steps (create 1 step') in
          let pending' = remove pending i in
+         admitP (contains_commit_p steps <==> contains_commit_p steps');
+         admitP (contains_fresh_p pending state <==> contains_fresh_p pending' state);
          advance_loop pending' state steps'
       end         
    end
-
-(*val advance_loop_lemma:
-      pending0:seq (pending_t 'a)
-   -> pending:seq (pending_t 'a)
-   -> state:'a
-   -> steps:seq (step_t 'a)
-   -> Lemma 
-      (requires (True))
-      (ensures (True)) 
-      (decreases (length pending))
-let rec advance_loop_lemma pending0 pending state steps =
-   if 0 = length pending then
-      ()
-   else begin
-      let i = 0 in
-      let p = index pending i in
-      let fresh = (Pending.observed p = state) in
-      let op = Pending.op p in
-      let step' =
-         if fresh then
-            Commit op
-         else
-            Stale op
-      in
-      let state' =
-         if fresh then
-            op state
-         else
-            state
-      in
-      let steps' = append steps (create 1 step') in
-      let pending' = remove pending i in
-      advance_loop_lemma pending0 pending' state' steps'
-   end*)
 
 (*type advanced_p (pending:seq (pending_t 'a)) (state:'a) (steps:seq (step_t 'a)) =
    length pending <= length xns
