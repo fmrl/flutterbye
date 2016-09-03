@@ -28,9 +28,7 @@ type step_t 'a =
    | Stale: op:('a -> Tot 'a) -> step_t 'a
 
 type contains_commit_p (#a_t:Type) (steps:seq (step_t a_t)) =
-   length steps > 0
-   /\ (exists (x:nat{x < length steps}).
-         is_Commit (index steps x))
+   satisfies_p is_Commit steps
 
 type contains_fresh_p (#a_t:Type) (pending:seq (pending_t a_t)) (state:a_t) =
    length pending > 0
@@ -56,7 +54,10 @@ let rec advance_loop pending state steps =
          let state' = op state in
          let steps' = append steps (create 1 step') in
          let pending' = remove pending i in
-         admitP (contains_commit_p steps');
+         Flutterbye.Seq.Satisfies.create_lemma 1 step';
+         assert (contains_commit_p (create 1 step'));
+         Flutterbye.Seq.Satisfies.append_lemma steps (create 1 step');
+         assert (contains_commit_p steps');
          advance_loop pending' state' steps'
       end else begin
          let step' = Stale op in
