@@ -31,9 +31,7 @@ type contains_commit_p (#a_t:Type) (steps:seq (step_t a_t)) =
    satisfies_p is_Commit steps
 
 type contains_fresh_p (#a_t:Type) (pending:seq (pending_t a_t)) (state:a_t) =
-   length pending > 0
-   /\ (exists (x:nat{x < length pending}).
-         Pending.observed (index pending x) = state)
+   satisfies_p (fun p -> Pending.observed p = state) pending
 
 val advance_loop:
       pending:seq (pending_t 'a)
@@ -63,7 +61,8 @@ let rec advance_loop pending state steps =
          let step' = Stale op in
          let steps' = append steps (create 1 step') in
          let pending' = remove pending i in
-         admitP (contains_commit_p steps <==> contains_commit_p steps');
+         Flutterbye.Seq.Satisfies.append_lemma steps (create 1 step');
+         assert (contains_commit_p steps <==> contains_commit_p steps');
          admitP (contains_fresh_p pending state <==> contains_fresh_p pending' state);
          advance_loop pending' state steps'
       end         
