@@ -68,12 +68,7 @@ module Npm
          @which = ScriptUtils.which 'npm'
          @has = @which != nil
       end
-
-      if not @has then
-         raise 'i can\'t which npm in your search path. please make sure node.js is installed correctly.'
-      else
-         @which
-      end
+      return nil
    end
 
 end
