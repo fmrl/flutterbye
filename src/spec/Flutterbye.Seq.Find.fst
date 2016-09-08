@@ -19,23 +19,24 @@
 module Flutterbye.Seq.Find
 open FStar.Seq
 open Flutterbye.Option
+open Flutterbye.Seq.Remove
 
 private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
-   // if not found...
-   (is_None i <==>
-      // ...then no element is `s` can satisfy predicate `f`.
-      (forall (x:nat).
-         x < length s ==> not (f (index s x)))) /\
+      // `None` signifies that no element is `s` can satisfy predicate `f` 
+      (is_None i <==> (forall (x:nat{x < length s}). not (f (index s x))))
+   /\ (  // `Some` signifies:
    // otherwise, if found...
-   (is_Some i ==> 
-      // ...then `i` must index an element of `s`.
-      (b2t (get i < length s) /\
-      // ...and `i` must point to an element that satisfies predicate `f`.
-      b2t (f (index s (get i))) /\
-      // ...and every element preceeding the element indexed by `i` must not satisfy predicate `f`.
-      (get i > 0 ==>
-         (forall (x:nat).
-            x < get i ==> not (f (index s x))))))
+          is_Some i 
+      ==> (  // `i` must index an element of `s`.
+             (b2t (get i < length s))
+             // `i` must point to an element that satisfies predicate `f`.
+          /\ (b2t (f (index s (get i))))
+             // an element exists within the sequence that satisfies `f`.
+          /\ (exists (x:nat{x < length s}). f (index s x))
+             // every element preceeding the element indexed by `i` must not satisfy predicate `f`.
+          /\ (get i > 0 ==> (forall (x:nat{x < get i}). not (f (index s x))))
+          )
+      )
 
 private val find_loop:
    f:('a -> Tot bool) 
@@ -172,3 +173,43 @@ abstract val append_lemma:
       )
 let append_lemma s_1 s_2 =
    append_lemma_found2 s_1 s_2
+
+val remove_lemma:
+      s:seq 'a{length s > 0}
+   -> i:nat{i < length s}
+   -> f:('a -> Tot bool)
+   -> Lemma
+      (requires (True))
+      (ensures
+         (  // if the input sequence doesn't have an element that satisfies 
+            // `f` then the output won't either.
+            (~ (found_p f s)) ==> (~ (found_p f (remove s i)))
+            // if an element in the input sequence that satisfies `f` can be
+            // found and the index of that element appears before the element
+            // being removed, the result of calling `find` on the output 
+            // sequence won't be different from calling it on the input 
+            // sequence.  
+         /\ ((found_p f s /\ get (find f s) < i) ==> (get (find f (remove s i)) = get (find f s)))  
+            // if an element in the input sequence that satisfies `f` can be
+            // found and the index of that element appears after the element
+            // being removed, the result of calling `find` on the output 
+            // sequence will be one less than the result of calling it on 
+            // the input sequence.  
+         /\ ((found_p f s /\ get (find f s) > i) ==> (get (find f (remove s i)) = get (find f s) - 1))  
+            // if an element in the input sequence that satisfies `f` can be
+            // found and that is the element being removed, the result of 
+            // calling `find` on the output sequence will match the output of
+            // calling find on the slice of the sequence following the element
+            // being removed.  
+         /\ (   (found_p f s /\ get (find f s) = i) 
+            ==> (get (find f (remove s i)) = get (find f (slice s (i + 1) (length s))))
+            )  
+            // if an element in the input sequence that satisfies `f` can be
+            // found and that element is not being removed from the sequence,
+            // the output sequence will also have an element that satisfies 
+            // `f`.  
+         /\ ((found_p f s /\ get (find f s) <> i) ==> found_p f (remove s i))  
+         )
+      ) 
+let remove_lemma f s i =
+   ()
