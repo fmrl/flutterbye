@@ -193,13 +193,12 @@ abstract val append_lemma:
             // second seqence, finding the same value in the "appended" sequence will 
             // yield a successful search with the index shifted by the length of the first
             // sequence.
-         // /\ (forall (f:'a -> Tot bool) (i:nat{i < length s_1}).
-         //       (   (~ (found_p f s_1) /\ (find_p f s_2 (Some i))) 
-         //       ==> find_p f (append s_1 s_2) (Some (i + length s_1))))
+         /\ (forall (f:'a -> Tot bool) (i:nat{i < length s_1}).
+               (   (~ (found_p f s_1) /\ (find_p f s_2 (Some i))) 
+               ==> find_p f (append s_1 s_2) (Some (i + length s_1))))
             // if a value can be found in the second sequence, the value can be found in
             // the the "appended" sequence.
-         // /\ (forall (f:'a -> Tot bool).
-         //    (found_p f s_2 ==> found_p f (append s_1 s_2)))
+         /\ (forall (f:'a -> Tot bool). (found_p f s_2 ==> found_p f (append s_1 s_2)))
             // if the value can be found in one of the two input sequences, the value will be
             // found in the "appended" sequence, and vice versa.
          // /\ (forall (f:'a -> Tot bool).
@@ -208,7 +207,8 @@ abstract val append_lemma:
       )
 let append_lemma s_1 s_2 =
    let s' = append s_1 s_2 in
-   assert (equal (slice s' 0 (length s_1)) s_1)
+   assert (equal (slice s' 0 (length s_1)) s_1);
+   assert (equal (slice s' (length s_1) (length s')) s_2)
    //append_lemma_found2 s_1 s_2
 
 (*
