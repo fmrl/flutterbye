@@ -39,9 +39,9 @@ private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat)
    /\ (is_Some i ==> (exists (x:nat{x < length s}). f (index s x)))
       // `Some i` implies, if `i > 0` that all elements preceeding `i`
       // must not satisfy predicate `f`.
-   (*/\ (   (is_Some i && get i > 0) 
+   /\ (   (is_Some i && get i > 0) 
       ==> (forall (x:nat). x < get i ==> not (f (index s x)))
-      )*)
+      )
       
 private val find_loop:
    f:('a -> Tot bool) 
@@ -92,6 +92,9 @@ let rec find_lemma f s i ac =
             if f (index s i) then begin
                assert (index sl' i = index s i); // required
                assert (exists (x:nat{x < length sl'}). f (index sl' x));
+               // the following assertion is required to prove the statement in find_p 
+               // about all elements preceeding `i` not satisfying predicate `f`.
+               assert (equal sl' (append sl (create 1 (index s i))));
                Some i
             end
             else begin
@@ -115,7 +118,7 @@ val find:
 let find f s =
    find_lemma f s 0 None;
    find_loop f s 0 None
-(*
+
 private type empty_p (#a_t:Type) (s:seq a_t) =
    forall (f:a_t -> Tot bool).
       find_p f s None
@@ -157,7 +160,7 @@ let create_lemma n a =
       let f = eq a in
       assert (f a <==> found_p f s) // required witness.
    end
-
+(*
 private val append_lemma_found2:
       s_1:seq 'a 
    -> s_2:seq 'a
