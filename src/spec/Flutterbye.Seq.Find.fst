@@ -188,7 +188,7 @@ abstract val append_lemma:
                (find_p f s_1 (Some i) ==> find_p f (append s_1 s_2) (Some i)))
             // if a value can be found in the first sequence, the value can be found in
             // the the "appended" sequence.
-         // /\ (forall (f:'a -> Tot bool). (found_p f s_1 ==> found_p f (append s_1 s_2)))
+         /\ (forall (f:'a -> Tot bool). (found_p f s_1 ==> found_p f (append s_1 s_2)))
             // if a value cannot be found in the first sequence but can be found in the
             // second seqence, finding the same value in the "appended" sequence will 
             // yield a successful search with the index shifted by the length of the first
