@@ -195,8 +195,7 @@ let append_lemma s_1 s_2 =
    assert (equal (slice s' 0 (length s_1)) s_1); // required
    assert (equal (slice s' (length s_1) (length s')) s_2) // required
 
-(*
-val remove_lemma:
+abstract val remove_lemma:
       s:seq 'a{length s > 0}
    -> i:nat{i < length s}
    -> f:('a -> Tot bool)
@@ -211,13 +210,17 @@ val remove_lemma:
             // being removed, the result of calling `find` on the output 
             // sequence won't be different from calling it on the input 
             // sequence.  
-         /\ ((found_p f s /\ get (find f s) < i) ==> (get (find f (remove s i)) = get (find f s)))  
+         /\ (   (found_p f s /\ get (find f s) < i) 
+            ==> (get (find f (remove s i)) = get (find f s))
+            )  
             // if an element in the input sequence that satisfies `f` can be
             // found and the index of that element appears after the element
             // being removed, the result of calling `find` on the output 
             // sequence will be one less than the result of calling it on 
             // the input sequence.  
-         /\ ((found_p f s /\ get (find f s) > i) ==> (get (find f (remove s i)) = get (find f s) - 1))  
+         /\ (   (found_p f s /\ get (find f s) > i) 
+            ==> (get (find f (remove s i)) = get (find f s) - 1)
+            )  
             // if an element in the input sequence that satisfies `f` can be
             // found and that is the element being removed, the result of 
             // calling `find` on the output sequence will match the output of
@@ -234,4 +237,4 @@ val remove_lemma:
          )
       ) 
 let remove_lemma f s i =
-   ()*)
+   ()
