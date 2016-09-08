@@ -22,22 +22,22 @@ open Flutterbye.Option
 open Flutterbye.Seq.Remove
 
 private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
+      // `Some i` implies that `i` must be a valid index of `s`.
+      (is_Some i ==> b2t (get i < length s))
+      // `Some i` implies that `i` must index an element within `s` that satisfies
+      // predicate `f`.
+   /\ (is_Some i ==> b2t (f (index s (get i))))
+      // `Some` implies that there exists an element that can satisfy 
+      // predicate `f`.
+   /\ (is_Some i ==> (exists (x:nat{x < length s}). f (index s x)))
+      // `Some i` implies, if `i > 0` that all elements preceeding `i`
+      // must not satisfy predicate `f`.
+   (*/\ (   (is_Some i && get i > 0) 
+      ==> (forall (x:nat). x < get i ==> not (f (index s x)))
+      )*)
       // `None` signifies that no element is `s` can satisfy predicate `f` 
-      (is_None i <==> (forall (x:nat{x < length s}). not (f (index s x))))
-   /\ (  // `Some` signifies:
-   // otherwise, if found...
-          is_Some i 
-      ==> (  // `i` must index an element of `s`.
-             (b2t (get i < length s))
-             // `i` must point to an element that satisfies predicate `f`.
-          /\ (b2t (f (index s (get i))))
-             // an element exists within the sequence that satisfies `f`.
-          /\ (exists (x:nat{x < length s}). f (index s x))
-             // every element preceeding the element indexed by `i` must not satisfy predicate `f`.
-          /\ (get i > 0 ==> (forall (x:nat{x < get i}). not (f (index s x))))
-          )
-      )
-
+   //   (is_None i ==> (forall (x:nat{x < length s}). not (f (index s x))))
+      
 private val find_loop:
    f:('a -> Tot bool) 
    -> s:seq 'a 
@@ -46,15 +46,20 @@ private val find_loop:
    -> Tot (option nat)
       (decreases (length s - i))
 let rec find_loop f s i ac =
-   if i < length s then
-      let ac' =
-         if is_None ac && (f (index s i)) then
-            Some i
-         else
-            ac in
-      find_loop f s (i + 1) ac'
-   else
+   if i = length s then
       ac
+   else
+      let ac' =
+         if is_None ac then begin
+            if f (index s i) then
+               Some i
+            else
+               None
+         end 
+         else
+            ac 
+      in
+      find_loop f s (i + 1) ac'
 
 private val find_lemma:
       f:('a -> Tot bool)
@@ -66,15 +71,25 @@ private val find_lemma:
       (ensures (find_p f s (find_loop f s i ac)))
       (decreases (length s - i))
 let rec find_lemma f s i ac =
-   if i < length s then
-      let ac' =
-         if is_None ac && f (index s i) then
-            Some i
-         else
-            ac in
-      find_lemma f s (i + 1) ac'
-   else
+   if i = length s then
       ()
+   else
+      let ac' =
+         let s' = slice s 0 (i + 1) in
+         if is_None ac then begin
+            if f (index s i) then begin
+               admitP (exists (x:nat{x < length s'}). f (index s' x));
+               Some i
+            end
+            else
+               None
+         end 
+         else begin
+            admitP (exists (x:nat{x < length s'}). f (index s' x));
+            ac
+         end
+      in 
+      find_lemma f s (i + 1) ac'
 
 val find: 
       f:('a -> Tot bool) 
@@ -83,7 +98,7 @@ val find:
 let find f s =
    find_lemma f s 0 None;
    find_loop f s 0 None
-
+(*
 private type empty_p (#a_t:Type) (s:seq a_t) =
    forall (f:a_t -> Tot bool).
       find_p f s None
@@ -212,4 +227,4 @@ val remove_lemma:
          )
       ) 
 let remove_lemma f s i =
-   ()
+   ()*)
