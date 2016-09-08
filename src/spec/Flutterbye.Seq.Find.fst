@@ -22,8 +22,12 @@ open Flutterbye.Option
 open Flutterbye.Seq.Remove
 
 private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
+      // if `s` is of length zero, the only outcome can be `None`.
+      ((length s = 0) ==> is_None i)
+      // `Some i` implies that the length of `s` must be non-zero.
+   /\ (is_Some i ==> b2t (length s > 0))
       // `Some i` implies that `i` must be a valid index of `s`.
-      (is_Some i ==> b2t (get i < length s))
+   /\ (is_Some i ==> b2t (get i < length s))
       // `Some i` implies that `i` must index an element within `s` that satisfies
       // predicate `f`.
    /\ (is_Some i ==> b2t (f (index s (get i))))
@@ -83,8 +87,9 @@ let rec find_lemma f s i ac =
                assert (exists (x:nat{x < length sl'}). f (index sl' x));
                Some i
             end
-            else
+            else begin
                None
+            end
          end 
          else begin
             assert (index sl' (get ac) = index s (get ac)); // required
