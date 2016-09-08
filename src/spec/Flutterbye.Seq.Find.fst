@@ -24,6 +24,8 @@ open Flutterbye.Seq.Remove
 private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
       // if `s` is of length zero, the only outcome can be `None`.
       ((length s = 0) ==> is_None i)
+      // `None` signifies that no element is `s` can satisfy predicate `f` 
+   /\ (is_None i ==> ~ (exists (x:nat{x < length s}). f (index s x)))
       // `Some i` implies that the length of `s` must be non-zero.
    /\ (is_Some i ==> b2t (length s > 0))
       // `Some i` implies that `i` must be a valid index of `s`.
@@ -40,8 +42,6 @@ private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat)
    (*/\ (   (is_Some i && get i > 0) 
       ==> (forall (x:nat). x < get i ==> not (f (index s x)))
       )*)
-      // *** `None` signifies that no element is `s` can satisfy predicate `f` 
-   /\ (is_None i ==> ~ (exists (x:nat{x < length s}). f (index s x)))
       
 private val find_loop:
    f:('a -> Tot bool) 
@@ -95,10 +95,8 @@ let rec find_lemma f s i ac =
                Some i
             end
             else begin
-               assert (~ (exists (x:nat{x < length sl}). f (index sl x)));
-               assert (index sl' i = index s i);
-               assert (not (f (index sl' i)));
-               admitP (~ (exists (x:nat{x < length sl'}). f (index sl' x)));
+               assert (equal sl' (append sl (create 1 (index s i)))); // required
+               assert (~ (exists (x:nat{x < length sl'}). f (index sl' x)));
                None
             end
          end 
