@@ -29,6 +29,7 @@ private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat)
    /\ (is_Some i ==> b2t (f (index s (get i))))
       // `Some` implies that there exists an element that can satisfy 
       // predicate `f`.
+      // todo: can this be turned into an iff?
    /\ (is_Some i ==> (exists (x:nat{x < length s}). f (index s x)))
       // `Some i` implies, if `i > 0` that all elements preceeding `i`
       // must not satisfy predicate `f`.
@@ -42,8 +43,8 @@ private val find_loop:
    f:('a -> Tot bool) 
    -> s:seq 'a 
    -> i:nat{i <= length s} 
-   -> ac:(option nat) 
-   -> Tot (option nat)
+   -> ac:option nat 
+   -> Tot (ac':option nat)
       (decreases (length s - i))
 let rec find_loop f s i ac =
    if i = length s then
@@ -75,17 +76,19 @@ let rec find_lemma f s i ac =
       ()
    else
       let ac' =
-         let s' = slice s 0 (i + 1) in
+         let sl' = slice s 0 (i + 1) in
          if is_None ac then begin
             if f (index s i) then begin
-               admitP (exists (x:nat{x < length s'}). f (index s' x));
+               assert (index sl' i = index s i); // required
+               assert (exists (x:nat{x < length sl'}). f (index sl' x));
                Some i
             end
             else
                None
          end 
          else begin
-            admitP (exists (x:nat{x < length s'}). f (index s' x));
+            assert (index sl' (get ac) = index s (get ac)); // required
+            assert (exists (x:nat{x < length sl'}). f (index sl' x));
             ac
          end
       in 
