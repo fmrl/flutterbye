@@ -81,8 +81,8 @@ let rec find_lemma f s i ac =
       if length s = 0 || is_Some ac then
          ()
       else begin
-         assert (~ (exists (x:nat{x < length sl}). f (index sl x)));
-         admitP (~ (exists (x:nat{x < length s}). f (index s x)))
+         assert (equal sl s); // required
+         assert (~ (exists (x:nat{x < length s}). f (index s x)))
       end
    end
    else
