@@ -160,21 +160,6 @@ let create_lemma n a =
       let f = eq a in
       assert (f a <==> found_p f s) // required witness.
    end
-(*
-private val append_lemma_found2:
-      s_1:seq 'a 
-   -> s_2:seq 'a
-   -> Lemma
-      (requires (True))
-      (ensures
-         // if a value can be found in the second sequence, the value can be found in
-         // the the "appended" sequence.
-         (forall (f:'a -> Tot bool).
-            (found_p f s_2 ==> found_p f (append s_1 s_2)))
-      )
-let append_lemma_found2 s_1 s_2 =
-   admit () // todo: proof needed.
-   *)
 
 abstract val append_lemma:
       s_1:seq 'a 
@@ -201,15 +186,14 @@ abstract val append_lemma:
          /\ (forall (f:'a -> Tot bool). (found_p f s_2 ==> found_p f (append s_1 s_2)))
             // if the value can be found in one of the two input sequences, the value will be
             // found in the "appended" sequence, and vice versa.
-         // /\ (forall (f:'a -> Tot bool).
-         //      (found_p f (append s_1 s_2) <==> (found_p f s_1 \/ found_p f s_2)))
+         /\ (forall (f:'a -> Tot bool).
+              (found_p f (append s_1 s_2) <==> (found_p f s_1 \/ found_p f s_2)))
          )
       )
 let append_lemma s_1 s_2 =
    let s' = append s_1 s_2 in
-   assert (equal (slice s' 0 (length s_1)) s_1);
-   assert (equal (slice s' (length s_1) (length s')) s_2)
-   //append_lemma_found2 s_1 s_2
+   assert (equal (slice s' 0 (length s_1)) s_1); // required
+   assert (equal (slice s' (length s_1) (length s')) s_2) // required
 
 (*
 val remove_lemma:
