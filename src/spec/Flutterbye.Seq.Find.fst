@@ -42,7 +42,6 @@ private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat)
       )*)
       // *** `None` signifies that no element is `s` can satisfy predicate `f` 
    /\ (is_None i ==> ~ (exists (x:nat{x < length s}). f (index s x)))
-   ///\ (is_None i ==> (forall (x:nat{x < length s}). not (f (index s x))))
       
 private val find_loop:
    f:('a -> Tot bool) 
@@ -77,11 +76,17 @@ private val find_lemma:
       (ensures (find_p f s (find_loop f s i ac)))
       (decreases (length s - i))
 let rec find_lemma f s i ac =
-   if i = length s then
-      admit ()
+   let sl = slice s 0 i in
+   if i = length s then begin
+      if length s = 0 || is_Some ac then
+         ()
+      else begin
+         assert (~ (exists (x:nat{x < length sl}). f (index sl x)));
+         admitP (~ (exists (x:nat{x < length s}). f (index s x)))
+      end
+   end
    else
       let ac' =
-         let sl = slice s 0 i in
          let sl' = slice s 0 (i + 1) in
          if is_None ac then begin
             if f (index s i) then begin
@@ -90,6 +95,9 @@ let rec find_lemma f s i ac =
                Some i
             end
             else begin
+               assert (~ (exists (x:nat{x < length sl}). f (index sl x)));
+               assert (index sl' i = index s i);
+               assert (not (f (index sl' i)));
                admitP (~ (exists (x:nat{x < length sl'}). f (index sl' x)));
                None
             end
