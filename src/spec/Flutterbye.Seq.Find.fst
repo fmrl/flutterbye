@@ -236,5 +236,5 @@ abstract val remove_lemma:
          /\ ((found_p f s /\ get (find f s) <> i) ==> found_p f (remove s i))  
          )
       ) 
-let remove_lemma f s i =
+let remove_lemma s i f =
    ()
