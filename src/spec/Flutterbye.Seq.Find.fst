@@ -25,8 +25,11 @@ private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat)
       // if `s` is of length zero, the only outcome can be `None`.
       ((length s = 0) ==> is_None i)
       // `None` signifies that no element is `s` can satisfy predicate `f` 
-   /\ (is_None i ==> ~ (exists (x:nat{x < length s}). f (index s x)))
+   /\ (is_None i <==> ~ (exists (x:nat{x < length s}). f (index s x)))
       // `Some i` implies that the length of `s` must be non-zero.
+   /\ (is_Some i <==> (exists (x:nat{x < length s}). f (index s x)))
+      // `Some i` implies, if `i > 0` that all elements preceeding `i`
+      // must not satisfy predicate `f`.
    /\ (is_Some i ==> b2t (length s > 0))
       // `Some i` implies that `i` must be a valid index of `s`.
    /\ (is_Some i ==> b2t (get i < length s))
@@ -36,9 +39,6 @@ private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat)
       // `Some` implies that there exists an element that can satisfy 
       // predicate `f`.
       // todo: can this be turned into an iff?
-   /\ (is_Some i ==> (exists (x:nat{x < length s}). f (index s x)))
-      // `Some i` implies, if `i > 0` that all elements preceeding `i`
-      // must not satisfy predicate `f`.
    /\ (   (is_Some i && get i > 0) 
       ==> (forall (x:nat). x < get i ==> not (f (index s x)))
       )
@@ -195,6 +195,28 @@ let append_lemma s_1 s_2 =
    assert (equal (slice s' 0 (length s_1)) s_1); // required
    assert (equal (slice s' (length s_1) (length s')) s_2) // required
 
+type slice_p (#a_t:Type) (s:seq a_t) (i:nat) (j:nat{i <= j && j <= length s}) =
+   (forall (f:a_t -> Tot bool).
+      (
+          (   (b2t (i = 0)) 
+          /\  (exists (x:nat{x < length s}).
+                 x < j /\ find_p f s (Some x))
+          ) 
+      ==> (forall (x:nat{x < length s}).
+             x >= j && is_Some (find f (slice s 0 x)))
+      )
+   )   
+
+abstract val slice_lemma:
+      s:seq 'a
+   -> i:nat
+   -> j:nat{i <= j && j <= length s}
+   -> Lemma
+      (requires (True))
+      (ensures (slice_p s i j))
+let slice_lemma s i j =
+   admit ()
+
 abstract val remove_lemma:
       s:seq 'a{length s > 0}
    -> i:nat{i < length s}
@@ -204,37 +226,51 @@ abstract val remove_lemma:
       (ensures
          (  // if the input sequence doesn't have an element that satisfies 
             // `f` then the output won't either.
-            (~ (found_p f s)) ==> (~ (found_p f (remove s i)))
+            ((~ (found_p f s)) ==> (~ (found_p f (remove s i))))
             // if an element in the input sequence that satisfies `f` can be
             // found and the index of that element appears before the element
             // being removed, the result of calling `find` on the output 
             // sequence won't be different from calling it on the input 
             // sequence.  
          /\ (   (found_p f s /\ get (find f s) < i) 
-            ==> (get (find f (remove s i)) = get (find f s))
+            ==> (  found_p f (remove s i) 
+                /\ (get (find f (remove s i)) = get (find f s))
+                )
             )  
             // if an element in the input sequence that satisfies `f` can be
             // found and the index of that element appears after the element
             // being removed, the result of calling `find` on the output 
             // sequence will be one less than the result of calling it on 
             // the input sequence.  
-         /\ (   (found_p f s /\ get (find f s) > i) 
-            ==> (get (find f (remove s i)) = get (find f s) - 1)
-            )  
+         ///\ (   (found_p f s /\ get (find f s) > i) 
+         //   ==> (  found_p f (remove s i) 
+         //       /\ (get (find f (remove s i)) = get (find f s) - 1)
+         //       )
+         //   )  
             // if an element in the input sequence that satisfies `f` can be
             // found and that is the element being removed, the result of 
             // calling `find` on the output sequence will match the output of
             // calling find on the slice of the sequence following the element
             // being removed.  
-         /\ (   (found_p f s /\ get (find f s) = i) 
-            ==> (get (find f (remove s i)) = get (find f (slice s (i + 1) (length s))))
-            )  
+        ///\ (    (found_p f s /\ get (find f s) = i) 
+        //    ==> (find f (remove s i) = find f (slice s (i + 1) (length s)))
+        //    )  
             // if an element in the input sequence that satisfies `f` can be
             // found and that element is not being removed from the sequence,
             // the output sequence will also have an element that satisfies 
             // `f`.  
-         /\ ((found_p f s /\ get (find f s) <> i) ==> found_p f (remove s i))  
+        // /\ ((found_p f s /\ get (find f s) <> i) ==> found_p f (remove s i))  
          )
       ) 
 let remove_lemma s i f =
-   ()
+   let s' = remove s i in
+   let a = find f s in
+   let a' = find f s' in
+   if is_Some a && get a < i then begin
+      assert (equal (slice s 0 i) (slice s' 0 i));
+      slice_lemma s 0 i;
+      assert (is_Some a');
+      ()
+   end
+   else
+      () 
