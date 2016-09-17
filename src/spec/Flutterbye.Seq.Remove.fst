@@ -46,3 +46,16 @@ val index_lemma:
 let index_lemma s i =
    ()
 
+val equal_lemma:
+   s:seq 'a{length s > 0}
+   -> i:nat{i < length s}
+   -> Lemma
+      (requires (True))
+      (ensures 
+         (  (equal (slice s 0 i) (slice (remove s i) 0 i))
+         /\ (equal (slice s (i + 1) (length s)) (slice (remove s i) i (length s - 1)))
+         )
+      )
+let equal_lemma s i =
+   ()
+
