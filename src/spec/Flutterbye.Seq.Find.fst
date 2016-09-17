@@ -195,15 +195,41 @@ let append_lemma s_1 s_2 =
    assert (equal (slice s' 0 (length s_1)) s_1); // required
    assert (equal (slice s' (length s_1) (length s')) s_2) // required
 
-type slice_p (#a_t:Type) (s:seq a_t) (i:nat) (j:nat{i <= j && j <= length s}) (f:a_t -> Tot bool) =
+private type slice_prefix_p (#a_t:Type) (s:seq a_t) (i:nat) (j:nat{i <= j && j <= length s}) (f:a_t -> Tot bool) =
    (
        (   (b2t (i = 0)) 
        /\  (exists (x:nat{x < length s}).
               x < j /\ find_p f s (Some x))
        ) 
-   ==> (forall (x:nat{x < length s}).
-          x >= j && is_Some (find f (slice s 0 x)))
+   ==> (is_Some (find f (slice s 0 j)))
    )
+
+private val slice_prefix_lemma:
+      s:seq 'a
+   -> i:nat
+   -> j:nat{i <= j && j <= length s}
+   -> f:('a -> Tot bool)
+   -> Lemma
+      (requires (True))
+      (ensures (slice_prefix_p s i j f))
+let slice_prefix_lemma s i j f =
+   if i = 0 then begin
+      let found = find f s in
+      if is_Some found then
+         if get found < j then
+            let s' = slice s 0 j in
+            let found' = find f s' in 
+            assert (is_Some found') // required
+         else
+            ()
+      else
+         ()
+   end
+   else
+      ()
+      
+(*
+todo: introducing the following lemma destabilizes the proof for slice_prefix_lemma. :(
 
 abstract val slice_lemma:
       s:seq 'a
@@ -212,17 +238,10 @@ abstract val slice_lemma:
    -> f:('a -> Tot bool)
    -> Lemma
       (requires (True))
-      (ensures (slice_p s i j f))
+      (ensures (slice_prefix_p s i j f))
 let slice_lemma s i j f =
-   if i = 0 then begin
-      let found = find f s in
-      if is_Some found then
-         admit ()
-      else
-         ()
-   end
-   else
-      ()
+   slice_prefix_lemma s i j f
+*)
 
 abstract val remove_lemma:
       s:seq 'a{length s > 0}
@@ -275,7 +294,7 @@ let remove_lemma s i f =
    let a' = find f s' in
    if is_Some a && get a < i then begin
       assert (equal (slice s 0 i) (slice s' 0 i));
-      slice_lemma s 0 i f;
+      slice_prefix_lemma s 0 i f;
       assert (is_Some a');
       ()
    end
