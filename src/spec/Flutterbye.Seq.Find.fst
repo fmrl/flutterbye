@@ -195,27 +195,34 @@ let append_lemma s_1 s_2 =
    assert (equal (slice s' 0 (length s_1)) s_1); // required
    assert (equal (slice s' (length s_1) (length s')) s_2) // required
 
-type slice_p (#a_t:Type) (s:seq a_t) (i:nat) (j:nat{i <= j && j <= length s}) =
-   (forall (f:a_t -> Tot bool).
-      (
-          (   (b2t (i = 0)) 
-          /\  (exists (x:nat{x < length s}).
-                 x < j /\ find_p f s (Some x))
-          ) 
-      ==> (forall (x:nat{x < length s}).
-             x >= j && is_Some (find f (slice s 0 x)))
-      )
-   )   
+type slice_p (#a_t:Type) (s:seq a_t) (i:nat) (j:nat{i <= j && j <= length s}) (f:a_t -> Tot bool) =
+   (
+       (   (b2t (i = 0)) 
+       /\  (exists (x:nat{x < length s}).
+              x < j /\ find_p f s (Some x))
+       ) 
+   ==> (forall (x:nat{x < length s}).
+          x >= j && is_Some (find f (slice s 0 x)))
+   )
 
 abstract val slice_lemma:
       s:seq 'a
    -> i:nat
    -> j:nat{i <= j && j <= length s}
+   -> f:('a -> Tot bool)
    -> Lemma
       (requires (True))
-      (ensures (slice_p s i j))
-let slice_lemma s i j =
-   admit ()
+      (ensures (slice_p s i j f))
+let slice_lemma s i j f =
+   if i = 0 then begin
+      let found = find f s in
+      if is_Some found then
+         admit ()
+      else
+         ()
+   end
+   else
+      ()
 
 abstract val remove_lemma:
       s:seq 'a{length s > 0}
@@ -268,7 +275,7 @@ let remove_lemma s i f =
    let a' = find f s' in
    if is_Some a && get a < i then begin
       assert (equal (slice s 0 i) (slice s' 0 i));
-      slice_lemma s 0 i;
+      slice_lemma s 0 i f;
       assert (is_Some a');
       ()
    end
