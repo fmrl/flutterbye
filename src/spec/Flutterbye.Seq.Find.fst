@@ -212,7 +212,6 @@ val equal_lemma:
 let equal_lemma s_1 s_2 f =
    ()
 
-
 private type slice_not_found_p 
    (#a_t:Type) 
    (s:seq a_t) 
