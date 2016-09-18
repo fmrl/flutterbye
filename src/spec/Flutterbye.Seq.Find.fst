@@ -310,12 +310,12 @@ let remove_from_prefix_lemma s i f =
    let s' = remove s i in
    let a = find f s in
    let a' = find f s' in
-   if is_Some a && get a < i then begin
-      assert (equal (slice s 0 i) (slice s' 0 i));
-      slice_lemma s 0 i f;
-      assert (is_Some a');
-      ()
-   end
+   if is_Some a && get a < i then 
+      begin
+         assert (equal (slice s 0 i) (slice s' 0 i));
+         slice_lemma s 0 i f;
+         assert (is_Some a')
+      end
    else
       () 
 
