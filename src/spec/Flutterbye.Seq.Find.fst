@@ -318,6 +318,30 @@ let remove_from_prefix_lemma s i f =
    else
       () 
 
+// if an element in the input sequence that satisfies `f` can be found and 
+// the index of that element appears after the element being removed, the 
+// result of calling `find` on the output sequence will be one less than the 
+// result of calling it on the input sequence.
+private type remove_from_suffix_p
+   (#a_t:Type)
+   (s:seq a_t{length s > 0})
+   (i:nat{i < length s})
+   (f:a_t -> Tot bool)
+=
+   (   (found f s && (get (find f s) > i)) 
+   ==> (found f (remove s i) && (get (find f (remove s i)) = get (find f s) - 1))
+   )
+
+private val remove_from_suffix_lemma:
+      s:seq 'a{length s > 0}
+   -> i:nat{i < length s}
+   -> f:('a -> Tot bool)
+   -> Lemma
+      (requires (True))
+      (ensures (remove_from_suffix_p s i f))
+let remove_from_suffix_lemma s i f =
+   admit ()
+
 abstract val remove_lemma:
       s:seq 'a{length s > 0}
    -> i:nat{i < length s}
@@ -328,16 +352,8 @@ abstract val remove_lemma:
          (  // remove_from_not_found
             ((not (found f s)) ==> (not (found f (remove s i))))
          /\ (remove_from_prefix_p s i f)  
-            // if an element in the input sequence that satisfies `f` can be
-            // found and the index of that element appears after the element
-            // being removed, the result of calling `find` on the output 
-            // sequence will be one less than the result of calling it on 
-            // the input sequence.  
-         ///\ (   (found_p f s /\ get (find f s) > i) 
-         //   ==> (  found_p f (remove s i) 
-         //       /\ (get (find f (remove s i)) = get (find f s) - 1)
-         //       )
-         //   )  
+         /\ (remove_from_suffix_p s i f)
+
             // if an element in the input sequence that satisfies `f` can be
             // found and that is the element being removed, the result of 
             // calling `find` on the output sequence will match the output of
@@ -361,4 +377,5 @@ let remove_lemma s i f =
          ()
    end;
    remove_from_prefix_lemma s i f;
+   remove_from_suffix_lemma s i f;
    ()
