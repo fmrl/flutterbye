@@ -319,7 +319,7 @@ let remove_from_prefix_lemma s i f =
       () 
 
 // if an element in the input sequence that satisfies `f` can be found and 
-// the index of that element appears after the element being removed, the 
+// that element follows the element being removed from the sequence, the 
 // result of calling `find` on the output sequence will be one less than the 
 // result of calling it on the input sequence.
 private type remove_from_suffix_p
@@ -340,7 +340,20 @@ private val remove_from_suffix_lemma:
       (requires (True))
       (ensures (remove_from_suffix_p s i f))
 let remove_from_suffix_lemma s i f =
-   admit ()
+   let s' = remove s i in
+   let a = find f s in
+   let a' = find f s' in
+   if is_Some a && get a > i then
+      begin
+         (*assert (equal (slice s 0 i) (slice s' 0 i));
+         assert (equal (slice s (i + 1) (length s)) (slice s' i (length s')));
+         let b = find f (slice s (i + 1) (length s)) in
+         let b' = find f  (slice s' i (length s')) in
+         assert (b = b');*)
+         assert (is_Some a') // sub-goal
+      end
+   else
+      ()
 
 abstract val remove_lemma:
       s:seq 'a{length s > 0}
