@@ -212,6 +212,8 @@ val equal_lemma:
 let equal_lemma s_1 s_2 f =
    ()
 
+// if a value cannot be found in sequence `s`, then it won't be found in any 
+// slice of `s` either.
 private type slice_not_found_p 
    (#a_t:Type) 
    (s:seq a_t) 
@@ -232,6 +234,8 @@ private val slice_not_found_lemma:
 let slice_not_found_lemma s i j f =
    ()
 
+// if there's an element at index `x` that satisfies `f` in sequence `s`, then any attempt
+// to find an element in a slice starting at `0` and including `x` will yield the same thing.
 private type slice_prefix_p 
    (#a_t:Type) 
    (s:seq a_t) 
@@ -239,7 +243,7 @@ private type slice_prefix_p
    (f:a_t -> Tot bool) 
 =
    (
-        (exists (x:nat{x < j}). find_p f s (Some x))
+       (exists (x:nat{x < j}). find_p f s (Some x))
    ==> (find f s = find f (slice s 0 j))
    )
 
@@ -350,7 +354,7 @@ let remove_from_suffix_lemma s i f =
          let b = find f (slice s (i + 1) (length s)) in
          let b' = find f  (slice s' i (length s')) in
          assert (b = b');*)
-         assert (is_Some a') // sub-goal
+         admitP (is_Some a') // sub-goal
       end
    else
       ()
