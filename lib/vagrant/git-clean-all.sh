@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/bin/sh
 
 # $legal:613:
 #
@@ -18,24 +18,11 @@
 #
 #,$
 
-require "rbconfig"
+set -x
 
-def say(s)
-   puts "setup.rb: #{s}"
-end
+# exit on any unobserved failure.
+set -e
 
-host_os = RbConfig::CONFIG['host_os']
-say "platform reported as `#{host_os}`."
-if host_os =~ /mswin|msys|mingw|bccwin|wince|emc/
-   # file mode changes can cause havok with git on windows.
-   say "instructing git to ignore file mode changes..."
-   STDOUT.write `git config --local core.fileMode false 2>&1`
-end
-
-# todo: detect whether bundler is available.
-say "performing bundler setup..."
-STDOUT.write `bundle install --path vendor/bundle 2>&1`
-
-say "done."
-
-# $vim-rb:31: vim:set sts=3 sw=3 et ft=ruby:,$
+git clean -fdx -e Vagrantfile -e .vagrant
+rm -rf vendor
+git submodule foreach 'git clean -fdx'
