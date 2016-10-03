@@ -35,9 +35,9 @@ creation of a development environment is fully automated using [vagrant](http://
 3. make a copy of `Vagrantfile.sample` and call it `Vagrantfile`. you may modify this file if you wish.
 4. type `vagrant up` to prepare a new development environment. `vagrant halt` will shut down the environment and `vagrant ssh` can be used to access commands within the development environment.  
 
-#### alternatives
+#### alternatives to virtualbox
 
-using virtualbox is convenient but, of course, performs poorly compared to containers or bare-metal installations of tools. 
+using *virtualbox* is convenient but, of course, performs poorly compared to containers or bare-metal installation of tools. 
 
 linux users, in theory, have the option to substitute a container technology (e.g. `lxc` or `docker`) but i haven't yet explored these options fully. alternatively, linux users can configure their system without the use of vagrant: studying the scripts in `lib/vagrant` should provide sufficient documentation for this endeavor.
 
