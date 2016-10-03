@@ -24,7 +24,13 @@ $LOAD_PATH.unshift prefix.join('lib/ruby').to_s
 
 require "fileutils"
 
-require "rubrstmp/rake_tasks"
+has_rubrstmp = true
+begin
+   require "rubrstmp/rake_tasks"
+rescue LoadError
+   has_rubrstmp = false
+   puts "warning: i was unable to find rubrstmp; related targets will be unavailable." 
+end
 
 require "rake/fstar"
 require "rake/madoko"
@@ -53,23 +59,25 @@ else
    puts 'warning: i was unable to find node.js; madoko-related targets will be unavailable.'
 end
 
-namespace :rubrstmp do
-   exclude "LICENSE"
-   exclude "NOTICE"
-   exclude "README.md"
-   exclude ".git/*"
-   exclude "bin/*"
-   exclude "node_modules/*"
-   exclude "submodules/*"
-   exclude "vendor/*"
-   exclude "*.dic"
-   exclude "*.json"
-   exclude "*.mdk"
-   file_keywords \
-      "legal" => "NOTICE",
-      "vim" => "etc/rubrstmp/vim/default",
-      "vim-rb" => "etc/rubrstmp/vim/ruby",
-      "vim-fst" => "etc/rubrstmp/vim/fstar"
+if has_rubrstmp then
+   namespace :rubrstmp do
+      exclude "LICENSE"
+      exclude "NOTICE"
+      exclude "README.md"
+      exclude ".git/*"
+      exclude "bin/*"
+      exclude "node_modules/*"
+      exclude "submodules/*"
+      exclude "vendor/*"
+      exclude "*.dic"
+      exclude "*.json"
+      exclude "*.mdk"
+      file_keywords \
+         "legal" => "NOTICE",
+         "vim" => "etc/rubrstmp/vim/default",
+         "vim-rb" => "etc/rubrstmp/vim/ruby",
+         "vim-fst" => "etc/rubrstmp/vim/fstar"
+   end
 end
 
 namespace :debug do
