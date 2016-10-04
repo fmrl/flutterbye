@@ -236,7 +236,7 @@ let slice_not_found_lemma s i j f =
 
 // if there's an element at index `x` that satisfies `f` in sequence `s`, then any attempt
 // to find an element in a slice delimited by `x` will fail.
-private type slice_prefix_exclusive_p 
+private type slice_prefix_p 
    (#a_t:Type) 
    (s:seq a_t) 
    (i:nat)
@@ -248,21 +248,21 @@ private type slice_prefix_exclusive_p
    ==> (not (found f (slice s i j)))
    )   
 
-private val slice_prefix_exclusive_lemma:
+private val slice_prefix_lemma:
       s:seq 'a
    -> i:nat
    -> j:nat{i <= j && j <= length s} 
    -> f:('a -> Tot bool)
    -> Lemma
       (requires (True))
-      (ensures (slice_prefix_exclusive_p s i j f))
-let slice_prefix_exclusive_lemma s i j f =
+      (ensures (slice_prefix_p s i j f))
+let slice_prefix_lemma s i j f =
    ()   
 
 // if there's an element at index `x` that satisfies `f` in sequence `s` with in the range of
 // a slice `s'` defined on the range `[i, j)` then the same `find` operation on `s'` will 
 // succeed, returning an index of `x - i`.
-private type slice_prefix_inclusive_p 
+private type slice_inclusive_p 
    (#a_t:Type) 
    (s:seq a_t) 
    (i:nat)
@@ -281,22 +281,23 @@ private type slice_prefix_inclusive_p
        )
    )
 
-private val slice_prefix_inclusive_lemma:
+private val slice_inclusive_lemma:
       s:seq 'a
    -> i:nat
    -> j:nat{i <= j && j <= length s} 
    -> f:('a -> Tot bool)
    -> Lemma
       (requires (True))
-      (ensures (slice_prefix_inclusive_p s i j f))
-let slice_prefix_inclusive_lemma s i j f =
+      (ensures (slice_inclusive_p s i j f))
+let slice_inclusive_lemma s i j f =
    let a = find f s in
    if is_Some a && i <= get a && get a < j then
       begin
          let s' = slice s i j in
          let a' = find f s' in
          assert (equal (slice s i (get a)) (slice s' 0 ((get a) - i)));
-         admitP (is_Some a') // unstable
+         slice_prefix_lemma s i (get a) f;
+         assert (is_Some a')
       end
    else
       ()
@@ -310,14 +311,14 @@ abstract val slice_lemma:
       (requires (True))
       (ensures 
          (  slice_not_found_p s i j f
-         /\ slice_prefix_exclusive_p s i j f
-         /\ slice_prefix_inclusive_p s i j f
+         /\ slice_prefix_p s i j f
+         /\ slice_inclusive_p s i j f
          )
       )
 let slice_lemma s i j f =
    slice_not_found_lemma s i j f;
-   slice_prefix_inclusive_lemma s i j f;
-   slice_prefix_exclusive_lemma s i j f
+   slice_inclusive_lemma s i j f;
+   slice_prefix_lemma s i j f
 
 // if the input sequence doesn't have an element that satisfies `f` then the 
 // output won't either.
@@ -392,9 +393,6 @@ let remove_from_suffix_lemma s i f =
    let a' = find f s' in
    if is_Some a && get a > i then
       begin
-         assert (equal (slice s 0 i) (slice s' 0 i));
-         assert (not (found f (slice s 0 i))); 
-         assert (not (found f (slice s' 0 i)));
          assert (equal (slice s (i + 1) (length s)) (slice s' i (length s')));
          slice_lemma s (i + 1) (length s) f;
          assert (is_Some a') // sub-goal
