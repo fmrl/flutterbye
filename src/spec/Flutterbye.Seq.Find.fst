@@ -271,7 +271,6 @@ private type slice_prefix_inclusive_p
 =
    (
        (exists (x:nat{i <= x && x < j}). find_p f s (Some x))
-   //==> (i <= get (find f s) ==> (get (find f s) - i = get (find f (slice s i j))))
    ==> (
            (i <= get (find f s))
        ==> b2t 
@@ -280,7 +279,6 @@ private type slice_prefix_inclusive_p
            && (get (find f (slice s i j)) = get (find f s) - i)
            )
        )
-   //==> (i <= get (find f s) ==> b2t (found f (slice s i j)))
    )
 
 private val slice_prefix_inclusive_lemma:
@@ -297,11 +295,7 @@ let slice_prefix_inclusive_lemma s i j f =
       begin
          let s' = slice s i j in
          let a' = find f s' in
-         //assert (not (found f (slice s 0 i)));
-         //assert (not (found f (slice s i (get a))));
-         assert (equal (slice s i (get a)) (slice s' 0 ((get a) - i)));
-         //assert (is_Some a')
-         ()
+         assert (equal (slice s i (get a)) (slice s' 0 ((get a) - i)))
       end
    else
       ()
