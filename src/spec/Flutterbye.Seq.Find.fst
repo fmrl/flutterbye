@@ -236,7 +236,7 @@ let slice_not_found_lemma s i j f =
 
 // if there's an element at index `x` that satisfies `f` in sequence `s`, then any attempt
 // to find an element in a slice starting at `0` and including `x` will yield the same thing.
-private type slice_prefix_p 
+private type slice_prefix_inclusive_p 
    (#a_t:Type) 
    (s:seq a_t) 
    (j:nat{j <= length s}) 
@@ -247,15 +247,38 @@ private type slice_prefix_p
    ==> (find f s = find f (slice s 0 j))
    )
 
-private val slice_prefix_lemma:
+private val slice_prefix_inclusive_lemma:
       s:seq 'a
    -> j:nat{j <= length s}
    -> f:('a -> Tot bool)
    -> Lemma
       (requires (True))
-      (ensures (slice_prefix_p s j f))
-let slice_prefix_lemma s j f =
+      (ensures (slice_prefix_inclusive_p s j f))
+let slice_prefix_inclusive_lemma s j f =
    ()
+
+// if there's an element at index `x` that satisfies `f` in sequence `s`, then any attempt
+// to find an element in a slice starting at `0` and ending before `x` will fail.
+private type slice_prefix_exclusive_p 
+   (#a_t:Type) 
+   (s:seq a_t) 
+   (j:nat{j <= length s}) 
+   (f:a_t -> Tot bool) 
+=
+   (
+       (exists (x:nat{x >= j}). find_p f s (Some x))
+   ==> (not (found f (slice s 0 j)))
+   )   
+
+private val slice_prefix_exclusive_lemma:
+      s:seq 'a
+   -> j:nat{j <= length s}
+   -> f:('a -> Tot bool)
+   -> Lemma
+      (requires (True))
+      (ensures (slice_prefix_exclusive_p s j f))
+let slice_prefix_exclusive_lemma s j f =
+   ()   
 
 abstract val slice_lemma:
       s:seq 'a
@@ -266,13 +289,14 @@ abstract val slice_lemma:
       (requires (True))
       (ensures 
          (  slice_not_found_p s i j f
-         /\ (i = 0 ==> slice_prefix_p s j f)
+         /\ (i = 0 ==> slice_prefix_inclusive_p s j f)
+         /\ (i = 0 ==> slice_prefix_exclusive_p s j f)
          )
       )
 let slice_lemma s i j f =
    slice_not_found_lemma s i j f;
    if i = 0 then
-      slice_prefix_lemma s j f
+      slice_prefix_inclusive_lemma s j f
    else
       ()
 
