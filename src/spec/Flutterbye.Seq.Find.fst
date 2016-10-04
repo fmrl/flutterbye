@@ -400,6 +400,30 @@ let remove_from_suffix_lemma s i f =
    else
       ()
 
+// if an element in the input sequence that satisfies `f` can be
+// found and that element is not being removed from the sequence,
+// the output sequence will also have an element that satisfies 
+// `f`.  
+private type remove_other_p
+   (#a_t:Type)
+   (s:seq a_t{length s > 0})
+   (i:nat{i < length s})
+   (f:a_t -> Tot bool)
+=
+   (found_p f s /\ get (find f s) <> i) ==> found_p f (remove s i)  
+
+private val remove_other_lemma:
+      s:seq 'a{length s > 0}
+   -> i:nat{i < length s}
+   -> f:('a -> Tot bool)
+   -> Lemma
+      (requires (True))
+      (ensures (remove_other_p s i f))
+let remove_other_lemma s i f =
+   remove_from_prefix_lemma s i f;
+   remove_from_suffix_lemma s i f;
+   ()
+
 abstract val remove_lemma:
       s:seq 'a{length s > 0}
    -> i:nat{i < length s}
@@ -411,6 +435,7 @@ abstract val remove_lemma:
             ((not (found f s)) ==> (not (found f (remove s i))))
          /\ (remove_from_prefix_p s i f)  
          /\ (remove_from_suffix_p s i f)
+         /\ (remove_other_p s i f)
 
             // if an element in the input sequence that satisfies `f` can be
             // found and that is the element being removed, the result of 
@@ -420,11 +445,6 @@ abstract val remove_lemma:
         ///\ (    (found_p f s /\ get (find f s) = i) 
         //    ==> (find f (remove s i) = find f (slice s (i + 1) (length s)))
         //    )  
-            // if an element in the input sequence that satisfies `f` can be
-            // found and that element is not being removed from the sequence,
-            // the output sequence will also have an element that satisfies 
-            // `f`.  
-        // /\ ((found_p f s /\ get (find f s) <> i) ==> found_p f (remove s i))  
          )
       ) 
 let remove_lemma s i f =
@@ -436,4 +456,5 @@ let remove_lemma s i f =
    end;
    remove_from_prefix_lemma s i f;
    remove_from_suffix_lemma s i f;
+   remove_other_lemma s i f;
    ()
