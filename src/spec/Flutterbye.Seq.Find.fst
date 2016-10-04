@@ -295,7 +295,8 @@ let slice_prefix_inclusive_lemma s i j f =
       begin
          let s' = slice s i j in
          let a' = find f s' in
-         assert (equal (slice s i (get a)) (slice s' 0 ((get a) - i)))
+         assert (equal (slice s i (get a)) (slice s' 0 ((get a) - i)));
+         admitP (is_Some a') // unstable
       end
    else
       ()
@@ -391,12 +392,12 @@ let remove_from_suffix_lemma s i f =
    let a' = find f s' in
    if is_Some a && get a > i then
       begin
-         (*assert (equal (slice s 0 i) (slice s' 0 i));
+         assert (equal (slice s 0 i) (slice s' 0 i));
+         assert (not (found f (slice s 0 i))); 
+         assert (not (found f (slice s' 0 i)));
          assert (equal (slice s (i + 1) (length s)) (slice s' i (length s')));
-         let b = find f (slice s (i + 1) (length s)) in
-         let b' = find f  (slice s' i (length s')) in
-         assert (b = b');*)
-         admitP (is_Some a') // sub-goal
+         slice_lemma s (i + 1) (length s) f;
+         assert (is_Some a') // sub-goal
       end
    else
       ()
