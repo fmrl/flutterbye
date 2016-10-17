@@ -236,7 +236,7 @@ let slice_not_found_lemma s i j f =
 
 // if there's an element at index `x` that satisfies `f` in sequence `s`, then any attempt
 // to find an element in a slice delimited by `x` will fail.
-private type slice_prefix_p 
+private type slice_preceeding_p 
    (#a_t:Type) 
    (s:seq a_t) 
    (i:nat)
@@ -248,16 +248,49 @@ private type slice_prefix_p
    ==> (not (found f (slice s i j)))
    )   
 
-private val slice_prefix_lemma:
+private val slice_preceeding_lemma:
       s:seq 'a
    -> i:nat
    -> j:nat{i <= j && j <= length s} 
    -> f:('a -> Tot bool)
    -> Lemma
       (requires (True))
-      (ensures (slice_prefix_p s i j f))
-let slice_prefix_lemma s i j f =
-   ()   
+      (ensures (slice_preceeding_p s i j f))
+let slice_preceeding_lemma s i j f =
+   ()
+
+(*
+private type slice_prefix_not_found_p 
+   (#a_t:Type) 
+   (s:seq a_t) 
+   (j:nat{0 <= j && j <= length s}) 
+   (f:(a_t -> Tot bool){not (found f (slice s 0 j))}) 
+=
+   (
+      (~ (found_p f s) <==> ~ (found_p f (slice s j (length s))))
+   /\ (
+          (found_p f s) 
+      ==> (get (find f s) = (get (find f (slice s j (length s))) + j))
+      )
+   )
+
+private val slice_prefix_not_found_lemma:
+      s:seq 'a
+   -> j:nat{0 <= j && j <= length s} 
+   -> f:('a -> Tot bool){not (found f (slice s 0 j))}
+   -> Lemma
+      (requires (True))
+      (ensures (slice_prefix_not_found_p s j f))
+let slice_prefix_not_found_lemma s j f =
+   let a = find f s in
+   if is_None a then
+      slice_not_found_lemma s j (length s) f
+   else
+      begin
+         let a' = find f (slice s j (length s)) in
+         admitP (is_Some a')
+         admitP (get a = (get a') + j)
+      end*)
 
 // if there's an element at index `x` that satisfies `f` in sequence `s` with in the range of
 // a slice `s'` defined on the range `[i, j)` then the same `find` operation on `s'` will 
@@ -296,7 +329,7 @@ let slice_inclusive_lemma s i j f =
          let s' = slice s i j in
          let a' = find f s' in
          assert (equal (slice s i (get a)) (slice s' 0 ((get a) - i)));
-         slice_prefix_lemma s i (get a) f;
+         slice_preceeding_lemma s i (get a) f;
          assert (is_Some a')
       end
    else
@@ -311,14 +344,20 @@ abstract val slice_lemma:
       (requires (True))
       (ensures 
          (  slice_not_found_p s i j f
-         /\ slice_prefix_p s i j f
+         /\ slice_preceeding_p s i j f
          /\ slice_inclusive_p s i j f
+         ///\ ((i = 0 && not (found f (slice s 0 j))) ==> slice_prefix_not_found_p s j f)
          )
       )
 let slice_lemma s i j f =
    slice_not_found_lemma s i j f;
    slice_inclusive_lemma s i j f;
-   slice_prefix_lemma s i j f
+   slice_preceeding_lemma s i j f
+   (*;
+   if i = 0 && not (found f (slice s 0 j)) then
+      slice_prefix_not_found_lemma s j f
+   else
+      () *)
 
 // if the input sequence doesn't have an element that satisfies `f` then the 
 // output won't either.
@@ -431,7 +470,7 @@ private type remove_found_p
    (f:a_t -> Tot bool)
 =
    (   (found_p f s /\ get (find f s) = i) 
-   ==> (find f (remove s i) = find f (slice s (i + 1) (length s)))
+   ==> (~ (found_p f (slice s (i + 1) (length s))) <==> ~ (found_p f (remove s i)))
    )  
 
 private val remove_found_lemma:
@@ -442,7 +481,35 @@ private val remove_found_lemma:
       (requires (True))
       (ensures (remove_found_p s i f))
 let remove_found_lemma s i f =
-   admit ()
+   let a = find f s in
+   let s' = remove s i in
+   if length s' = 0 then
+      ()
+   else
+      begin
+         let prefix = slice s 0 i in
+         let suffix = slice s (i + 1) (length s) in
+         if is_Some a then
+            begin
+               if i = get a then
+                  begin
+                     let j = length prefix in
+                     assert (equal prefix (slice s' 0 j));
+                     assert (equal suffix (slice s' j (length s')));
+                     if not (found f suffix) then
+                        assert (not (found f prefix))
+                     else
+                        ()
+                  end
+               else
+                  ()
+            end   
+         else
+            begin
+               assert (is_None (find f prefix));
+               assert (is_None (find f suffix))
+            end
+      end
 
 abstract val remove_lemma:
       s:seq 'a{length s > 0}
