@@ -19,24 +19,43 @@
 module Flutterbye.Seq.Remove
 open FStar.Seq
 
-private type removed_p (#a_t:Type) (s:seq a_t{length s > 0}) (i:nat{i < length s}) (s':seq a_t) =
-   (length s > 0)
-   /\ (length s' = length s - 1) 
-   /\ (forall (x:nat).
-         x < i ==> index s' x = index s x) 
-   /\ (forall (x:nat).
-         i < x && x < length s' ==>
-            index s' x = index s (x + 1)) 
-   /\ (i = 0 ==> equal s' (slice s 1 (length s))) 
-   /\ (i = length s ==> equal s' (slice s 0 (length s - 1)))
-
 // bug: an unmatched (* will not be reported properly by f*.
 
 val remove:
    s:seq 'a{length s > 0}
    -> i:nat{i < length s}
-   -> Tot (s':seq 'a{removed_p s i s'})
+   -> Tot (s':seq 'a{length s' = length s - 1})
 let remove s i =
    let l = slice s 0 i in
    let r = slice s (i + 1) (length s) in
    append l r
+
+val index_lemma:
+   s:seq 'a{length s > 0}
+   -> i:nat{i < length s}
+   -> Lemma
+      (requires (True))
+      (ensures 
+         (  // todo: let_t s' = remove s i
+            (forall (x:nat).
+               x < i ==> index (remove s i) x = index s x) 
+         /\ (forall (x:nat).
+               i < x && x < length (remove s i) ==> index (remove s i) x = index s (x + 1))
+         )
+      )
+let index_lemma s i =
+   ()
+
+val equal_lemma:
+   s:seq 'a{length s > 0}
+   -> i:nat{i < length s}
+   -> Lemma
+      (requires (True))
+      (ensures 
+         (  (equal (slice s 0 i) (slice (remove s i) 0 i))
+         /\ (equal (slice s (i + 1) (length s)) (slice (remove s i) i (length s - 1)))
+         )
+      )
+let equal_lemma s i =
+   ()
+

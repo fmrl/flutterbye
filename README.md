@@ -23,6 +23,26 @@ development status
 
 this is an early work in progress of an experimental work. currently, effort is being focused on documentation and mathematical proofs describing *flutterbye*. long term goals will include working systems that demonstrate *flutterbye*.
 
+getting started
+---------------
+
+### setup
+
+creation of a development environment is fully automated using [vagrant](http://vagrantup.com). to get started:
+
+1. install [vagrant](http://vagrantup.com).
+2. install [virtualbox](http://virtualbox.org).
+3. make a copy of `Vagrantfile.sample` and call it `Vagrantfile`. you may modify this file if you wish.
+4. type `vagrant up` to prepare a new development environment. `vagrant halt` will shut down the environment and `vagrant ssh` can be used to access commands within the development environment.  
+
+#### alternatives to virtualbox
+
+using *virtualbox* is convenient but, of course, performs poorly compared to containers or bare-metal installation of tools. 
+
+linux users, in theory, have the option to substitute a container technology (e.g. `lxc` or `docker`) but i haven't yet explored these options fully. alternatively, linux users can configure their system without the use of vagrant: studying the scripts in `lib/vagrant` should provide sufficient documentation for this endeavor.
+
+windows users, may have more difficulty configuring their system without using a virtual machine. i recommend building the ocaml version of [f*](http://fstar-lang.org) but ocaml support for windows is still very experimental (i.e. not for the faint of heart). if you're feeling brave, however, refer to the [f*](http://fstar-lang.org) for guidance.
+
 license
 -------
 
