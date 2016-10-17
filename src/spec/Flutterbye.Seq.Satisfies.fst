@@ -117,14 +117,7 @@ val remove_lemma:
          (  // if the input sequence doesn't have an element that satisfies 
             // `f` then the output won't either.
             (~ (satisfies_p f s) ==> ~ (satisfies_p f (remove s i)))
-            // if an element in the input sequence that satisfies `f` can be
-            // found and the index of that element appears after the element
-            // being removed, the result of calling `find` on the output 
-            // sequence will be one less than the result of calling it on 
-            // the input sequence.  
-         // /\ (   (satisfies_p f s /\ get (find f s) = i) 
-         //    ==> (get (find f (remove s i)) = get (find f (slice s (i + 1) (length s))))
-         //    )  
+
             // if an element in the input sequence that satisfies `f` can be
             // found and that element is not being removed from the sequence,
             // the output sequence will also satisfy `f`.  
