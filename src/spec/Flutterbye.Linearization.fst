@@ -30,8 +30,12 @@ type step_t 'a =
 type satisfies_commit_p (#a_t:Type) (steps:seq (step_t a_t)) =
    satisfies_p is_Commit steps
 
+val is_fresh: state:'a -> pending_t 'a -> Tot bool
+let is_fresh state pending =
+   Pending.observed pending = state
+
 type satisfies_fresh_p (#a_t:Type) (pending:seq (pending_t a_t)) (state:a_t) =
-   satisfies_p (fun p -> Pending.observed p = state) pending
+   satisfies_p (is_fresh state) pending
 
 val advance_loop:
       pending:seq (pending_t 'a)
@@ -48,6 +52,7 @@ let rec advance_loop pending state steps =
       let op = Pending.op p in
       let fresh = (Pending.observed p = state) in
       if fresh then begin
+         // if the transaction is fresh, we can commit it.
          let step' = Commit op in
          let state' = op state in
          let steps' = append steps (create 1 step') in
@@ -58,12 +63,14 @@ let rec advance_loop pending state steps =
          assert (satisfies_commit_p steps');
          advance_loop pending' state' steps'
       end else begin
+         // otherwise, we mark the transaction as stale.
          let step' = Stale op in
          let steps' = append steps (create 1 step') in
-         let pending' = remove pending i in
          Flutterbye.Seq.Satisfies.append_lemma steps (create 1 step');
          assert (satisfies_commit_p steps <==> satisfies_commit_p steps');
-         admitP (satisfies_fresh_p pending state <==> satisfies_fresh_p pending' state);
+         let pending' = remove pending i in
+         Flutterbye.Seq.Satisfies.remove_lemma pending i (is_fresh state);
+         assert (satisfies_fresh_p pending state ==> satisfies_fresh_p pending' state);
          advance_loop pending' state steps'
       end         
    end
