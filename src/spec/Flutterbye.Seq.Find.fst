@@ -259,39 +259,6 @@ private val slice_preceeding_lemma:
 let slice_preceeding_lemma s i j f =
    ()
 
-(*
-private type slice_prefix_not_found_p 
-   (#a_t:Type) 
-   (s:seq a_t) 
-   (j:nat{0 <= j && j <= length s}) 
-   (f:(a_t -> Tot bool){not (found f (slice s 0 j))}) 
-=
-   (
-      (~ (found_p f s) <==> ~ (found_p f (slice s j (length s))))
-   /\ (
-          (found_p f s) 
-      ==> (get (find f s) = (get (find f (slice s j (length s))) + j))
-      )
-   )
-
-private val slice_prefix_not_found_lemma:
-      s:seq 'a
-   -> j:nat{0 <= j && j <= length s} 
-   -> f:('a -> Tot bool){not (found f (slice s 0 j))}
-   -> Lemma
-      (requires (True))
-      (ensures (slice_prefix_not_found_p s j f))
-let slice_prefix_not_found_lemma s j f =
-   let a = find f s in
-   if is_None a then
-      slice_not_found_lemma s j (length s) f
-   else
-      begin
-         let a' = find f (slice s j (length s)) in
-         admitP (is_Some a')
-         admitP (get a = (get a') + j)
-      end*)
-
 // if there's an element at index `x` that satisfies `f` in sequence `s` with in the range of
 // a slice `s'` defined on the range `[i, j)` then the same `find` operation on `s'` will 
 // succeed, returning an index of `x - i`.
@@ -353,11 +320,6 @@ let slice_lemma s i j f =
    slice_not_found_lemma s i j f;
    slice_inclusive_lemma s i j f;
    slice_preceeding_lemma s i j f
-   (*;
-   if i = 0 && not (found f (slice s 0 j)) then
-      slice_prefix_not_found_lemma s j f
-   else
-      () *)
 
 // if the input sequence doesn't have an element that satisfies `f` then the 
 // output won't either.
@@ -470,7 +432,13 @@ private type remove_found_p
    (f:a_t -> Tot bool)
 =
    (   (found_p f s /\ get (find f s) = i) 
-   ==> (~ (found_p f (slice s (i + 1) (length s))) <==> ~ (found_p f (remove s i)))
+   ==> (
+          (~ (found_p f (slice s (i + 1) (length s))) <==> ~ (found_p f (remove s i)))
+       /\ (
+              (found_p f (slice s (i + 1) (length s))) 
+          ==> (get (find f (remove s i)) = i + get (find f (slice s (i + 1) (length s))))
+          )
+       )    
    )  
 
 private val remove_found_lemma:
