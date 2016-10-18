@@ -19,15 +19,15 @@
 module Flutterbye.Seq.Map
 open FStar.Seq
 
-private type mapping_p (#a_t:Type) (#b_t:Type) (f:a_t -> Tot b_t) (s_a: seq a_t) (s_b:seq b_t) =
+private type mapping_p (#a_t:Type) (#b_t:Type) (f:nat -> a_t -> Tot b_t) (s_a: seq a_t) (s_b:seq b_t) =
    b2t (length s_a = length s_b) /\
    (length s_a = 0 \/
       (forall (x:nat).
-         x < length s_a ==> f (index s_a x) = index s_b x))
+         x < length s_a ==> f x (index s_a x) = index s_b x))
 
 private val map_loop:
    // mapping function
-   f:('a -> Tot 'b)
+   f:(nat -> 'a -> Tot 'b)
    // input sequence
    -> s:seq 'a
    // accumulator; in this case, the output sequence.
@@ -38,13 +38,13 @@ let rec map_loop f s ac =
    let i = length ac in
    if i < length s then
       let a = index s i in
-      let ac' = append ac (create 1 (f a)) in
+      let ac' = append ac (create 1 (f i a)) in
       map_loop f s ac'
    else
       ac
 
 private val map_lemma:
-   f:('a -> Tot 'b)
+   f:(nat -> 'a -> Tot 'b)
    -> s:seq 'a
    -> ac:seq 'b{length ac <= length s}
    -> Lemma
@@ -55,14 +55,14 @@ let rec map_lemma f s ac =
    let i = length ac in
    if i < length s then
       let a = index s i in
-      let ac' = append ac (create 1 (f a)) in
+      let ac' = append ac (create 1 (f i a)) in
       map_lemma f s ac'
    else
       ()
 
 // map seq 'a to seq 'b given a function that maps 'a to 'b.
 val map:
-   f:('a -> Tot 'b) ->
+   f:(nat -> 'a -> Tot 'b) ->
    s:seq 'a ->
    Tot (s':seq 'b{mapping_p f s s'})
 let map f s =
