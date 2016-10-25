@@ -41,11 +41,11 @@ val linearize_inner_induction_loop:
       pending:seq (pending_t 'a)
    -> state:'a
    -> steps:seq (step_t 'a){satisfies_commit_p steps \/ satisfies_fresh_p pending state}
-   -> Tot (steps':seq (step_t 'a){satisfies_commit_p steps'})
+   -> Tot (out:(seq (step_t 'a) * 'a){satisfies_commit_p (fst out)})
       (decreases (length pending))
 let rec linearize_inner_induction_loop pending state steps =
    if 0 = length pending then
-      steps
+      (steps, state)
    else begin
       let i = 0 in
       let p = index pending i in
@@ -78,7 +78,7 @@ let rec linearize_inner_induction_loop pending state steps =
 val linearize_inner_induction:
       pending:seq (pending_t 'a)
    -> state:'a{satisfies_fresh_p pending state}
-   -> Tot (steps':seq (step_t 'a){satisfies_commit_p steps'})
+   -> Tot (out:(seq (step_t 'a) * 'a){satisfies_commit_p (fst out)})
       (decreases (length pending))
 let linearize_inner_induction pending state =
    linearize_inner_induction_loop pending state createEmpty
