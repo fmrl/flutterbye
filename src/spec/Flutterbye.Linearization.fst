@@ -45,39 +45,40 @@ type satisfies_fresh_p (#a_t:Type) (pending:seq (pending_t a_t)) (state:a_t) =
 
 val linearize_inner_induction_loop:
       pending:seq (pending_t 'a)
-   -> state:'a
-   -> steps:seq (step_t 'a){satisfies_commit_p steps \/ satisfies_fresh_p pending state}
+   -> thread:thread_t 'a{satisfies_commit_p thread.steps \/ satisfies_fresh_p pending thread.state}
    -> Tot (thread':(thread_t 'a){satisfies_commit_p thread'.steps})
       (decreases (length pending))
-let rec linearize_inner_induction_loop pending state steps =
+let rec linearize_inner_induction_loop pending thread =
    if 0 = length pending then
-      { steps = steps; state = state }
+      thread
    else begin
       let i = 0 in
       let p = index pending i in
       let op = Pending.op p in
-      let fresh = (Pending.observed p = state) in
+      let fresh = (Pending.observed p = thread.state) in
       if fresh then begin
          // if the transaction is fresh, we can commit it.
          let step' = Commit op in
-         let state' = op state in
-         let steps' = append steps (create 1 step') in
+         let state' = op thread.state in
+         let steps' = append thread.steps (create 1 step') in
          let pending' = remove pending i in
          Flutterbye.Seq.Satisfies.create_lemma 1 step';
          assert (satisfies_commit_p (create 1 step'));
-         Flutterbye.Seq.Satisfies.append_lemma steps (create 1 step');
+         Flutterbye.Seq.Satisfies.append_lemma thread.steps (create 1 step');
          assert (satisfies_commit_p steps');
-         linearize_inner_induction_loop pending' state' steps'
+         let thread' = { state = state'; steps = steps' } in 
+         linearize_inner_induction_loop pending' thread'
       end else begin
          // otherwise, we mark the transaction as stale.
          let step' = Stale op in
-         let steps' = append steps (create 1 step') in
-         Flutterbye.Seq.Satisfies.append_lemma steps (create 1 step');
-         assert (satisfies_commit_p steps <==> satisfies_commit_p steps');
+         let steps' = append thread.steps (create 1 step') in
+         Flutterbye.Seq.Satisfies.append_lemma thread.steps (create 1 step');
+         assert (satisfies_commit_p thread.steps <==> satisfies_commit_p steps');
          let pending' = remove pending i in
-         Flutterbye.Seq.Satisfies.remove_lemma pending i (is_fresh state);
-         assert (satisfies_fresh_p pending state ==> satisfies_fresh_p pending' state);
-         linearize_inner_induction_loop pending' state steps'
+         Flutterbye.Seq.Satisfies.remove_lemma pending i (is_fresh thread.state);
+         assert (satisfies_fresh_p pending thread.state ==> satisfies_fresh_p pending' thread.state);
+         let thread' = { state = thread.state; steps = steps' } in 
+         linearize_inner_induction_loop pending' thread'
       end         
    end
 
@@ -87,7 +88,8 @@ val linearize_inner_induction:
    -> Tot (thread':(thread_t 'a){satisfies_commit_p thread'.steps})
       (decreases (length pending))
 let linearize_inner_induction pending state =
-   linearize_inner_induction_loop pending state createEmpty
+   let thread = { state = state; steps = createEmpty } in
+   linearize_inner_induction_loop pending thread
 
 (*type linearized_p (#a_t:Type) (#b_t:Type) (todo:seq (transaction_t a_t)) (s_0:a_t) (l:seq (step_t todo)) =
    length todo = 0
