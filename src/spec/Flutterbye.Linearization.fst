@@ -37,13 +37,13 @@ let is_fresh state pending =
 type satisfies_fresh_p (#a_t:Type) (pending:seq (pending_t a_t)) (state:a_t) =
    satisfies_p (is_fresh state) pending
 
-val advance_loop:
+val linearize_inner_induction_loop:
       pending:seq (pending_t 'a)
    -> state:'a
    -> steps:seq (step_t 'a){satisfies_commit_p steps \/ satisfies_fresh_p pending state}
    -> Tot (steps':seq (step_t 'a){satisfies_commit_p steps'})
       (decreases (length pending))
-let rec advance_loop pending state steps =
+let rec linearize_inner_induction_loop pending state steps =
    if 0 = length pending then
       steps
    else begin
@@ -61,7 +61,7 @@ let rec advance_loop pending state steps =
          assert (satisfies_commit_p (create 1 step'));
          Flutterbye.Seq.Satisfies.append_lemma steps (create 1 step');
          assert (satisfies_commit_p steps');
-         advance_loop pending' state' steps'
+         linearize_inner_induction_loop pending' state' steps'
       end else begin
          // otherwise, we mark the transaction as stale.
          let step' = Stale op in
@@ -71,22 +71,17 @@ let rec advance_loop pending state steps =
          let pending' = remove pending i in
          Flutterbye.Seq.Satisfies.remove_lemma pending i (is_fresh state);
          assert (satisfies_fresh_p pending state ==> satisfies_fresh_p pending' state);
-         advance_loop pending' state steps'
+         linearize_inner_induction_loop pending' state steps'
       end         
    end
 
-(*type advanced_p (pending:seq (pending_t 'a)) (state:'a) (steps:seq (step_t 'a)) =
-   length pending <= length xns
-
-val advance:
-   xns:seq (transaction_t 'a)
-   -> state:'a
-   // todo: eliminiate need for `has_fresh_p`.
-   -> pending:seq (pending_t xns){length pending <= length xns /\ has_fresh_pending_p xns pending state}
-   -> Tot (steps:seq (step_t xns){advance_p xns pending state steps})
-let advance xns state pending =
-   advance_loop_lemma xns pending state pending createEmpty;
-   advance_loop xns pending state pending createEmpty*)
+val linearize_inner_induction:
+      pending:seq (pending_t 'a)
+   -> state:'a{satisfies_fresh_p pending state}
+   -> Tot (steps':seq (step_t 'a){satisfies_commit_p steps'})
+      (decreases (length pending))
+let linearize_inner_induction pending state =
+   linearize_inner_induction_loop pending state createEmpty
 
 (*type linearized_p (#a_t:Type) (#b_t:Type) (todo:seq (transaction_t a_t)) (s_0:a_t) (l:seq (step_t todo)) =
    length todo = 0
