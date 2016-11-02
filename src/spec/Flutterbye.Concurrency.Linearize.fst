@@ -19,22 +19,10 @@
 module Flutterbye.Concurrency.Linearize
 open FStar.Seq
 open Flutterbye.Seq
+open Flutterbye.Concurrency.Thread
 
 type pending_t 'a =
    | Pending: op:('a -> Tot 'a) -> observed:'a -> pending_t 'a
-
-type step_t 'a =
-   | Commit: op:('a -> Tot 'a) -> step_t 'a
-   | Stale: op:('a -> Tot 'a) -> step_t 'a
-
-type thread_t 'a =
-   {
-      steps:seq (step_t 'a);
-      state:'a;
-   } 
-
-type satisfies_commit_p (#a_t:Type) (steps:seq (step_t a_t)) =
-   satisfies_p is_Commit steps
 
 val is_fresh: state:'a -> pending_t 'a -> Tot bool
 let is_fresh state pending =
@@ -45,8 +33,8 @@ type satisfies_fresh_p (#a_t:Type) (pending:seq (pending_t a_t)) (state:a_t) =
 
 val linearize_inner_induction_loop:
       pending:seq (pending_t 'a)
-   -> thread:thread_t 'a{satisfies_commit_p thread.steps \/ satisfies_fresh_p pending thread.state}
-   -> Tot (thread':(thread_t 'a){satisfies_commit_p thread'.steps})
+   -> thread:thread_t 'a{is_something_committed_p thread.steps \/ satisfies_fresh_p pending thread.state}
+   -> Tot (thread':(thread_t 'a){is_something_committed_p thread'.steps})
       (decreases (length pending))
 let rec linearize_inner_induction_loop pending thread =
    if 0 = length pending then
@@ -63,9 +51,9 @@ let rec linearize_inner_induction_loop pending thread =
          let steps' = append thread.steps (create 1 step') in
          let pending' = remove pending i in
          Flutterbye.Seq.Satisfies.create_lemma 1 step';
-         assert (satisfies_commit_p (create 1 step'));
+         assert (is_something_committed_p (create 1 step'));
          Flutterbye.Seq.Satisfies.append_lemma thread.steps (create 1 step');
-         assert (satisfies_commit_p steps');
+         assert (is_something_committed_p steps');
          let thread' = { state = state'; steps = steps' } in 
          linearize_inner_induction_loop pending' thread'
       end else begin
@@ -73,7 +61,7 @@ let rec linearize_inner_induction_loop pending thread =
          let step' = Stale op in
          let steps' = append thread.steps (create 1 step') in
          Flutterbye.Seq.Satisfies.append_lemma thread.steps (create 1 step');
-         assert (satisfies_commit_p thread.steps <==> satisfies_commit_p steps');
+         assert (is_something_committed_p thread.steps <==> is_something_committed_p steps');
          let pending' = remove pending i in
          Flutterbye.Seq.Satisfies.remove_lemma pending i (is_fresh thread.state);
          assert (satisfies_fresh_p pending thread.state ==> satisfies_fresh_p pending' thread.state);
@@ -85,32 +73,8 @@ let rec linearize_inner_induction_loop pending thread =
 val linearize_inner_induction:
       pending:seq (pending_t 'a)
    -> state:'a{satisfies_fresh_p pending state}
-   -> Tot (thread':(thread_t 'a){satisfies_commit_p thread'.steps})
+   -> Tot (thread':(thread_t 'a){is_something_committed_p thread'.steps})
       (decreases (length pending))
 let linearize_inner_induction pending state =
    let thread = { state = state; steps = createEmpty } in
    linearize_inner_induction_loop pending thread
-
-(*type linearized_p (#a_t:Type) (#b_t:Type) (todo:seq (transaction_t a_t)) (s_0:a_t) (l:seq (step_t todo)) =
-   length todo = 0
-   \/ // every transaction has a corresponding `Step` operation in
-      // the linearization sequence.
-      forall (x:xnid_t todo).
-         (exists (y:nat{y < length l}).
-            let op = index l y in
-            is_Step op && Step.id op = x)
-
-val linearize:
-   todo:seq (transaction_t 'a)
-   -> s_0:'a
-   -> e:entropy_t 'b
-   -> Tot (l:seq (step_t 'a)){linearized_p todo s_0 l})
-let linearize todo s_0 =
-   let p = 
-      map
-         (fun i x ->
-            Pending i s_0)
-         todo
-   in
-   linearize_loop todo p createEmpty
-*)
