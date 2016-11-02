@@ -16,7 +16,7 @@
 //
 //,$
 
-module Flutterbye.Linearization
+module Flutterbye.Concurrency.Linearize
 open FStar.Seq
 open Flutterbye.Seq
 
