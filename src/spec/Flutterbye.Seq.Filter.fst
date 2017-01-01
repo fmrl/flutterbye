@@ -36,10 +36,8 @@ type not_longer_than_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t
 // if the output sequence is empty, then the no element of `s` satisfies `f`.
 type when_nothing_satisfies_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
    (
-       (length s' = 0)
-   //<==> (not (satisfies f s))
-   ==> (forall (x:nat{x < length s}).
-          not (f (index s x)))
+       // todo: the following should be an iff.
+       (length s' = 0) ==> (not (satisfies f s))
    )
 
 // the the output sequence is not empty, then every element must satisfy `f`
