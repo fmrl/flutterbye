@@ -35,10 +35,7 @@ type not_longer_than_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t
 
 // if the output sequence is empty, then the no element of `s` satisfies `f`.
 type when_nothing_satisfies_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
-   (
-       // todo: the following should be an iff.
-       (length s' = 0) ==> (not (satisfies f s))
-   )
+   (length s' = 0) <==> (not (satisfies f s))
 
 // the the output sequence is not empty, then every element must satisfy `f`
 type everything_satisfies_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
@@ -92,23 +89,27 @@ private val filter_loop_lemma:
       (ensures (filtered_p f s (filter_loop f s i ac)))
       (decreases (length s - i))
 let rec filter_loop_lemma f s i ac =
+   let sl = slice s 0 i in
    if i < length s then begin
+      let sl' = slice s 0 (i + 1) in
       let a = index s i in
-      let ac' =
-         if f a then
-            append ac (create 1 a)
-         else begin
-            let sl' = slice s 0 (i + 1) in
-            assert (equal sl' (append (slice s 0 i) (create 1 a)));
-            assert (when_nothing_satisfies_p f sl' ac);
-            ac
-         end
-      in
-      filter_loop_lemma f s (i + 1) ac'
+      assert (equal sl' (append sl (create 1 a)));
+      if f a then
+         let ac' = append ac (create 1 a) in
+         assert (length ac' > 0);
+         assert (b2t (f (index sl' i)));
+         assert (satisfies_p f sl');
+         assert (when_nothing_satisfies_p f sl' ac');
+         filter_loop_lemma f s (i + 1) ac'
+      else begin
+         assert (when_nothing_satisfies_p f sl ac);
+         assert (when_nothing_satisfies_p f sl' ac);
+         filter_loop_lemma f s (i + 1) ac
+      end
    end
    else begin
-      assert (when_nothing_satisfies_p f (slice s 0 i) ac);
-      assert (equal s (slice s 0 i)); // required
+      assert (when_nothing_satisfies_p f sl ac);
+      assert (equal s sl); // required
       assert (equal (filter_loop f s i ac) ac) // required
    end
 
