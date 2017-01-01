@@ -53,12 +53,19 @@ type shared_membership_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a
           b2t (mem (index s' x) s))
    )
 
+type antisatisfaction_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
+   (
+       satisfies_p (fun x -> not (f x)) s
+   ==> (length s' < length s)
+   )
+
 type filtered_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
       empty_source_p f s s' 
    /\ not_longer_than_p f s s'
    /\ everything_satisfies_p f s s'
    /\ shared_membership_p f s s'
    /\ when_nothing_satisfies_p f s s'
+   /\ antisatisfaction_p f s s'
 
 private val filter_loop:
       f:('a -> Tot bool) 
@@ -104,6 +111,7 @@ let rec filter_loop_lemma f s i ac =
       else begin
          assert (when_nothing_satisfies_p f sl ac);
          assert (when_nothing_satisfies_p f sl' ac);
+         assert (length ac < length sl');
          filter_loop_lemma f s (i + 1) ac
       end
    end
