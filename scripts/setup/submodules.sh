@@ -18,14 +18,23 @@
 #
 #,$
 
-set -x
+# submodule setup script
 
+# show what's happening.
+set -x
 # exit on any unobserved failure.
 set -e
 
-OCAML_VERSION="4.02.3"
-OPAM_PACKAGES="ocamlfind batteries stdint zarith yojson"
+git submodule init
+git submodule update
 
-opam init --comp $OCAML_VERSION --auto-setup
-eval $(opam config env)
-opam install -y $OPAM_PACKAGES
+# this shouldn't do anything if we're using vagrant (see `/scripts/setup/vagrant.sh`).
+if [ "$(pwd)" != "/vagrant" ] && [ "$(whoami)" != "vagrant" ]; then
+   bundle install --path vendor/bundle 
+else
+   git submodule foreach '$SHELL ../../scripts/setup/git.sh'
+   bundle install --system   
+fi
+
+$SHELL scripts/setup/z3.sh
+$SHELL scripts/setup/fstar.sh

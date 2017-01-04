@@ -18,24 +18,27 @@
 #
 #,$
 
-set -x
+# git repository setup script-- destructive and therefore 
+# normally only used when setting up git workspaces shared across
+# platforms (e.g. vagrant and WSL).
 
+# show what's happening.
+set -x
 # exit on any unobserved failure.
 set -e
 
 self=$(basename $0)
-target=$(readlink -m submodules/FStar/bin/fstar.exe)
-PATH=$PATH:submodules/FStar
+pwd=$(readlink -e $(pwd))
 
-if [ ! -x "$target" ]; then
-   echo "$self: i couldn't find the f* executable; rebuilding..."
-   eval $(opam config env)
-   cd submodules/FStar
-   git clean -fdx
-   make -C src
-   make -C src ocaml
-   make -C src/ocaml-output
+git clean -fdx -e Vagrantfile -e .vagrant
+rm -rf vendor
+
+if [ "$(git config core.eol)" != "lf" ]; then
+   echo "$self: resetting eol configuration in git repository '$(pwd)'..."
+   git config core.eol lf
+   git config core.autocrlf input
+   git reset --hard
+   git checkout-index --force --all
 else
-   echo "$self: i found the f* executable at '$target'."
+   echo "$self: the eol configuration in git repository '$(pwd)' appears correct."
 fi
-
