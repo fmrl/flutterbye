@@ -18,21 +18,26 @@
 #
 #,$
 
-set -x
+# fstar setup script
 
+# show what's happening.
+set -x
 # exit on any unobserved failure.
 set -e
 
 self=$(basename $0)
-target=$(readlink -m submodules/z3/build/z3)
+target=$(readlink -m submodules/FStar/bin/fstar.exe)
+PATH=$PATH:submodules/FStar
 
 if [ ! -x "$target" ]; then
-   echo "$self: i couldn't find the z3 executable; rebuilding..."
-   cd submodules/z3
+   echo "$self: i couldn't find the f* executable; rebuilding..."
+   eval $(opam config env)
+   cd submodules/FStar
    git clean -fdx
-   python scripts/mk_make.py
-   cd build && make
+   make -C src
+   make -C src ocaml
+   make -C src/ocaml-output
 else
-   echo "$self: i found the z3 executable at '$target'."
+   echo "$self: i found the f* executable at '$target'."
 fi
 
