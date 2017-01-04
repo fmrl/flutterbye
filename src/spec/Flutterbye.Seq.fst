@@ -20,6 +20,7 @@ module Flutterbye.Seq
 
 type disjoint_p = Flutterbye.Seq.Disjoint.disjoint_p
 type mem_p = Flutterbye.Seq.Mem.mem_p
+type satisfies_p = Flutterbye.Seq.Satisfies.satisfies_p
 type unique_p = Flutterbye.Seq.Unique.unique_p
 
 let count = Flutterbye.Seq.Count.count
@@ -30,16 +31,8 @@ let find = Flutterbye.Seq.Find.find
 let insert = Flutterbye.Seq.Insert.insert
 let map = Flutterbye.Seq.Map.map
 let mem = Flutterbye.Seq.Mem.mem
-
-// bug: identifier not found. 
-// 
-// verification order appears to be wrong in F* output:
-// 
-// ...
-// Verifying module: Flutterbye.Seq.Disjoint
-// Verifying module: Flutterbye.Seq
-// Verifying module: Flutterbye.Seq.Remove
-//let remove = Flutterbye.Seq.Remove.remove
+let remove = Flutterbye.Seq.Remove.remove
+let satisfies = Flutterbye.Seq.Satisfies.satisfies
 
 let to_set = Flutterbye.Seq.ToSet.to_set
 let unique = Flutterbye.Seq.Unique.unique
