@@ -18,26 +18,19 @@
 #
 #,$
 
-# git repository setup script-- destructive and therefore 
-# normally only used with vagrant provisioning.
+# vagrant bootstrap script
 
 # show what's happening.
 set -x
 # exit on any unobserved failure.
 set -e
 
-self=$(basename $0)
-pwd=$(readlink -e $(pwd))
+# this solves a problem with upgrading the `grub-pc` package. see
+# https://github.com/mitchellh/vagrant/issues/289
+echo "set grub-pc/install_devices /dev/sda" | debconf-communicate
 
-git clean -fdx -e Vagrantfile -e .vagrant
-rm -rf vendor
+cd /vagrant
 
-if [ "$(git config core.eol)" != "lf" ]; then
-   echo "$self: resetting eol configuration in git repository '$(pwd)'..."
-   git config core.eol lf
-   git config core.autocrlf input
-   git reset --hard
-   git checkout-index --force --all
-else
-   echo "$self: the eol configuration in git repository '$(pwd)' appears correct."
-fi
+$SHELL ./scripts/setup/debian.sh
+sudo -u vagrant -- $SHELL ./scripts/setup/userspace.sh  
+sudo -u vagrant -- $SHELL ./scripts/setup/submodules.sh  

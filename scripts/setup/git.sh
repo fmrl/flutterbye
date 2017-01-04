@@ -18,16 +18,27 @@
 #
 #,$
 
-# opam setup script
+# git repository setup script-- destructive and therefore 
+# normally only used when setting up git workspaces shared across
+# platforms (e.g. vagrant and WSL).
 
 # show what's happening.
 set -x
 # exit on any unobserved failure.
 set -e
 
-OCAML_VERSION="4.02.3"
-OPAM_PACKAGES="ocamlfind batteries stdint zarith yojson"
+self=$(basename $0)
+pwd=$(readlink -e $(pwd))
 
-opam init --comp $OCAML_VERSION --auto-setup
-eval $(opam config env)
-opam install -y $OPAM_PACKAGES
+git clean -fdx -e Vagrantfile -e .vagrant
+rm -rf vendor
+
+if [ "$(git config core.eol)" != "lf" ]; then
+   echo "$self: resetting eol configuration in git repository '$(pwd)'..."
+   git config core.eol lf
+   git config core.autocrlf input
+   git reset --hard
+   git checkout-index --force --all
+else
+   echo "$self: the eol configuration in git repository '$(pwd)' appears correct."
+fi

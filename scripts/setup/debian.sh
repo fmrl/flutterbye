@@ -35,8 +35,7 @@ apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BF
 echo "deb http://download.mono-project.com/repo/debian wheezy main" | tee /etc/apt/sources.list.d/mono-xamarin.list
 echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
 
-apt-get update && apt-get -y dist-upgrade
+apt-get update && apt-get -y upgrade
 apt-get -y install $APT_PACKAGES
 
 gem install bundler
-

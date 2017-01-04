@@ -18,19 +18,23 @@
 #
 #,$
 
-# vagrant bootstrap script
+# submodule setup script
 
 # show what's happening.
 set -x
 # exit on any unobserved failure.
 set -e
 
-# this solves a problem with upgrading the `grub-pc` package. see
-# https://github.com/mitchellh/vagrant/issues/289
-echo "set grub-pc/install_devices /dev/sda" | debconf-communicate
+git submodule init
+git submodule update
 
-cd /vagrant
+# this shouldn't do anything if we're using vagrant (see `/scripts/setup/vagrant.sh`).
+if [ "$(pwd)" != "/vagrant" ] && [ "$(whoami)" != "vagrant" ]; then
+   bundle install --path vendor/bundle 
+else
+   git submodule foreach '$SHELL ../../scripts/setup/git.sh'
+   bundle install --system   
+fi
 
-$SHELL ./lib/setup/debian.sh
-sudo -u vagrant -- $SHELL ./lib/setup/opam.sh  
-sudo -u vagrant -- $SHELL ./lib/setup/submodules.sh  
+$SHELL scripts/setup/z3.sh
+$SHELL scripts/setup/fstar.sh
