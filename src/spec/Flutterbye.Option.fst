@@ -19,7 +19,7 @@
 module Flutterbye.Option
 open FStar.Option
 
-val get: o:option 'a{is_Some o} -> Tot 'a
+val get: o:option 'a{Some? o} -> Tot 'a
 let get o =
    match o with
       | Some a ->

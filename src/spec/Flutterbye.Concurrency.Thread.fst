@@ -20,15 +20,31 @@ module Flutterbye.Concurrency.Thread
 open FStar.Seq
 open Flutterbye.Seq
 
-type step_t 'a =
-   | Commit: op:('a -> Tot 'a) -> step_t 'a
-   | Stale: op:('a -> Tot 'a) -> step_t 'a
+type ops_t (state_t:Type) = seq (state_t -> Tot state_t)
 
-type thread_t 'a =
+type opcode_t (#state_t:Type) (ops:ops_t state_t) =
+   opcode:nat{opcode < length ops}
+
+type transaction_t (#state_t:Type) (ops:ops_t state_t) =
    {
-      steps:seq (step_t 'a);
-      state:'a;
-   } 
+      txid:nat;
+      opcode:opcode_t ops;
+      observed:state_t
+   }
 
-type is_something_committed_p (#a_t:Type) (steps:seq (step_t a_t)) =
-   satisfies_p is_Commit steps
+type step_t (#state_t:Type) (ops:ops_t state_t) =
+   | Committed: transaction:transaction_t ops -> step_t #state_t ops
+   | Stale: transaction:transaction_t ops -> step_t #state_t ops
+
+type thread_t (#state_t:Type) (ops:ops_t state_t) =
+   { 
+      steps:seq (step_t ops);
+      state:state_t
+   }
+
+type is_something_committed_p 
+   (#state_t:Type) 
+   (ops:ops_t state_t)
+   (thread:thread_t ops)
+=
+   satisfies_p Committed? (thread.steps)

@@ -21,12 +21,14 @@ open FStar.Seq
 open Flutterbye.Seq
 open Flutterbye.Concurrency.Thread
 
-type pending_t 'a =
-   | Pending: op:('a -> Tot 'a) -> observed:'a -> pending_t 'a
-
-val is_fresh: state:'a -> pending_t 'a -> Tot bool
-let is_fresh state pending =
-   Pending.observed pending = state
+val is_fresh: 
+      #state_t:Type 
+   -> ops:ops_t state_t
+   -> state_t 
+   -> transaction_t ops 
+   -> Tot bool
+let is_fresh #state_t ops state txn =
+   txn.observed = state
 
 type satisfies_fresh_p (#a_t:Type) (pending:seq (pending_t a_t)) (state:a_t) =
    satisfies_p (is_fresh state) pending
@@ -42,8 +44,8 @@ let rec linearize_inner_induction_loop pending thread =
    else begin
       let i = 0 in
       let p = index pending i in
-      let op = Pending.op p in
-      let fresh = (Pending.observed p = thread.state) in
+      let op = Pending?.op p in
+      let fresh = (Pending?.observed p = thread.state) in
       if fresh then begin
          // if the transaction is fresh, we can commit it.
          let step' = Commit op in
