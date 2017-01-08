@@ -23,23 +23,23 @@ open Flutterbye.Seq.Remove
 
 private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
       // if `s` is of length zero, the only outcome can be `None`.
-      ((length s = 0) ==> is_None i)
+      ((length s = 0) ==> None? i)
       // `None` signifies that no element is `s` can satisfy predicate `f` 
-   /\ (is_None i <==> ~ (exists (x:nat{x < length s}). f (index s x)))
+   /\ (None? i <==> ~ (exists (x:nat{x < length s}). f (index s x)))
       // `Some i` implies that the length of `s` must be non-zero.
-   /\ (is_Some i <==> (exists (x:nat{x < length s}). f (index s x)))
+   /\ (Some? i <==> (exists (x:nat{x < length s}). f (index s x)))
       // `Some i` implies, if `i > 0` that all elements preceeding `i`
       // must not satisfy predicate `f`.
-   /\ (is_Some i ==> b2t (length s > 0))
+   /\ (Some? i ==> b2t (length s > 0))
       // `Some i` implies that `i` must be a valid index of `s`.
-   /\ (is_Some i ==> b2t (get i < length s))
+   /\ (Some? i ==> b2t (get i < length s))
       // `Some i` implies that `i` must index an element within `s` that satisfies
       // predicate `f`.
-   /\ (is_Some i ==> b2t (f (index s (get i))))
+   /\ (Some? i ==> b2t (f (index s (get i))))
       // `Some` implies that there exists an element that can satisfy 
       // predicate `f`.
       // todo: can this be turned into an iff?
-   /\ (   (is_Some i && get i > 0) 
+   /\ (   (Some? i && get i > 0) 
       ==> (forall (x:nat). x < get i ==> not (f (index s x)))
       )
       
@@ -55,7 +55,7 @@ let rec find_loop f s i ac =
       ac
    else
       let ac' =
-         if is_None ac then begin
+         if None? ac then begin
             if f (index s i) then
                Some i
             else
@@ -78,7 +78,7 @@ private val find_lemma:
 let rec find_lemma f s i ac =
    let sl = slice s 0 i in
    if i = length s then begin
-      if length s = 0 || is_Some ac then
+      if length s = 0 || Some? ac then
          ()
       else begin
          assert (equal sl s); // required
@@ -88,7 +88,7 @@ let rec find_lemma f s i ac =
    else
       let ac' =
          let sl' = slice s 0 (i + 1) in
-         if is_None ac then begin
+         if None? ac then begin
             if f (index s i) then begin
                assert (index sl' i = index s i); // required
                assert (exists (x:nat{x < length sl'}). f (index sl' x));
@@ -147,7 +147,7 @@ private val found:
    -> s:seq 'a 
    -> Tot (b:bool{b <==> found_p f s})
 let found f s =
-   is_Some (find f s)
+   Some? (find f s)
 
 abstract val create_lemma:
       n:nat
@@ -291,13 +291,13 @@ private val slice_inclusive_lemma:
       (ensures (slice_inclusive_p s i j f))
 let slice_inclusive_lemma s i j f =
    let a = find f s in
-   if is_Some a && i <= get a && get a < j then
+   if Some? a && i <= get a && get a < j then
       begin
          let s' = slice s i j in
          let a' = find f s' in
          assert (equal (slice s i (get a)) (slice s' 0 ((get a) - i)));
          slice_preceeding_lemma s i (get a) f;
-         assert (is_Some a')
+         assert (Some? a')
       end
    else
       ()
@@ -358,11 +358,11 @@ let remove_from_prefix_lemma s i f =
    let s' = remove s i in
    let a = find f s in
    let a' = find f s' in
-   if is_Some a && get a < i then 
+   if Some? a && get a < i then 
       begin
          assert (equal (slice s 0 i) (slice s' 0 i));
          slice_lemma s 0 i f;
-         assert (is_Some a')
+         assert (Some? a')
       end
    else
       () 
@@ -392,11 +392,11 @@ let remove_from_suffix_lemma s i f =
    let s' = remove s i in
    let a = find f s in
    let a' = find f s' in
-   if is_Some a && get a > i then
+   if Some? a && get a > i then
       begin
          assert (equal (slice s (i + 1) (length s)) (slice s' i (length s')));
          slice_lemma s (i + 1) (length s) f;
-         assert (is_Some a') // sub-goal
+         assert (Some? a') // sub-goal
       end
    else
       ()
@@ -457,7 +457,7 @@ let remove_found_lemma s i f =
       begin
          let prefix = slice s 0 i in
          let suffix = slice s (i + 1) (length s) in
-         if is_Some a then
+         if Some? a then
             begin
                if i = get a then
                   begin
@@ -474,8 +474,8 @@ let remove_found_lemma s i f =
             end   
          else
             begin
-               assert (is_None (find f prefix));
-               assert (is_None (find f suffix))
+               assert (None? (find f prefix));
+               assert (None? (find f suffix))
             end
       end
 

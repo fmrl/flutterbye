@@ -20,34 +20,40 @@ module Flutterbye.Seq.Ordered
 open FStar.Seq
 open Flutterbye.Order
 
-type ordered_p (#a_t:Type) (lte:compare_t a_t{partial_order_p lte}) (s:seq a_t) =
+type ordered_p 
+   (#t:Type{hasEq t}) 
+   (lte:compare_t t{partial_order_p lte}) 
+   (s:seq t) 
+=
    length s = 0
    \/ (forall (x:nat{x < length s}) (y:nat{y < length s}).
          (x <= y) ==> lte (index s x) (index s y))
 
 abstract val slice_lemma:
-   lte:compare_t 'a{partial_order_p lte} ->
-   s:seq 'a{ordered_p lte s} ->
-   Lemma
+      #t:Type{hasEq t}
+   -> lte:compare_t t{partial_order_p lte} 
+   -> s:seq t{ordered_p lte s} 
+   -> Lemma
       (ensures
          // if [x, y) describe a slice of `s`, then that slice is also partially ordered.
          (forall (x:nat) (y:nat{y < length s}).
             x <= y ==> ordered_p lte (slice s x y)))
-let slice_lemma lte s =
+let slice_lemma #t lte s =
    ()
 
 private val append_lemma_loop:
-   lte:compare_t 'a{partial_order_p lte} ->
-   s:seq 'a{ordered_p lte s} ->
-   a: 'a ->
-   i:nat{0 < i && i <= length s} ->
+      #t:Type{hasEq t}
+   -> lte:compare_t t{partial_order_p lte} 
+   -> s:seq t{ordered_p lte s} 
+   -> a: t 
+   -> i:nat{0 < i && i <= length s} ->
    Lemma
       (requires 
         (forall (x:nat{x < length s}). 
             x >= length s - i ==> lte (index s x) a))
       (ensures (forall (x:nat{x < length s}). lte (index s x) a))
       (decreases (length s - i))
-let rec append_lemma_loop lte s a i =
+let rec append_lemma_loop #t lte s a i =
    if i < length s then
       let a_i = index s (length s - 1 - i) in
       // both of the following assertions are necessary to
@@ -59,13 +65,14 @@ let rec append_lemma_loop lte s a i =
       ()
 
 abstract val append_lemma:
-   lte:compare_t 'a{partial_order_p lte} ->
-   s:seq 'a{ordered_p lte s} ->
-   a: 'a ->
-   Lemma
+      #t:Type{hasEq t}
+   -> lte:compare_t t{partial_order_p lte} 
+   -> s:seq t{ordered_p lte s} 
+   -> a: t 
+   -> Lemma
       (requires (length s = 0 || lte (index s (length s - 1)) a))
       (ensures (ordered_p lte (append s (create 1 a))))
-let append_lemma lte s a =
+let append_lemma #t lte s a =
    if length s = 0 then
       ()
    else

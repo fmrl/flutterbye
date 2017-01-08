@@ -32,7 +32,7 @@ val satisfies:
    -> s:seq 'a 
    -> Tot (b:bool{b <==> satisfies_p f s})
 let satisfies f s =
-   is_Some (find f s)
+   Some? (find f s)
 
 abstract val index_lemma:
       s:seq 'a

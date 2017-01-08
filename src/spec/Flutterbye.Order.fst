@@ -18,24 +18,24 @@
 
 module Flutterbye.Order
 
-type compare_t 'a = 'a -> 'a -> Tot bool
+type compare_t (t:Type{hasEq t}) = t -> t -> Tot bool
 
-private type reflexive_p (#a_t:Type) (lte:compare_t a_t) =
+private type reflexive_p (#t:Type{hasEq t}) (lte:compare_t t) =
    forall x. lte x x
 
-private type antisymmetric_p (#a_t:Type) (lte:compare_t a_t) =
+private type antisymmetric_p (#t:Type{hasEq t}) (lte:compare_t t) =
    forall x y. ((lte x y && lte y x) ==> (x = y))
 
-private type transitive_p (#a_t:Type) (lte:compare_t a_t) =
+private type transitive_p (#t:Type{hasEq t}) (lte:compare_t t) =
    forall x y z. ((lte x y && lte y z) ==> lte x z)
 
-private type total_p (#a_t:Type) (lte:compare_t a_t) =
+private type total_p (#t:Type{hasEq t}) (lte:compare_t t) =
    forall x y. (lte x y || lte y x)
 
-type partial_order_p (#a_t:Type) (lte:compare_t a_t) =
+type partial_order_p (#t:Type{hasEq t}) (lte:compare_t t) =
    reflexive_p lte /\ antisymmetric_p lte /\ transitive_p lte
 
-type total_order_p (#a_t:Type) (lte:compare_t a_t) =
+type total_order_p (#t:Type{hasEq t}) (lte:compare_t t) =
    partial_order_p lte /\ total_p lte
 
 
