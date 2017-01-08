@@ -18,22 +18,17 @@
 #
 #,$
 
-set -x
+# userspace setup script
 
+# show what's happening.
+set -x
 # exit on any unobserved failure.
 set -e
 
-git submodule init
-git submodule update
-/bin/sh lib/vagrant/git-clean-all.sh
+OCAML_VERSION="4.02.3"
+OPAM_PACKAGES="ocamlfind batteries stdint zarith yojson pprint"
 
-/bin/sh lib/vagrant/git-reset-eol.sh
-git submodule foreach '/bin/sh ../../lib/vagrant/git-reset-eol.sh'
-
-/bin/sh lib/vagrant/build-z3.sh
-/bin/sh lib/vagrant/build-fstar.sh
-
-# this shouldn't do anything if we're using vagrant (see `bootstrap.sh`).
-if [ "$(pwd)" != "/vagrant" ] && [ "$(whoami)" != "vagrant" ]; then
-   bundle install --path vendor/bundle 
-fi
+# setup opam
+opam init --comp $OCAML_VERSION --auto-setup
+eval $(opam config env)
+opam install -y $OPAM_PACKAGES

@@ -18,24 +18,23 @@
 #
 #,$
 
-set -x
+# submodule setup script
 
+# show what's happening.
+set -x
 # exit on any unobserved failure.
 set -e
 
-self=$(basename $0)
-target=$(readlink -m submodules/FStar/bin/fstar.exe)
-PATH=$PATH:submodules/FStar
+git submodule init
+git submodule update
 
-if [ ! -x "$target" ]; then
-   echo "$self: i couldn't find the f* executable; rebuilding..."
-   eval $(opam config env)
-   cd submodules/FStar
-   git clean -fdx
-   make -C src
-   make -C src ocaml
-   make -C src/ocaml-output
+# this shouldn't do anything if we're using vagrant (see `/scripts/setup/vagrant.sh`).
+if [ "$(pwd)" != "/vagrant" ] && [ "$(whoami)" != "vagrant" ]; then
+   bundle install --path vendor/bundle 
 else
-   echo "$self: i found the f* executable at '$target'."
+   git submodule foreach '$SHELL ../../scripts/setup/git.sh'
+   bundle install --system   
 fi
 
+$SHELL scripts/setup/z3.sh
+$SHELL scripts/setup/fstar.sh

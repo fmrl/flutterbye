@@ -18,14 +18,26 @@
 #
 #,$
 
-set -x
+# fstar setup script
 
+# show what's happening.
+set -x
 # exit on any unobserved failure.
 set -e
 
-OCAML_VERSION="4.02.3"
-OPAM_PACKAGES="ocamlfind batteries stdint zarith yojson"
+self=$(basename $0)
+target=$(readlink -m submodules/FStar/bin/fstar.exe)
+PATH=$PATH:submodules/FStar
 
-opam init --comp $OCAML_VERSION --auto-setup
-eval $(opam config env)
-opam install -y $OPAM_PACKAGES
+if [ ! -x "$target" ]; then
+   echo "$self: i couldn't find the f* executable; rebuilding..."
+   eval $(opam config env)
+   cd submodules/FStar
+   git clean -fdx
+   make -C src
+   make -C src ocaml
+   make -C src/ocaml-output
+else
+   echo "$self: i found the f* executable at '$target'."
+fi
+

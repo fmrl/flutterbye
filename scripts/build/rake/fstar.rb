@@ -51,7 +51,7 @@ module Rake::FStar
 
    module_function
    def FLAGS
-      @flags ||= "--universes"
+      @flags ||= ""
       return @flags  
    end
 

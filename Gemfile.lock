@@ -32,6 +32,3 @@ PLATFORMS
 DEPENDENCIES
   rake
   rubrstmp!
-
-BUNDLED WITH
-   1.13.1

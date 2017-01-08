@@ -18,16 +18,14 @@
 #
 #,$
 
-set -x
+# debian setup script
 
+# show what's happening.
+set -x
 # exit on any unobserved failure.
 set -e
 
 APT_PACKAGES="git build-essential mono-devel fsharp ruby python opam m4 libgmp-dev"
-
-# this solves a problem with upgrading the `grub-pc` package. see
-# https://github.com/mitchellh/vagrant/issues/289
-echo "set grub-pc/install_devices /dev/sda" | debconf-communicate
 
 # at the time of this commit, mono is broken in debian due to changes
 # in how certificates are obtained. we need to obtian mono directly from
@@ -37,16 +35,7 @@ apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BF
 echo "deb http://download.mono-project.com/repo/debian wheezy main" | tee /etc/apt/sources.list.d/mono-xamarin.list
 echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
 
-apt-get update && apt-get -y dist-upgrade
+apt-get update && apt-get -y upgrade
 apt-get -y install $APT_PACKAGES
 
 gem install bundler
-
-cd /vagrant
-
-# this step is only recommended if you're using vagrant.
-sudo -u vagrant -- bundle install --system
-
-sudo -u vagrant -- /bin/sh lib/vagrant/setup-opam.sh  
-sudo -u vagrant -- /bin/sh lib/vagrant/setup.sh  
-
