@@ -25,15 +25,24 @@ type ops_t (state_t:Type) = seq (state_t -> Tot state_t)
 type opcode_t (#state_t:Type) (ops:ops_t state_t) =
    opcode:nat{opcode < length ops}
 
+val apply_op: 
+      ops:ops_t 'state 
+   -> opcode:opcode_t ops 
+   -> 'state 
+   -> Tot ('state)
+let apply_op ops opcode state =
+   let op = index ops opcode in
+   op state
+   
 type transaction_t (#state_t:Type) (ops:ops_t state_t) =
    {
-      txid:nat;
+      txnid:nat;
       opcode:opcode_t ops;
-      observed:state_t
+      observation:state_t
    }
 
 type step_t (#state_t:Type) (ops:ops_t state_t) =
-   | Committed: transaction:transaction_t ops -> step_t #state_t ops
+   | Commit: transaction:transaction_t ops -> step_t #state_t ops
    | Stale: transaction:transaction_t ops -> step_t #state_t ops
 
 type thread_t (#state_t:Type) (ops:ops_t state_t) =
@@ -41,10 +50,3 @@ type thread_t (#state_t:Type) (ops:ops_t state_t) =
       steps:seq (step_t ops);
       state:state_t
    }
-
-type is_something_committed_p 
-   (#state_t:Type) 
-   (ops:ops_t state_t)
-   (thread:thread_t ops)
-=
-   satisfies_p Committed? (thread.steps)
