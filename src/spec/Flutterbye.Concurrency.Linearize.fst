@@ -21,11 +21,11 @@ open FStar.Seq
 open Flutterbye.Seq
 open Flutterbye.Concurrency.Thread
 
-val is_fresh: 
+val is_fresh:
       #state_t:Type{hasEq state_t}
    -> ops:ops_t state_t
    -> state_t
-   -> transaction_t ops 
+   -> transaction_t ops
    -> Tot bool
 let is_fresh #state_t ops state txn =
    txn.observation = state
@@ -33,44 +33,52 @@ let is_fresh #state_t ops state txn =
 val linearize_step_loop:
       state_t:Type{hasEq state_t}
    -> ops:ops_t state_t
-   -> pending:seq (transaction_t ops)
    -> accum:thread_t ops{
             satisfies_p Commit? accum.steps
-         \/ satisfies_p (is_fresh ops accum.state) pending
+         \/ satisfies_p (is_fresh ops accum.state) accum.pending
       }
    -> Tot (accum':thread_t ops{satisfies_p Commit? accum'.steps})
-      (decreases (length pending))
-let rec linearize_step_loop state_t ops pending accum =
-   if 0 = length pending then
+      (decreases (length accum.pending))
+let rec linearize_step_loop state_t ops accum =
+   if 0 = length accum.pending then
       accum
    else begin
       let i = 0 in
-      let picked = index pending i in
+      let picked = index accum.pending i in
       if picked.observation = accum.state then begin
          // if the picked transaction is fresh, we can commit it.
          let step' = Commit picked in
          let state' = apply_op ops picked.opcode accum.state in
          let steps' = append accum.steps (create 1 step') in
-         let pending' = remove pending i in
-         let accum' = { state = state'; steps = steps' } in 
+         let pending' = remove accum.pending i in
+         let accum' = {
+            state = state';
+            pending = pending';
+            steps = steps'
+         }
+         in
          Flutterbye.Seq.Satisfies.create_lemma 1 step';
          assert (satisfies_p Commit? (create 1 step'));
          Flutterbye.Seq.Satisfies.append_lemma accum.steps (create 1 step');
          assert (satisfies_p Commit? steps');
-         linearize_step_loop state_t ops pending' accum'
-      end 
+         linearize_step_loop state_t ops accum'
+      end
       else begin
          // otherwise, we mark the transaction as stale.
          let step' = Stale picked in
          let steps' = append accum.steps (create 1 step') in
-         let pending' = remove pending i in
-         let accum' = { state = accum.state; steps = steps' } in 
+         let pending' = remove accum.pending i in
+         let accum' = {
+            state = accum.state;
+            pending = pending';
+            steps = steps'
+         } in
          Flutterbye.Seq.Satisfies.append_lemma accum.steps (create 1 step');
          assert (satisfies_p Commit? accum.steps <==> satisfies_p Commit?  steps');
-         Flutterbye.Seq.Satisfies.remove_lemma pending i (is_fresh ops accum.state);
-         assert (satisfies_p (is_fresh ops accum.state) pending ==> satisfies_p (is_fresh ops accum.state) pending');
-         linearize_step_loop state_t ops pending' accum'
-      end         
+         Flutterbye.Seq.Satisfies.remove_lemma accum.pending i (is_fresh ops accum.state);
+         assert (satisfies_p (is_fresh ops accum.state) accum.pending ==> satisfies_p (is_fresh ops accum.state) pending');
+         linearize_step_loop state_t ops accum'
+      end
    end
 
 val linearize_step:
@@ -79,7 +87,6 @@ val linearize_step:
    -> pending:seq (transaction_t ops)
    -> state:state_t{satisfies_p (is_fresh ops state) pending}
    -> Tot (thread':(thread_t ops){satisfies_p Commit? thread'.steps})
-      (decreases (length pending))
 let linearize_step state_t ops pending state =
-   let thread = { state = state; steps = createEmpty } in
-   linearize_step_loop state_t ops pending thread
+   let thread = { state = state; pending = pending; steps = createEmpty } in
+   linearize_step_loop state_t ops thread
