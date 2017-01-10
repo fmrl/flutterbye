@@ -18,21 +18,21 @@
 
 module Flutterbye.Seq
 
-type disjoint_p = Flutterbye.Seq.Disjoint.disjoint_p
-type mem_p = Flutterbye.Seq.Mem.mem_p
+//type disjoint_p = Flutterbye.Seq.Disjoint.disjoint_p
+//type mem_p = Flutterbye.Seq.Mem.mem_p
 type satisfies_p = Flutterbye.Seq.Satisfies.satisfies_p
-type unique_p = Flutterbye.Seq.Unique.unique_p
+//type unique_p = Flutterbye.Seq.Unique.unique_p
 
-let count = Flutterbye.Seq.Count.count
-let dedup = Flutterbye.Seq.Unique.dedup
-let disjoint = Flutterbye.Seq.Disjoint.disjoint
-let filter = Flutterbye.Seq.Filter.filter
+//let count = Flutterbye.Seq.Count.count
+//let dedup = Flutterbye.Seq.Unique.dedup
+//let disjoint = Flutterbye.Seq.Disjoint.disjoint
+//let filter = Flutterbye.Seq.Filter.filter
 let find = Flutterbye.Seq.Find.find
-let insert = Flutterbye.Seq.Insert.insert
-let map = Flutterbye.Seq.Map.map
-let mem = Flutterbye.Seq.Mem.mem
+//let insert = Flutterbye.Seq.Insert.insert
+//let map = Flutterbye.Seq.Map.map
+//let mem = Flutterbye.Seq.Mem.mem
 let remove = Flutterbye.Seq.Remove.remove
 let satisfies = Flutterbye.Seq.Satisfies.satisfies
 
-let to_set = Flutterbye.Seq.ToSet.to_set
-let unique = Flutterbye.Seq.Unique.unique
+//let to_set = Flutterbye.Seq.ToSet.to_set
+//let unique = Flutterbye.Seq.Unique.unique
