@@ -18,21 +18,19 @@
 #
 #,$
 
-set -x
+# vagrant bootstrap script
 
+# show what's happening.
+set -x
 # exit on any unobserved failure.
 set -e
 
-self=$(basename $0)
-target=$(readlink -m submodules/z3/build/z3)
+# this solves a problem with upgrading the `grub-pc` package. see
+# https://github.com/mitchellh/vagrant/issues/289
+echo "set grub-pc/install_devices /dev/sda" | debconf-communicate
 
-if [ ! -x "$target" ]; then
-   echo "$self: i couldn't find the z3 executable; rebuilding..."
-   cd submodules/z3
-   git clean -fdx
-   python scripts/mk_make.py
-   cd build && make
-else
-   echo "$self: i found the z3 executable at '$target'."
-fi
+cd /vagrant
 
+$SHELL ./scripts/setup/debian.sh
+sudo -u vagrant -- $SHELL ./scripts/setup/userspace.sh  
+sudo -u vagrant -- $SHELL ./scripts/setup/submodules.sh  

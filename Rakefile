@@ -20,7 +20,7 @@ require "pathname"
 
 # repository root is the directory that contains the rakefile.
 prefix = Pathname.new(Dir.pwd)
-$LOAD_PATH.unshift prefix.join('lib/ruby').to_s
+$LOAD_PATH.unshift prefix.join('scripts/build').to_s
 
 require "fileutils"
 

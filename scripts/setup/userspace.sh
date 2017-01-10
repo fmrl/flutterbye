@@ -18,21 +18,17 @@
 #
 #,$
 
-set -x
+# userspace setup script
 
+# show what's happening.
+set -x
 # exit on any unobserved failure.
 set -e
 
-self=$(basename $0)
-pwd=$(readlink -e $(pwd))
+OCAML_VERSION="4.02.3"
+OPAM_PACKAGES="ocamlfind batteries stdint zarith yojson"
 
-if [ "$(git config core.eol)" != "lf" ]; then
-   echo "$self: resetting eol configuration in git repository '$(pwd)'..."
-   git config core.eol lf
-   git config core.autocrlf input
-   git reset --hard
-   git checkout-index --force --all
-else
-   echo "$self: the eol configuration in git repository '$(pwd)' appears correct."
-fi
-
+# setup opam
+opam init --comp $OCAML_VERSION --auto-setup
+eval $(opam config env)
+opam install -y $OPAM_PACKAGES
