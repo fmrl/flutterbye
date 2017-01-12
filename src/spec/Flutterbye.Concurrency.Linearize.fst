@@ -21,21 +21,12 @@ open FStar.Seq
 open Flutterbye.Seq
 open Flutterbye.Concurrency.Thread
 
-val is_fresh:
-      #state_t:Type
-   -> ops:ops_t state_t
-   -> state_t
-   -> transaction_t ops
-   -> Tot bool
-let is_fresh #state_t ops state txn =
-   txn.observation = state
-
 val linearize_step_loop:
       state_t:Type
    -> ops:ops_t state_t
    -> accum:thread_t ops{
             satisfies_p (is_Commit) accum.steps
-         \/ satisfies_p (is_fresh ops accum.state) accum.pending
+         \/ satisfies_p (is_transaction_fresh ops accum.state) accum.pending
       }
    -> Tot (accum':thread_t ops{satisfies_p (is_Commit) accum'.steps})
       (decreases (length accum.pending))
@@ -71,8 +62,8 @@ let rec linearize_step_loop state_t ops accum =
          in
          Flutterbye.Seq.Satisfies.append_lemma accum.steps (create 1 step');
          assert (satisfies_p (is_Commit) accum.steps <==> satisfies_p (is_Commit) accum'.steps);
-         Flutterbye.Seq.Satisfies.remove_lemma accum.pending i (is_fresh ops accum.state);
-         assert (satisfies_p (is_fresh ops accum.state) accum.pending ==> satisfies_p (is_fresh ops accum.state) accum'.pending);
+         Flutterbye.Seq.Satisfies.remove_lemma accum.pending i (is_transaction_fresh ops accum.state);
+         assert (satisfies_p (is_transaction_fresh ops accum.state) accum.pending ==> satisfies_p (is_transaction_fresh ops accum.state) accum'.pending);
          linearize_step_loop state_t ops accum'
       end
    end
@@ -81,10 +72,35 @@ val linearize_step:
       state_t:Type
    -> ops:ops_t state_t
    -> pending:seq (transaction_t ops)
-   -> state:state_t{satisfies_p (is_fresh ops state) pending}
+   -> state:state_t{satisfies_p (is_transaction_fresh ops state) pending}
    -> Tot (thread':(thread_t ops){satisfies_p (is_Commit) thread'.steps})
       (decreases (length pending))
 let linearize_step state_t ops pending state =
    let thread = { state = state; pending = pending; steps = createEmpty } in
    linearize_step_loop state_t ops thread
 
+val refresh_loop:
+      #state_t:Type
+   -> ops:ops_t state_t
+   -> state:state_t
+   -> steps:seq (step_t ops)
+   -> i:nat{i <= length steps}
+   -> refreshed:seq (fresh_transaction_t ops state)
+   -> Tot (seq (fresh_transaction_t ops state))
+      (decreases (length steps - i))
+let rec refresh_loop #state_t ops state steps i refreshed =
+   if i = length steps then
+      refreshed
+   else
+      let step = index steps i in
+      if is_Stale step then
+         let fresh_txn = {
+            txnid = (Stale.transaction step).txnid;
+            opcode = (Stale.transaction step).opcode;
+            observation = state
+         }
+         in
+         let refreshed' = append refreshed (create 1 fresh_txn) in
+         refresh_loop ops state steps (i + 1) refreshed'
+      else
+         refresh_loop ops state steps (i + 1) refreshed
