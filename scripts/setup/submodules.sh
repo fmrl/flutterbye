@@ -29,11 +29,8 @@ git submodule init
 git submodule update
 
 # this shouldn't do anything if we're using vagrant (see `/scripts/setup/vagrant.sh`).
-if [ "$(pwd)" != "/vagrant" ] && [ "$(whoami)" != "vagrant" ]; then
-   bundle install --path vendor/bundle 
-else
+if [ "$(pwd)" == "/vagrant" ] && [ "$(whoami)" == "vagrant" ]; then
    git submodule foreach '$SHELL ../../scripts/setup/git.sh'
-   bundle install --system   
 fi
 
 $SHELL scripts/setup/z3.sh

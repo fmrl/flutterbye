@@ -33,7 +33,15 @@ APT_PACKAGES="git build-essential mono-devel fsharp ruby python opam m4 libgmp-d
 # from http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
 echo "deb http://download.mono-project.com/repo/debian wheezy main" | tee /etc/apt/sources.list.d/mono-xamarin.list
-echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
+
+distro=$(lsb_release -si)
+if [ "xUbuntu" = "x$distro" ]; then
+   # the ubuntu `opam` packages are too old to be useful to us.
+   apt-add-repository -y ppa:avsm/ppa
+else
+   # debian requires a special build of `libgdiplus`.
+   echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
+fi
 
 apt-get update && apt-get -y upgrade
 apt-get -y install $APT_PACKAGES
