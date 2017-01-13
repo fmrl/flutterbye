@@ -36,16 +36,16 @@ type one_transaction_is_fresh_p
    (state:state_t)
    (txns:seq (transaction_t ops))
 =
-   satisfies_p (is_transaction_fresh ops state) txns
+   contains_p (is_transaction_fresh ops state) txns
 
 val linearize_step_loop:
       state_t:Type
    -> ops:ops_t state_t
    -> accum:thread_t ops{
-            satisfies_p (is_Commit) accum.steps
+            contains_p (is_Commit) accum.steps
          \/ one_transaction_is_fresh_p ops accum.state accum.pending
       }
-   -> Tot (accum':thread_t ops{satisfies_p (is_Commit) accum'.steps})
+   -> Tot (accum':thread_t ops{contains_p (is_Commit) accum'.steps})
       (decreases (length accum.pending))
 let rec linearize_step_loop state_t ops accum =
    if 0 = length accum.pending then
@@ -62,10 +62,10 @@ let rec linearize_step_loop state_t ops accum =
             steps = append accum.steps (create 1 step')
          }
          in
-         Flutterbye.Seq.Satisfies.create_lemma 1 step';
-         assert (satisfies_p (is_Commit) (create 1 step'));
-         Flutterbye.Seq.Satisfies.append_lemma accum.steps (create 1 step');
-         assert (satisfies_p (is_Commit) accum'.steps);
+         Flutterbye.Seq.Contains.create_lemma 1 step';
+         assert (contains_p (is_Commit) (create 1 step'));
+         Flutterbye.Seq.Contains.append_lemma accum.steps (create 1 step');
+         assert (contains_p (is_Commit) accum'.steps);
          linearize_step_loop state_t ops accum'
       end
       else begin
@@ -77,9 +77,9 @@ let rec linearize_step_loop state_t ops accum =
             steps = append accum.steps (create 1 step')
          }
          in
-         Flutterbye.Seq.Satisfies.append_lemma accum.steps (create 1 step');
-         assert (satisfies_p (is_Commit) accum.steps <==> satisfies_p (is_Commit) accum'.steps);
-         Flutterbye.Seq.Satisfies.remove_lemma accum.pending i (is_transaction_fresh ops accum.state);
+         Flutterbye.Seq.Contains.append_lemma accum.steps (create 1 step');
+         assert (contains_p (is_Commit) accum.steps <==> contains_p (is_Commit) accum'.steps);
+         Flutterbye.Seq.Contains.remove_lemma accum.pending i (is_transaction_fresh ops accum.state);
          assert (
                 one_transaction_is_fresh_p ops accum.state accum.pending
             ==> one_transaction_is_fresh_p ops accum.state accum'.pending
