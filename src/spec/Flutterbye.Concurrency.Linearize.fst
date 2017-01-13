@@ -136,8 +136,8 @@ val linearize_step:
          one_transaction_is_fresh_p ops thread.state thread.pending
       }
    -> Tot (thread':thread_t ops{
-            length thread'.pending = 0
-         \/ all_transactions_are_fresh_p ops thread'.state thread'.pending
+            length thread'.pending < length thread.pending
+         /\ all_transactions_are_fresh_p ops thread'.state thread'.pending
       })
 let linearize_step #state_t ops thread =
    let thread_1 = linearize_step_loop state_t ops thread in
