@@ -35,10 +35,10 @@ val linearize_step_loop:
    -> ops:ops_t state_t
    -> pending:seq (transaction_t ops)
    -> accum:thread_t ops{
-            satisfies_p (is_Commit) accum.steps
-         \/ satisfies_p (is_fresh ops accum.state) pending
+            contains_p (is_Commit) accum.steps
+         \/ contains_p (is_fresh ops accum.state) pending
       }
-   -> Tot (accum':thread_t ops{satisfies_p (is_Commit) accum'.steps})
+   -> Tot (accum':thread_t ops{contains_p (is_Commit) accum'.steps})
       (decreases (length pending))
 let rec linearize_step_loop state_t ops pending accum =
    if 0 = length pending then
@@ -53,10 +53,10 @@ let rec linearize_step_loop state_t ops pending accum =
          let steps' = append accum.steps (create 1 step') in
          let pending' = remove pending i in
          let accum' = { state = state'; steps = steps' } in
-         Flutterbye.Seq.Satisfies.create_lemma 1 step';
-         assert (satisfies_p (is_Commit) (create 1 step'));
-         Flutterbye.Seq.Satisfies.append_lemma accum.steps (create 1 step');
-         assert (satisfies_p (is_Commit) steps');
+         Flutterbye.Seq.Contains.create_lemma 1 step';
+         assert (contains_p (is_Commit) (create 1 step'));
+         Flutterbye.Seq.Contains.append_lemma accum.steps (create 1 step');
+         assert (contains_p (is_Commit) steps');
          linearize_step_loop state_t ops pending' accum'
       end
       else begin
@@ -65,10 +65,10 @@ let rec linearize_step_loop state_t ops pending accum =
          let steps' = append accum.steps (create 1 step') in
          let pending' = remove pending i in
          let accum' = { state = accum.state; steps = steps' } in
-         Flutterbye.Seq.Satisfies.append_lemma accum.steps (create 1 step');
-         assert (satisfies_p (is_Commit) accum.steps <==> satisfies_p (is_Commit)  steps');
-         Flutterbye.Seq.Satisfies.remove_lemma pending i (is_fresh ops accum.state);
-         assert (satisfies_p (is_fresh ops accum.state) pending ==> satisfies_p (is_fresh ops accum.state) pending');
+         Flutterbye.Seq.Contains.append_lemma accum.steps (create 1 step');
+         assert (contains_p (is_Commit) accum.steps <==> contains_p (is_Commit)  steps');
+         Flutterbye.Seq.Contains.remove_lemma pending i (is_fresh ops accum.state);
+         assert (contains_p (is_fresh ops accum.state) pending ==> contains_p (is_fresh ops accum.state) pending');
          linearize_step_loop state_t ops pending' accum'
       end
    end
@@ -77,8 +77,8 @@ val linearize_step:
       state_t:Type
    -> ops:ops_t state_t
    -> pending:seq (transaction_t ops)
-   -> state:state_t{satisfies_p (is_fresh ops state) pending}
-   -> Tot (thread':(thread_t ops){satisfies_p (is_Commit) thread'.steps})
+   -> state:state_t{contains_p (is_fresh ops state) pending}
+   -> Tot (thread':(thread_t ops){contains_p (is_Commit) thread'.steps})
       (decreases (length pending))
 let linearize_step state_t ops pending state =
    let thread = { state = state; steps = createEmpty } in

@@ -20,7 +20,7 @@ module Flutterbye.Seq
 
 type disjoint_p = Flutterbye.Seq.Disjoint.disjoint_p
 type mem_p = Flutterbye.Seq.Mem.mem_p
-type satisfies_p = Flutterbye.Seq.Satisfies.satisfies_p
+type contains_p = Flutterbye.Seq.Contains.contains_p
 type unique_p = Flutterbye.Seq.Unique.unique_p
 
 let count = Flutterbye.Seq.Count.count
@@ -32,7 +32,7 @@ let insert = Flutterbye.Seq.Insert.insert
 let map = Flutterbye.Seq.Map.map
 let mem = Flutterbye.Seq.Mem.mem
 let remove = Flutterbye.Seq.Remove.remove
-let satisfies = Flutterbye.Seq.Satisfies.satisfies
+let contains = Flutterbye.Seq.Contains.contains
 
 let to_set = Flutterbye.Seq.ToSet.to_set
 let unique = Flutterbye.Seq.Unique.unique
