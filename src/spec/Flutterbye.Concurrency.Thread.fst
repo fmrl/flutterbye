@@ -40,18 +40,6 @@ type transaction_t (#state_t:Type) (ops:ops_t state_t) = {
    observation:state_t
 }
 
-val is_transaction_fresh:
-      #state_t:Type
-   -> ops:ops_t state_t
-   -> state_t
-   -> transaction_t ops
-   -> Tot bool
-let is_transaction_fresh #state_t ops state txn =
-   txn.observation = state
-
-type fresh_transaction_t (#state_t:Type) (ops:ops_t state_t) (state:state_t) =
-   txn:transaction_t ops{txn.observation = state}
-
 type step_t (#state_t:Type) (ops:ops_t state_t) =
    | Commit: transaction:transaction_t ops -> step_t #state_t ops
    | Stale: transaction:transaction_t ops -> step_t #state_t ops
