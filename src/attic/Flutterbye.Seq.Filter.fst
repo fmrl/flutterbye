@@ -19,7 +19,7 @@
 module Flutterbye.Seq.Filter
 open FStar.Seq
 open Flutterbye.Seq.Mem
-open Flutterbye.Seq.Satisfies
+open Flutterbye.Seq.Contains
 
 // todo: ordering?
 // todo: counting?
@@ -35,7 +35,7 @@ type not_longer_than_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t
 
 // if the output sequence is empty, then the no element of `s` satisfies `f`.
 type when_nothing_satisfies_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
-   (length s' = 0) <==> (not (satisfies f s))
+   (length s' = 0) <==> (not (contains f s))
 
 // the the output sequence is not empty, then every element must satisfy `f`
 type everything_satisfies_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
@@ -55,12 +55,12 @@ type shared_membership_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a
 
 type antisatisfaction_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
    (
-       satisfies_p (fun x -> not (f x)) s
+       contains_p (fun x -> not (f x)) s
    ==> (length s' < length s)
    )
 
 type filtered_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
-      empty_source_p f s s' 
+      empty_source_p f s s'
    /\ not_longer_than_p f s s'
    /\ everything_satisfies_p f s s'
    /\ shared_membership_p f s s'
@@ -68,10 +68,10 @@ type filtered_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
    /\ antisatisfaction_p f s s'
 
 private val filter_loop:
-      f:('a -> Tot bool) 
-   -> s:seq 'a 
-   -> i:nat{i <= length s} 
-   -> ac:seq 'a 
+      f:('a -> Tot bool)
+   -> s:seq 'a
+   -> i:nat{i <= length s}
+   -> ac:seq 'a
    -> Tot (ac':seq 'a)
       (decreases (length s - i))
 let rec filter_loop f s i ac =
@@ -87,10 +87,10 @@ let rec filter_loop f s i ac =
       ac
 
 private val filter_loop_lemma:
-      f:('a -> Tot bool) 
-   -> s:seq 'a 
-   -> i:nat{i <= length s} 
-   -> ac:seq 'a 
+      f:('a -> Tot bool)
+   -> s:seq 'a
+   -> i:nat{i <= length s}
+   -> ac:seq 'a
    -> Lemma
       (requires (filtered_p f (slice s 0 i) ac))
       (ensures (filtered_p f s (filter_loop f s i ac)))
