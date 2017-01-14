@@ -51,7 +51,7 @@ module Rake::FStar
 
    module_function
    def FLAGS
-      @flags ||= ""
+      @flags ||= "--z3rlimit 10"
       return @flags  
    end
 
@@ -84,7 +84,10 @@ module Rake::FStar
             task :verify, :modules, :timeout do |t, args|
                args.with_defaults(:modules => "*", :timeout => nil)
                modules = @modules_found.keys.select { |m| File.fnmatch(args[:modules], m, File::FNM_CASEFOLD) }
-               sh (format_command(modules, args[:timeout])) 
+               # bug: the version of f* that we're using doesn't validate all 
+               # modules if we pass them all on a single command line.
+               #sh (format_command(modules, args[:timeout])) 
+               modules.each { |m| sh (format_command([m], args[:timeout])) } 
             end
 
             desc "list F* modules found."
