@@ -21,7 +21,7 @@ open FStar.Seq
 open Flutterbye.Option
 open Flutterbye.Seq.Remove
 
-private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
+private type legacy_find_p (a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
       // if `s` is of length zero, the only outcome can be `None`.
       ((length s = 0) ==> is_None i)
       // `None` signifies that no element is `s` can satisfy predicate `f` 
@@ -42,6 +42,14 @@ private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat)
    /\ (   (is_Some i && get i > 0) 
       ==> (forall (x:nat). x < get i ==> not (f (index s x)))
       )
+
+private type find_p 
+   (#t:Type) 
+   (f:(t -> Tot bool)) 
+   (s:seq t) 
+   (i:option nat) 
+=
+   legacy_find_p t f s i
       
 private val find_loop:
    f:('a -> Tot bool) 
