@@ -22,28 +22,30 @@ open Flutterbye.Option
 open Flutterbye.Seq.Find
 open Flutterbye.Seq.Remove
 
-type contains_p (#a_t:Type) (f:a_t -> Tot bool) (s:seq a_t) =
-   length s > 0
-   /\ (exists (x:nat{x < length s}).
-         f (index s x))
+type contains_p (#t:Type) (f:t -> Tot bool) (s:seq t) =
+   exists (i:nat{i < length s}).
+      f (index s i)
 
 val contains:
-      f:('a -> Tot bool)
-   -> s:seq 'a
+      #t:Type
+   -> f:(t -> Tot bool)
+   -> s:seq t
    -> Tot (b:bool{b <==> contains_p f s})
-let contains f s =
+let contains #t f s =
    is_Some (find f s)
 
 abstract val index_lemma:
-      s:seq 'a
+      #t:Type
+   -> s:seq t
+   -> i:nat{i < length s}
+   -> f:(t -> Tot bool)
    -> Lemma
-      (ensures
-         // if an element obtained from the sequence satisfies `f` then
-         // `contains_p f s` is true.
-         (length s > 0 ==>
-            (forall (f:'a -> Tot bool) (x:nat{x < length s}).
-               f (index s x) ==> contains_p f s)))
-let index_lemma s =
+      (requires (True))
+      (ensures (
+         (b2t (f (index s i)) ==> contains_p f s)
+         /\ (~ (contains_p f s) ==> b2t (not (f (index s i))))
+      ))
+let index_lemma #t s i f =
    ()
 
 abstract val append_lemma:
@@ -54,7 +56,7 @@ abstract val append_lemma:
    -> Lemma
       (requires (True))
       (ensures (
-              (contains_p f s_1 \/ contains_p f s_2) 
+         (contains_p f s_1 \/ contains_p f s_2) 
          <==> contains_p f (append s_1 s_2)
       ))
 let append_lemma #t s_1 s_2 f =
@@ -69,11 +71,12 @@ abstract val slice_lemma:
    -> Lemma
       (requires (True))
       (ensures (
-            (contains_p f (slice s i j) ==> contains_p f s)
+         (contains_p f (slice s i j) ==> contains_p f s)
          /\ (~ (contains_p f s) ==> ~ (contains_p f (slice s i j)))
-         /\ (   ~ (contains_p f (slice s i j)) 
+         /\ (
+            ~ (contains_p f (slice s i j)) 
             ==> (
-                   ~ (contains_p f s)
+                ~ (contains_p f s)
                 \/ (contains_p f (slice s 0 i))
                 \/ (contains_p f (slice s j (length s)))
             )
@@ -104,49 +107,42 @@ let slice_lemma #t s i j f =
          ()
    end
 
-private type empty_p (#a_t:Type) (s:seq a_t) =
-   forall (f:a_t -> Tot bool).
-      ~ (contains_p f s)
-
-// this function is used as a witness
-private val eq: 'a -> 'a -> Tot bool
-let eq a_1 a_2 =
-   a_1 = a_2
-
 abstract val empty_lemma:
-      s:seq 'a
-   -> Lemma (ensures (length s = 0 <==> empty_p s))
-let empty_lemma s =
+      #t:Type
+   -> f:(t -> Tot bool)
+   -> s:seq t{length s = 0}
+   -> Lemma
+      (requires (True)) 
+      (ensures (~ (contains_p f s)))
+let empty_lemma #t f s =
    Flutterbye.Seq.Find.empty_lemma s
 
 abstract val create_lemma:
-      n:nat
-   -> a:'a
+      #t:Type
+   -> n:nat
+   -> x:t
+   -> f:(t -> Tot bool)
    -> Lemma
-      (ensures
-         (  // if we are creating an empty sequence, then the empty rule applies.
-            (n = 0 <==> (forall (f:'a -> Tot bool). empty_p (create n a)))
-         /\ // otherwise, `f a` is the identical to `contains_p f s`.
-            (n > 0 ==> (forall (f:'a -> Tot bool). (f a <==> contains_p f (create n a))))))
-let create_lemma n a =
-   Flutterbye.Seq.Find.create_lemma n a
+      (ensures (
+         (n = 0 ==> ~ (contains_p f (create n x)))
+         /\ (n > 0 ==> (b2t (f x) <==> contains_p f (create n x)))
+      ))
+let create_lemma #t n x f =
+   Flutterbye.Seq.Find.create_lemma n x
 
 val remove_lemma:
-      s:seq 'a{length s > 0}
+      #t:Type
+   -> s:seq t{length s > 0}
    -> i:nat{i < length s}
-   -> f:('a -> Tot bool)
+   -> f:(t -> Tot bool)
    -> Lemma
       (requires (True))
-      (ensures
-         (  // if the input sequence doesn't have an element that satisfies
-            // `f` then the output won't either.
-            (~ (contains_p f s) ==> ~ (contains_p f (remove s i)))
-
-            // if an element in the input sequence that satisfies `f` can be
-            // found and that element is not being removed from the sequence,
-            // the output sequence will also satisfy `f`.
-         /\ ((contains_p f s /\ get (find f s) <> i) ==> contains_p f (remove s i))
+      (ensures (
+         (~ (contains_p f s) ==> ~ (contains_p f (remove s i)))
+         /\ (
+            (contains_p f s /\ get (find f s) <> i) 
+            ==> contains_p f (remove s i)
          )
-      )
-let remove_lemma s i f =
+      ))
+let remove_lemma #t s i f =
    Flutterbye.Seq.Find.remove_lemma s i f

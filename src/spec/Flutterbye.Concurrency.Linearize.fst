@@ -62,7 +62,7 @@ let rec linearize_step_loop state_t ops accum =
             steps = append accum.steps (create 1 step')
          }
          in
-         Flutterbye.Seq.Contains.create_lemma 1 step';
+         Flutterbye.Seq.Contains.create_lemma 1 step' (is_Commit);
          assert (contains_p (is_Commit) (create 1 step'));
          Flutterbye.Seq.Contains.append_lemma 
             accum.steps (create 1 step') (is_Commit);
