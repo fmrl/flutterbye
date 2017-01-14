@@ -22,17 +22,8 @@ open Flutterbye.Option
 open Flutterbye.Seq.Find
 open Flutterbye.Seq.Remove
 
-type contains_p (#t:Type) (f:t -> Tot bool) (s:seq t) =
-   exists (i:nat{i < length s}).
-      f (index s i)
-
-val contains:
-      #t:Type
-   -> f:(t -> Tot bool)
-   -> s:seq t
-   -> Tot (b:bool{b <==> contains_p f s})
-let contains #t f s =
-   is_Some (find f s)
+type contains_p = found_p
+let contains = found
 
 abstract val index_lemma:
       #t:Type

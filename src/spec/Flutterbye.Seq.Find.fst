@@ -21,23 +21,14 @@ open FStar.Seq
 open Flutterbye.Option
 open Flutterbye.Seq.Remove
 
+type found_p (#t:Type) (f:(t -> Tot bool)) (s:seq t) =
+   exists (i:nat{i < length s}). 
+      f (index s i)
+
 private type legacy_find_p (a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
-      // if `s` is of length zero, the only outcome can be `None`.
-      ((length s = 0) ==> is_None i)
-      // `None` signifies that no element is `s` can satisfy predicate `f` 
-   /\ (is_None i <==> ~ (exists (x:nat{x < length s}). f (index s x)))
-      // `Some i` implies that the length of `s` must be non-zero.
-   /\ (is_Some i <==> (exists (x:nat{x < length s}). f (index s x)))
-      // `Some i` implies, if `i > 0` that all elements preceeding `i`
-      // must not satisfy predicate `f`.
-   /\ (is_Some i ==> b2t (length s > 0))
-      // `Some i` implies that `i` must be a valid index of `s`.
+   (is_Some i ==> b2t (length s > 0))
    /\ (is_Some i ==> b2t (get i < length s))
-      // `Some i` implies that `i` must index an element within `s` that satisfies
-      // predicate `f`.
    /\ (is_Some i ==> b2t (f (index s (get i))))
-      // `Some` implies that there exists an element that can satisfy 
-      // predicate `f`.
       // todo: can this be turned into an iff?
    /\ (   (is_Some i && get i > 0) 
       ==> (forall (x:nat). x < get i ==> not (f (index s x)))
@@ -49,7 +40,10 @@ private type find_p
    (s:seq t) 
    (i:option nat) 
 =
-   legacy_find_p t f s i
+   (is_Some i <==> found_p f s)
+   /\ (is_None i <==> ~ (found_p f s))
+   /\ ((length s = 0) ==> is_None i)
+   /\ legacy_find_p t f s i
       
 private val find_loop:
    f:('a -> Tot bool) 
@@ -147,10 +141,7 @@ let empty_lemma s =
       assert (~ (empty_p s))
    end
 
-private type found_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) =
-   ~ (find_p f s None)
-
-private val found: 
+val found: 
       f:('a -> Tot bool) 
    -> s:seq 'a 
    -> Tot (b:bool{b <==> found_p f s})
