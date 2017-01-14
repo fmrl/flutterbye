@@ -2,4 +2,4 @@
 # and leave all files detected as binary untouched.
 * text=auto
 
-/lib/vagrant/* text eol=lf
+*.sh text eol=lf

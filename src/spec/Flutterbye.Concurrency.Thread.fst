@@ -34,21 +34,18 @@ let apply_op ops opcode state =
    let op = index ops opcode in
    op state
 
-type transaction_t (#state_t:Type) (ops:ops_t state_t) =
-   {
-      txnid:nat;
-      opcode:opcode_t ops;
-      observation:state_t
-   }
+type transaction_t (#state_t:Type) (ops:ops_t state_t) = {
+   txnid:nat;
+   opcode:opcode_t ops;
+   observation:state_t
+}
 
 type step_t (#state_t:Type) (ops:ops_t state_t) =
    | Commit: transaction:transaction_t ops -> step_t #state_t ops
    | Stale: transaction:transaction_t ops -> step_t #state_t ops
 
-type thread_t (#state_t:Type) (ops:ops_t state_t) =
-   {
-      pending:seq (transaction_t ops);
-      steps:seq (step_t ops);
-      state:state_t
-   }
-
+type thread_t (#state_t:Type) (ops:ops_t state_t) = {
+   pending:seq (transaction_t ops);
+   steps:seq (step_t ops);
+   state:state_t
+}

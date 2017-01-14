@@ -16,14 +16,10 @@
 //
 //,$
 
-module Flutterbye.Seq.Count
-open FStar.Seq
-open Flutterbye.Seq.Filter
+module Flutterbye.Prelude
 
-val count: 
-      #t:Type
-   -> f:(t -> Tot bool) 
-   -> s:seq t 
-   -> Tot (n:nat{n <= length s})
-let count #t f s =
-   length (filter f s)
+// adapted from f* sample code.
+// todo: why is this in lib/prims.fst but not ulib/prims.fst?
+// it appears to still be in mitls (see StatefulLHAE.fst, line 172),
+// which suggests that it is not incompatible with `--universes`
+type let_t (#a_t:Type) (x:a_t) (body:(y:a_t{y = x} -> Type)) = body x
