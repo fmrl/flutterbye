@@ -21,25 +21,6 @@ open FStar.Seq
 open Flutterbye.Option
 open Flutterbye.Seq.Remove
 
-<<<<<<< HEAD
-private type find_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
-      // if `s` is of length zero, the only outcome can be `None`.
-      ((length s = 0) ==> None? i)
-      // `None` signifies that no element is `s` can satisfy predicate `f` 
-   /\ (None? i <==> ~ (exists (x:nat{x < length s}). f (index s x)))
-      // `Some i` implies that the length of `s` must be non-zero.
-   /\ (Some? i <==> (exists (x:nat{x < length s}). f (index s x)))
-      // `Some i` implies, if `i > 0` that all elements preceeding `i`
-      // must not satisfy predicate `f`.
-   /\ (Some? i ==> b2t (length s > 0))
-      // `Some i` implies that `i` must be a valid index of `s`.
-   /\ (Some? i ==> b2t (get i < length s))
-      // `Some i` implies that `i` must index an element within `s` that satisfies
-      // predicate `f`.
-   /\ (Some? i ==> b2t (f (index s (get i))))
-      // `Some` implies that there exists an element that can satisfy 
-      // predicate `f`.
-=======
 type found_p (#t:Type) (f:(t -> Tot bool)) (s:seq t) =
    exists (i:nat{i < length s}). 
       f (index s i)
@@ -48,7 +29,6 @@ private type legacy_find_p (a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:optio
    (is_Some i ==> b2t (length s > 0))
    /\ (is_Some i ==> b2t (get i < length s))
    /\ (is_Some i ==> b2t (f (index s (get i))))
->>>>>>> refactor-wip
       // todo: can this be turned into an iff?
    /\ (   (Some? i && get i > 0) 
       ==> (forall (x:nat). x < get i ==> not (f (index s x)))
@@ -66,37 +46,9 @@ private type find_p
    /\ legacy_find_p t f s i
       
 private val find_loop:
-<<<<<<< HEAD
-   f:('a -> Tot bool) 
-   -> s:seq 'a 
-   -> i:nat{i <= length s} 
-   -> ac:option nat 
-   -> Tot (ac':option nat)
-      (decreases (length s - i))
-let rec find_loop f s i ac =
-   if i = length s then
-      ac
-   else
-      let ac' =
-         if None? ac then begin
-            if f (index s i) then
-               Some i
-            else
-               None
-         end 
-         else
-            ac 
-      in
-      find_loop f s (i + 1) ac'
-
-private val find_lemma:
-      f:('a -> Tot bool)
-   -> s:seq 'a 
-=======
    t:Type
    -> f:(t -> Tot bool) 
    -> s:seq t
->>>>>>> refactor-wip
    -> i:nat{i <= length s} 
    -> accum:option nat{find_p f (slice s 0 i) accum}
    -> Tot (accum':option nat{find_p f s accum'})
@@ -104,19 +56,6 @@ private val find_lemma:
 let rec find_loop t f s i accum =
    let s_1 = slice s 0 i in
    if i = length s then begin
-<<<<<<< HEAD
-      if length s = 0 || Some? ac then
-         ()
-      else begin
-         assert (equal sl s); // required
-         assert (~ (exists (x:nat{x < length s}). f (index s x)))
-      end
-   end
-   else
-      let ac' =
-         let sl' = slice s 0 (i + 1) in
-         if None? ac then begin
-=======
       assert (equal s_1 s);
       accum
    end
@@ -124,7 +63,6 @@ let rec find_loop t f s i accum =
       let accum' =
          let s_2 = slice s 0 (i + 1) in
          if is_None accum then begin
->>>>>>> refactor-wip
             if f (index s i) then begin
                assert (index s_2 i = index s i); // required
                assert (found_p f s_2);
@@ -330,11 +268,7 @@ let slice_inclusive_lemma s i j f =
          let a' = find f s' in
          assert (equal (slice s i (get a)) (slice s' 0 ((get a) - i)));
          slice_preceeding_lemma s i (get a) f;
-<<<<<<< HEAD
-         assert (Some? a')
-=======
          admitP (is_Some a')
->>>>>>> refactor-wip
       end
    else
       ()
