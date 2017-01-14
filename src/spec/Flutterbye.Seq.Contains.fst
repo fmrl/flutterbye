@@ -46,17 +46,63 @@ abstract val index_lemma:
 let index_lemma s =
    ()
 
-abstract val slice_lemma:
-      s:seq 'a
+abstract val append_lemma:
+      #t:Type
+   -> s_1:seq t
+   -> s_2:seq t
+   -> f:(t -> Tot bool)
    -> Lemma
-      (ensures
-         (forall (f:'a -> Tot bool) (x:nat) (y:nat).
-            // if [x, y) describes a non-empty (where x < y) slice of `s`...
-            (y <= length s /\ x < y) ==>
-               // then any slice that satisfies `f` means `s` is satisfied.
-               contains_p f (slice s x y) ==> contains_p f s))
-let slice_lemma s =
-   ()
+      (requires (True))
+      (ensures (
+              (contains_p f s_1 \/ contains_p f s_2) 
+         <==> contains_p f (append s_1 s_2)
+      ))
+let append_lemma #t s_1 s_2 f =
+   Flutterbye.Seq.Find.append_lemma s_1 s_2   
+
+abstract val slice_lemma:
+      #t:Type
+   -> s:seq t
+   -> i:nat
+   -> j:nat{i <= j && j <= length s}
+   -> f:(t -> Tot bool)
+   -> Lemma
+      (requires (True))
+      (ensures (
+            (contains_p f (slice s i j) ==> contains_p f s)
+         /\ (~ (contains_p f s) ==> ~ (contains_p f (slice s i j)))
+         /\ (   ~ (contains_p f (slice s i j)) 
+            ==> (
+                   ~ (contains_p f s)
+                \/ (contains_p f (slice s 0 i))
+                \/ (contains_p f (slice s j (length s)))
+            )
+         )
+      ))
+let slice_lemma #t s i j f =
+   if contains f (slice s i j) then
+      ()
+   else begin
+      if contains f s then begin
+         if contains f (slice s 0 i) then
+            ()
+         else begin
+            let s_1 = slice s 0 i in
+            let s_2 = slice s i j in
+            let s_3 = append s_1 s_2 in
+            append_lemma s_1 s_2 f;
+            assert (equal s_3 (slice s 0 j));
+            assert (~ (contains_p f (slice s 0 j)));
+            let s_4 = (slice s j (length s)) in
+            let s_5 = append s_3 s_4 in
+            append_lemma s_3 s_4 f;
+            assert (equal s_5 s);
+            assert (contains_p f (slice s j (length s)))
+         end
+      end
+      else 
+         ()
+   end
 
 private type empty_p (#a_t:Type) (s:seq a_t) =
    forall (f:a_t -> Tot bool).
@@ -84,28 +130,6 @@ abstract val create_lemma:
             (n > 0 ==> (forall (f:'a -> Tot bool). (f a <==> contains_p f (create n a))))))
 let create_lemma n a =
    Flutterbye.Seq.Find.create_lemma n a
-
-abstract val append_lemma:
-      s_1:seq 'a
-   -> s_2:seq 'a
-   -> Lemma
-      (ensures
-         (  // if the first sequence satisfies the predicate, the "appended" sequence
-            // will also.
-            (forall (f:'a -> Tot bool).
-               (contains_p f s_1 ==> contains_p f (append s_1 s_2)))
-         /\ // if the second sequence satisfies the predicate, the "appended" sequence
-            // will also.
-            (forall (f:'a -> Tot bool).
-               (contains_p f s_2 ==> contains_p f (append s_1 s_2)))
-         /\ // if one of the two input sequences satisfies the predivate, the "appended"
-            // sequence will also, and vice versa.
-            (forall (f:'a -> Tot bool).
-               (contains_p f (append s_1 s_2) <==> (contains_p f s_1 \/ contains_p f s_2)))
-         )
-      )
-let append_lemma s_1 s_2 =
-   Flutterbye.Seq.Find.append_lemma s_1 s_2
 
 val remove_lemma:
       s:seq 'a{length s > 0}

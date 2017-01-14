@@ -64,7 +64,8 @@ let rec linearize_step_loop state_t ops accum =
          in
          Flutterbye.Seq.Contains.create_lemma 1 step';
          assert (contains_p (is_Commit) (create 1 step'));
-         Flutterbye.Seq.Contains.append_lemma accum.steps (create 1 step');
+         Flutterbye.Seq.Contains.append_lemma 
+            accum.steps (create 1 step') (is_Commit);
          assert (contains_p (is_Commit) accum'.steps);
          linearize_step_loop state_t ops accum'
       end
@@ -77,7 +78,8 @@ let rec linearize_step_loop state_t ops accum =
             steps = append accum.steps (create 1 step')
          }
          in
-         Flutterbye.Seq.Contains.append_lemma accum.steps (create 1 step');
+         Flutterbye.Seq.Contains.append_lemma 
+            accum.steps (create 1 step') (is_Commit);
          assert (contains_p (is_Commit) accum.steps <==> contains_p (is_Commit) accum'.steps);
          Flutterbye.Seq.Contains.remove_lemma accum.pending i (is_transaction_fresh ops accum.state);
          assert (
