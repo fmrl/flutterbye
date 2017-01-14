@@ -23,14 +23,13 @@ open Flutterbye.Seq.Find
 open Flutterbye.Seq.Remove
 
 type contains_p (#a_t:Type) (f:a_t -> Tot bool) (s:seq a_t) =
-   length s > 0
-   /\ (exists (x:nat{x < length s}).
-         f (index s x))
+   exists (x:nat{x < length s}).
+      f (index s x)
 
 val contains:
       f:('a -> Tot bool)
    -> s:seq 'a
-   -> Tot (b:bool{b <==> contains_p f s})
+   -> Tot (b:bool{b2t b <==> contains_p f s})
 let contains f s =
    is_Some (find f s)
 
