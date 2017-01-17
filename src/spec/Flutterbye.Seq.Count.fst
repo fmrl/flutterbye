@@ -20,10 +20,24 @@ module Flutterbye.Seq.Count
 open FStar.Seq
 open Flutterbye.Seq.Filter
 
-val count: 
+val count:
       #t:Type
-   -> f:(t -> Tot bool) 
-   -> s:seq t 
+   -> f:(t -> Tot bool)
+   -> s:seq t
    -> Tot (n:nat{n <= length s})
 let count #t f s =
    length (filter f s)
+
+abstract val append_lemma:
+   #t:Type
+   -> s_1:seq t
+   -> s_2:seq t
+   -> f:(t -> Tot bool)
+   -> Lemma
+      (requires (True))
+      (ensures (count f s_1 + count f s_2 = count f (append s_1 s_2)))
+let append_lemma #t s_1 s_2 f =
+   let s' = append s_1 s_2 in
+   assert (equal (slice s' 0 (length s_1)) s_1);
+   assert (equal (slice s' (length s_1) (length s')) s_2);
+   admit ()

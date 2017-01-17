@@ -161,6 +161,9 @@ let rec refresh_loop #state_t ops state steps i accum =
    else begin
       let s_2 = slice steps 0 (i + 1) in
       let step = index steps i in
+      let s_3 = append s_1 (create 1 step) in
+      assert (equal s_3 s_2);
+      Flutterbye.Seq.Count.append_lemma s_1 (create 1 step) (Stale?);
       if Stale? step then
          let fresh_txn = {
             txnid = (Stale?.transaction step).txnid;
@@ -169,10 +172,12 @@ let rec refresh_loop #state_t ops state steps i accum =
          }
          in
          let accum' = append accum (create 1 fresh_txn) in
-         admitP (refresh_loop_invariant_p ops state s_2 accum');
+         assert (count (Stale?) s_1 + 1 = count (Stale?) s_2);
+         assert (refresh_loop_invariant_p ops state s_2 accum');
          refresh_loop ops state steps (i + 1) accum'
       else begin
-         admitP (refresh_loop_invariant_p ops state s_2 accum);
+         assert (count (Stale?) s_1 = count (Stale?) s_2);
+         assert (refresh_loop_invariant_p ops state s_2 accum);
          refresh_loop ops state steps (i + 1) accum
       end
    end
