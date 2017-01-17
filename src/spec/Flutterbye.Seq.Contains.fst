@@ -115,11 +115,11 @@ abstract val create_lemma:
    -> f:(t -> Tot bool)
    -> Lemma
       (ensures (
-         (n = 0 ==> ~ (contains_p f (create n x)))
-         /\ (n > 0 ==> (b2t (f x) <==> contains_p f (create n x)))
+         (b2t (n = 0) ==> ~ (contains_p f (create n x)))
+         /\ (b2t (n > 0) ==> (b2t (f x) <==> contains_p f (create n x)))
       ))
 let create_lemma #t n x f =
-   Flutterbye.Seq.Find.create_lemma n x
+   Flutterbye.Seq.Find.create_lemma n x f
 
 val remove_lemma:
       #t:Type
