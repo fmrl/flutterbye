@@ -26,7 +26,7 @@ set -x
 set -e
 
 OCAML_VERSION="4.02.3"
-OPAM_PACKAGES="ocamlfind batteries stdint zarith yojson"
+OPAM_PACKAGES="ocamlfind batteries stdint zarith yojson pprint"
 
 # setup opam
 opam init --comp $OCAML_VERSION --auto-setup

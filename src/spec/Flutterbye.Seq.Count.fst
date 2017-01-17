@@ -20,10 +20,10 @@ module Flutterbye.Seq.Count
 open FStar.Seq
 open Flutterbye.Seq.Filter
 
-val count:
+val count: 
       #t:Type
-   -> f:(t -> Tot bool)
-   -> s:seq t
+   -> f:(t -> Tot bool) 
+   -> s:seq t 
    -> Tot (n:nat{n <= length s})
 let count #t f s =
    length (filter f s)

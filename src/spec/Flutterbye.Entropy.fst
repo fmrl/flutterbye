@@ -20,7 +20,7 @@ module Flutterbye.Entropy
 
 type next_t 'a = 'a -> n:nat -> Tot ('a * m:nat{m <= n})
 
-type entropy_t 'a =
+noeq type entropy_t 'a =
    {
       next:next_t 'a;
       state:'a

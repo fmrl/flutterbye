@@ -23,7 +23,7 @@ module Flutterbye.Seq
 type contains_p = Flutterbye.Seq.Contains.contains_p
 //type unique_p = Flutterbye.Seq.Unique.unique_p
 
-//let count = Flutterbye.Seq.Count.count
+let count = Flutterbye.Seq.Count.count
 //let dedup = Flutterbye.Seq.Unique.dedup
 //let disjoint = Flutterbye.Seq.Disjoint.disjoint
 //let filter = Flutterbye.Seq.Filter.filter

@@ -43,10 +43,20 @@ private type emits_subset_p
 =
    contains_p (fun x -> not (f x)) s <==> b2t (length s' < length s)
 
+// the output sequence only contains elements that satisfy `f`.
+private type emits_satisfying_p 
+   (#a_t:Type) 
+   (f:(a_t -> Tot bool)) 
+   (s':seq a_t)
+=
+   forall (i:nat{i < length s'}).
+      f (index s' i)
+
 type filter_p (#t:Type) (f:(t -> Tot bool)) (s:seq t) (s':seq t) =
       never_emits_longer_p s s'
    /\ emits_empty_p f s s'
    /\ emits_subset_p f s s'
+   /\ emits_satisfying_p f s'
 
 private val filter_loop:
       t:Type
@@ -63,27 +73,30 @@ let rec filter_loop t f s i accum =
       accum
    end
    else begin
-      // the following proof is really unstable. :(
       let s_1 = slice s 0 (i + 1) in
       assert (equal s_0 (slice s_1 0 i));
       let x = index s i in
       if f x then begin
          let accum' = append accum (create 1 x) in
          assert (b2t (f (index s_1 i)));
-         assert (contains_p f s_1);
-         //assert (never_emits_longer_p s_1 accum');
-         assert (emits_empty_p f s_1 accum');
-         assert (contains_p (fun x -> not (f x)) s_1 ==> b2t (length accum' < length s_1));
-         assert (b2t (length accum' < length s_1) ==> contains_p (fun x -> not (f x)) s_1);
-         assert (emits_subset_p f s_1 accum');
+         Flutterbye.Seq.Contains.slice_lemma s_1 0 i (fun x -> not (f x));
+         assert (
+                contains_p (fun x -> not (f x)) s_0 
+            ==> contains_p (fun x -> not (f x)) s_1
+         );
+         assert (
+                ~ (contains_p (fun x -> not (f x)) s_0) 
+            ==> ~ (contains_p (fun x -> not (f x)) s_1)
+         );
          assert (filter_p f s_1 accum');
          filter_loop t f s (i + 1) accum'
       end
       else begin
-         assert (~ (contains_p f s_1) ==> b2t (length accum = 0));
-         admitP (b2t (length accum = 0) ==> ~ (contains_p f s_1));
-         assert (emits_empty_p f s_1 accum);
-         admitP (filter_p f s_1 accum);
+         assert (b2t (not (f (index s_1 i))));
+         Flutterbye.Seq.Contains.slice_lemma s_1 0 i f;
+         assert (contains_p f s_0 ==> contains_p f s_1);
+         assert (~ (contains_p f s_0) ==> ~ (contains_p f s_1));
+         assert (filter_p f s_1 accum);
          filter_loop t f s (i + 1) accum
       end
    end
