@@ -269,10 +269,8 @@ let slice_inclusive_lemma #t s i j f =
    if Some? x && i <= get x && get x < j then
       begin
          let s' = slice s i j in
-         let x' = find f s' in
-         assert (equal (slice s i (get x)) (slice s' 0 ((get x) - i)));
-         slice_preceeding_lemma s i (get x) f;
-         admitP (Some? x')
+         assert (index s' ((get x) - i) == index s (get x));
+         assert (found_p f s')
       end
    else
       ()
