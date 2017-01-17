@@ -182,6 +182,7 @@ let rec refresh_loop #state_t ops state steps i accum =
       end
    end
 
+// todo: not yet saying anything about commit counts.
 val linearize_step:
       #state_t:Type{hasEq state_t}
    -> ops:ops_t state_t
