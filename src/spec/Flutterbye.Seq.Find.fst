@@ -36,19 +36,21 @@ type index_within_range_p (#t:Type) (s:seq t) (i:option nat) =
 =
 b2t (Some? i) ==> b2t (length s > 0) *)
 
-(*type index_satisfies_predicate_p
+type index_satisfies_predicate_p
    (#t:Type)
    (f:(t -> Tot bool))
    (s:seq t)
-   (i:option nat)
+   (i:option nat{index_within_range_p s i})
 =
-   b2t (Some? i) ==> b2t (f (index s (get i))) *)
+   b2t (Some? i) ==> b2t (f (index s (get i)))
 
-private type legacy_find_p (t:Type) (f:(t -> Tot bool)) (s:seq t) (i:option nat) =
-    (b2t (Some? i) ==> b2t (get i < length s))
-   /\ (b2t (Some? i) ==> b2t (f (index s (get i))))
+private type legacy_find_p
+   (t:Type)
+   (f:(t -> Tot bool))
+   (s:seq t)
+   (i:option nat{index_within_range_p s i}) =
       // todo: can this be turned into an iff?
-   /\ (   b2t (Some? i && get i > 0)
+    (   b2t (Some? i && get i > 0)
       ==> (forall (x:nat). x < get i ==> not (f (index s x)))
       )
 
@@ -61,8 +63,9 @@ private type find_p
    (b2t (Some? i) <==> found_p f s)
    /\ (b2t (None? i) <==> ~ (found_p f s))
    /\ (b2t (length s = 0) ==> b2t (None? i))
+   /\ index_within_range_p s i
 //   /\ found_implies_non_empty_p f s i
-//   /\ index_satisfies_predicate_p f s i
+   /\ index_satisfies_predicate_p f s i
    /\ legacy_find_p t f s i
 
 private val find_loop:
