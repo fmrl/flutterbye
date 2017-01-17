@@ -47,11 +47,11 @@ abstract val append_lemma:
    -> Lemma
       (requires (True))
       (ensures (
-         (contains_p f s_1 \/ contains_p f s_2) 
+         (contains_p f s_1 \/ contains_p f s_2)
          <==> contains_p f (append s_1 s_2)
       ))
 let append_lemma #t s_1 s_2 f =
-   Flutterbye.Seq.Find.append_lemma s_1 s_2   
+   Flutterbye.Seq.Find.append_lemma s_1 s_2
 
 abstract val slice_lemma:
       #t:Type
@@ -65,7 +65,7 @@ abstract val slice_lemma:
          (contains_p f (slice s i j) ==> contains_p f s)
          /\ (~ (contains_p f s) ==> ~ (contains_p f (slice s i j)))
          /\ (
-            ~ (contains_p f (slice s i j)) 
+            ~ (contains_p f (slice s i j))
             ==> (
                 ~ (contains_p f s)
                 \/ (contains_p f (slice s 0 i))
@@ -94,19 +94,9 @@ let slice_lemma #t s i j f =
             assert (contains_p f (slice s j (length s)))
          end
       end
-      else 
+      else
          ()
    end
-
-abstract val empty_lemma:
-      #t:Type
-   -> f:(t -> Tot bool)
-   -> s:seq t{length s = 0}
-   -> Lemma
-      (requires (True)) 
-      (ensures (~ (contains_p f s)))
-let empty_lemma #t f s =
-   Flutterbye.Seq.Find.empty_lemma s
 
 abstract val create_lemma:
       #t:Type
@@ -122,7 +112,7 @@ let create_lemma #t n x f =
    Flutterbye.Seq.Find.create_lemma n x f
 
 val remove_lemma:
-      #t:Type
+      #t:Type{hasEq t}
    -> s:seq t{length s > 0}
    -> i:nat{i < length s}
    -> f:(t -> Tot bool)
@@ -131,7 +121,7 @@ val remove_lemma:
       (ensures (
          (~ (contains_p f s) ==> ~ (contains_p f (remove s i)))
          /\ (
-            (contains_p f s /\ get (find f s) <> i) 
+            (contains_p f s /\ get (find f s) <> i)
             ==> contains_p f (remove s i)
          )
       ))

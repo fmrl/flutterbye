@@ -249,15 +249,10 @@ private type slice_inclusive_p
    (j:nat{i <= j && j <= length s})
    (f:t -> Tot bool)
 =
-   (
-       (exists (x:nat{i <= x && x < j}). find_p f s (Some x))
+   (found_p f s /\ b2t (i <= get (find f s)) /\ b2t (get (find f s) < j))
    ==> (
-           b2t (i <= get (find f s))
-       ==> (
-              found_p f (slice s i j)
-           /\ (get (find f (slice s i j)) == get (find f s) - i)
-           )
-       )
+      found_p f (slice s i j)
+      /\ b2t (get (find f (slice s i j)) = get (find f s) - i)
    )
 
 private val slice_inclusive_lemma:
@@ -270,14 +265,14 @@ private val slice_inclusive_lemma:
       (requires (True))
       (ensures (slice_inclusive_p s i j f))
 let slice_inclusive_lemma #t s i j f =
-   let a = find f s in
-   if Some? a && i <= get a && get a < j then
+   let x = find f s in
+   if Some? x && i <= get x && get x < j then
       begin
          let s' = slice s i j in
-         let a' = find f s' in
-         assert (equal (slice s i (get a)) (slice s' 0 ((get a) - i)));
-         slice_preceeding_lemma s i (get a) f;
-         admitP (Some? a')
+         let x' = find f s' in
+         assert (equal (slice s i (get x)) (slice s' 0 ((get x) - i)));
+         slice_preceeding_lemma s i (get x) f;
+         admitP (Some? x')
       end
    else
       ()
