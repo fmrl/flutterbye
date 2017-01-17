@@ -142,11 +142,11 @@ val linearize_step:
          /\ all_transactions_are_fresh_p ops thread'.state thread'.pending
       })
 let linearize_step #state_t ops thread =
-   admit ();
    let thread_1 = linearize_step_loop state_t ops thread in
    let pending' =
       refresh_loop ops thread_1.state thread_1.steps 0 createEmpty
    in
+   admitP (length pending' < length thread.pending);
    let thread_2 = {
          state = thread_1.state;
          pending = pending';
