@@ -24,16 +24,16 @@ module Rake::FStar
 
    @modules_found = {}
    @include_paths = Set.new
-   
+
    module_function
    def FSTAR
       @fstar ||= Pathname.new "fstar.exe"
-      return @fstar 
+      return @fstar
    end
-   
+
    module_function
    def FSTAR= s
-      @fstar = Pathname.new(s.to_s) 
+      @fstar = Pathname.new(s.to_s)
       ScriptUtils.raise_if_not_executable @fstar
    end
 
@@ -51,13 +51,13 @@ module Rake::FStar
 
    module_function
    def FLAGS
-      @flags ||= "--z3rlimit 10"
-      return @flags  
+      @flags ||= "--z3rlimit 30"
+      return @flags
    end
 
    module_function
    def FLAGS= s; @flags = s end
-   
+
    module_function
    def module_path(dir_path)
       dir_path = Pathname.new(dir_path)
@@ -67,7 +67,7 @@ module Rake::FStar
          glob.gsub!("\\", "/")
       end
       files = Rake::FileList[glob]
-      
+
       files.each do |s|
          fp = Pathname.new(s)
          @include_paths << fp.dirname
@@ -84,10 +84,10 @@ module Rake::FStar
             task :verify, :modules, :timeout do |t, args|
                args.with_defaults(:modules => "*", :timeout => nil)
                modules = @modules_found.keys.select { |m| File.fnmatch(args[:modules], m, File::FNM_CASEFOLD) }
-               # bug: the version of f* that we're using doesn't validate all 
+               # bug: the version of f* that we're using doesn't validate all
                # modules if we pass them all on a single command line.
-               #sh (format_command(modules, args[:timeout])) 
-               modules.each { |m| sh (format_command([m], args[:timeout])) } 
+               #sh (format_command(modules, args[:timeout]))
+               modules.each { |m| sh (format_command([m], args[:timeout])) }
             end
 
             desc "list F* modules found."
