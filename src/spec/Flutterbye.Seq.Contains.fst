@@ -112,7 +112,7 @@ let create_lemma #t n x f =
    Flutterbye.Seq.Find.create_lemma n x f
 
 val remove_lemma:
-      #t:Type{hasEq t}
+      #t:Type
    -> s:seq t{length s > 0}
    -> i:nat{i < length s}
    -> f:(t -> Tot bool)

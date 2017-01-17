@@ -22,7 +22,7 @@ open FStar.Seq
 // bug: an unmatched (* will not be reported properly by f*.
 
 val remove:
-   #t:Type{hasEq t}
+   #t:Type
    -> s:seq t{length s > 0}
    -> i:nat{i < length s}
    -> Tot (s':seq t{length s' = length s - 1})
@@ -32,24 +32,23 @@ let remove #t s i =
    append l r
 
 val index_lemma:
-   #t:Type{hasEq t}
+   #t:Type
    -> s:seq t{length s > 0}
    -> i:nat{i < length s}
    -> Lemma
       (requires (True))
-      (ensures
-         (  // todo: let_t s' = remove s i
-            (forall (x:nat).
-               x < i ==> index (remove s i) x = index s x)
+      (ensures (
+         (forall (x:nat).
+            b2t (x < i) ==> index (remove s i) x == index s x)
          /\ (forall (x:nat).
-               i < x && x < length (remove s i) ==> index (remove s i) x = index s (x + 1))
+         b2t (i < x && x < length (remove s i)) ==> (index (remove s i) x == index s (x + 1)))
          )
       )
 let index_lemma #t s i =
    ()
 
 val equal_lemma:
-   #t:Type{hasEq t}
+   #t:Type
    -> s:seq t{length s > 0}
    -> i:nat{i < length s}
    -> Lemma
