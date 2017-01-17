@@ -135,8 +135,13 @@ abstract val create_lemma:
          (b2t (n = 0) ==> ~ (found_p f (create n x)))
          /\ (b2t (n > 0) ==> (b2t (f x) <==> found_p f (create n x)))
       ))
-let create_lemma #t n a f =
-   admit ()
+let create_lemma #t n x f =
+   if n = 0 then
+      ()
+   else begin
+      let s = create n x in
+      assert (b2t (f x = f (index s 0)))
+   end
 
 abstract val append_lemma:
    #t:Type
