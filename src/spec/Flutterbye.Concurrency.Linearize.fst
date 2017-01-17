@@ -134,11 +134,10 @@ type refresh_loop_invariant_p
    (ops:ops_t state_t)
    (state:state_t)
    (steps:seq (step_t ops))
-   (i:nat{i <= length steps})
    (accum:seq (transaction_t ops))
 =
    all_transactions_are_fresh_p ops state accum
-   /\ b2t (length accum = count (Stale?) (slice steps 0 i))
+   /\ b2t (length accum = count (Stale?) steps)
 
 val refresh_loop:
       #state_t:Type{hasEq state_t}
@@ -147,17 +146,20 @@ val refresh_loop:
    -> steps:seq (step_t ops)
    -> i:nat{i <= length steps}
    -> accum:seq (transaction_t ops){
-         refresh_loop_invariant_p ops state steps i accum
+         refresh_loop_invariant_p ops state (slice steps 0 i) accum
       }
    -> Tot (accum':seq (transaction_t ops){
-         refresh_loop_invariant_p ops state steps i accum'
+         refresh_loop_invariant_p ops state steps accum'
       })
       (decreases (length steps - i))
 let rec refresh_loop #state_t ops state steps i accum =
+   let s_1 = slice steps 0 i in
    if i = length steps then begin
+      assert (equal s_1 steps);
       accum
    end
    else begin
+      let s_2 = slice steps 0 (i + 1) in
       let step = index steps i in
       if Stale? step then
          let fresh_txn = {
@@ -167,10 +169,10 @@ let rec refresh_loop #state_t ops state steps i accum =
          }
          in
          let accum' = append accum (create 1 fresh_txn) in
-         admit ();
+         admitP (refresh_loop_invariant_p ops state s_2 accum');
          refresh_loop ops state steps (i + 1) accum'
       else begin
-         admit ();
+         admitP (refresh_loop_invariant_p ops state s_2 accum);
          refresh_loop ops state steps (i + 1) accum
       end
    end
