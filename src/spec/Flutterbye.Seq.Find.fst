@@ -22,34 +22,34 @@ open Flutterbye.Option
 open Flutterbye.Seq.Remove
 
 type found_p (#t:Type) (f:(t -> Tot bool)) (s:seq t) =
-   exists (i:nat{i < length s}). 
+   exists (i:nat{i < length s}).
       f (index s i)
 
-private type legacy_find_p (a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (i:option nat) =
+private type legacy_find_p (t:Type) (f:(t -> Tot bool)) (s:seq t) (i:option nat) =
    (b2t (Some? i) ==> b2t (length s > 0))
    /\ (b2t (Some? i) ==> b2t (get i < length s))
    /\ (b2t (Some? i) ==> b2t (f (index s (get i))))
       // todo: can this be turned into an iff?
-   /\ (   b2t (Some? i && get i > 0) 
+   /\ (   b2t (Some? i && get i > 0)
       ==> (forall (x:nat). x < get i ==> not (f (index s x)))
       )
 
-private type find_p 
-   (#t:Type) 
-   (f:(t -> Tot bool)) 
-   (s:seq t) 
-   (i:option nat) 
+private type find_p
+   (#t:Type)
+   (f:(t -> Tot bool))
+   (s:seq t)
+   (i:option nat)
 =
    (b2t (Some? i) <==> found_p f s)
    /\ (b2t (None? i) <==> ~ (found_p f s))
    /\ (b2t (length s = 0) ==> b2t (None? i))
    /\ legacy_find_p t f s i
-      
+
 private val find_loop:
    t:Type
-   -> f:(t -> Tot bool) 
+   -> f:(t -> Tot bool)
    -> s:seq t
-   -> i:nat{i <= length s} 
+   -> i:nat{i <= length s}
    -> accum:option nat{find_p f (slice s 0 i) accum}
    -> Tot (accum':option nat{find_p f s accum'})
       (decreases (length s - i))
@@ -66,7 +66,7 @@ let rec find_loop t f s i accum =
             if f (index s i) then begin
                assert (index s_2 i == index s i); // required
                assert (found_p f s_2);
-               // the following assertion is required to prove the statement in find_p 
+               // the following assertion is required to prove the statement in find_p
                // about all elements preceeding `i` not satisfying predicate `f`.
                assert (equal s_2 (append s_1 (create 1 (index s i))));
                Some i
@@ -76,26 +76,26 @@ let rec find_loop t f s i accum =
                assert (~ (found_p f s_2));
                None
             end
-         end 
+         end
          else begin
             assert (index s_2 (get accum) == index s (get accum)); // required
             assert (found_p f s_2);
             accum
          end
-      in 
+      in
       find_loop t f s (i + 1) accum'
 
-val find: 
+val find:
    #t:Type
-   -> f:(t -> Tot bool) 
-   -> s:seq t 
+   -> f:(t -> Tot bool)
+   -> s:seq t
    -> Tot (i:option nat{find_p f s i})
 let find #t f s =
    find_loop t f s 0 None
 
-val found: 
+val found:
    #t:Type
-   -> f:(t -> Tot bool) 
+   -> f:(t -> Tot bool)
    -> s:seq t
    -> Tot (b:bool{b <==> found_p f s})
 let found #t f s =
@@ -104,8 +104,8 @@ let found #t f s =
 abstract val create_lemma:
    #t:Type
    -> n:nat
-   -> x:t 
-   -> f:(t -> Tot bool) 
+   -> x:t
+   -> f:(t -> Tot bool)
    -> Lemma
       (ensures (
          (b2t (n = 0) ==> ~ (found_p f (create n x)))
@@ -118,7 +118,7 @@ abstract val append_lemma:
    #t:Type
    -> s_1:seq t
    -> s_2:seq t
-   //-> f:(t -> Tot bool) 
+   //-> f:(t -> Tot bool)
    -> Lemma
       (ensures
          (  // if a value can be found in the first sequence, finding the same value
@@ -130,11 +130,11 @@ abstract val append_lemma:
             // the the "appended" sequence.
          /\ (forall (f:t -> Tot bool). (found_p f s_1 ==> found_p f (append s_1 s_2)))
             // if a value cannot be found in the first sequence but can be found in the
-            // second seqence, finding the same value in the "appended" sequence will 
+            // second seqence, finding the same value in the "appended" sequence will
             // yield a successful search with the index shifted by the length of the first
             // sequence.
          /\ (forall (f:t -> Tot bool) (i:nat{i < length s_1}).
-               (   (~ (found_p f s_1) /\ (find_p f s_2 (Some i))) 
+               (   (~ (found_p f s_1) /\ (find_p f s_2 (Some i)))
                ==> find_p f (append s_1 s_2) (Some (i + length s_1))))
             // if a value can be found in the second sequence, the value can be found in
             // the the "appended" sequence.
@@ -161,14 +161,14 @@ val equal_lemma:
 let equal_lemma #t s_1 s_2 f =
    ()
 
-// if a value cannot be found in sequence `s`, then it won't be found in any 
+// if a value cannot be found in sequence `s`, then it won't be found in any
 // slice of `s` either.
-private type slice_not_found_p 
-   (#a_t:Type) 
-   (s:seq a_t) 
+private type slice_not_found_p
+   (#t:Type)
+   (s:seq t)
    (i:nat)
-   (j:nat{i <= j && j <= length s}) 
-   (f:a_t -> Tot bool) 
+   (j:nat{i <= j && j <= length s})
+   (f:t -> Tot bool)
 =
    not (found f s) ==> not (found f (slice s i j))
 
@@ -186,23 +186,23 @@ let slice_not_found_lemma #t s i j f =
 
 // if there's an element at index `x` that satisfies `f` in sequence `s`, then any attempt
 // to find an element in a slice delimited by `x` will fail.
-private type slice_preceeding_p 
-   (#a_t:Type) 
-   (s:seq a_t) 
+private type slice_preceeding_p
+   (#t:Type)
+   (s:seq t)
    (i:nat)
-   (j:nat{i <= j && j <= length s}) 
-   (f:a_t -> Tot bool) 
+   (j:nat{i <= j && j <= length s})
+   (f:t -> Tot bool)
 =
    (
        (exists (x:nat{x >= j}). find_p f s (Some x))
    ==> (not (found f (slice s i j)))
-   )   
+   )
 
 private val slice_preceeding_lemma:
    #t:Type
    -> s:seq t
    -> i:nat
-   -> j:nat{i <= j && j <= length s} 
+   -> j:nat{i <= j && j <= length s}
    -> f:(t -> Tot bool)
    -> Lemma
       (requires (True))
@@ -211,21 +211,21 @@ let slice_preceeding_lemma #t s i j f =
    ()
 
 // if there's an element at index `x` that satisfies `f` in sequence `s` with in the range of
-// a slice `s'` defined on the range `[i, j)` then the same `find` operation on `s'` will 
+// a slice `s'` defined on the range `[i, j)` then the same `find` operation on `s'` will
 // succeed, returning an index of `x - i`.
-private type slice_inclusive_p 
-   (#a_t:Type) 
-   (s:seq a_t) 
+private type slice_inclusive_p
+   (#t:Type)
+   (s:seq t)
    (i:nat)
-   (j:nat{i <= j && j <= length s}) 
-   (f:a_t -> Tot bool) 
+   (j:nat{i <= j && j <= length s})
+   (f:t -> Tot bool)
 =
    (
        (exists (x:nat{i <= x && x < j}). find_p f s (Some x))
    ==> (
            b2t (i <= get (find f s))
        ==> (
-              found_p f (slice s i j) 
+              found_p f (slice s i j)
            /\ (get (find f (slice s i j)) == get (find f s) - i)
            )
        )
@@ -235,7 +235,7 @@ private val slice_inclusive_lemma:
    #t:Type
    -> s:seq t
    -> i:nat
-   -> j:nat{i <= j && j <= length s} 
+   -> j:nat{i <= j && j <= length s}
    -> f:(t -> Tot bool)
    -> Lemma
       (requires (True))
@@ -261,7 +261,7 @@ abstract val slice_lemma:
    -> f:(t -> Tot bool)
    -> Lemma
       (requires (True))
-      (ensures 
+      (ensures
          (  slice_not_found_p s i j f
          /\ slice_preceeding_p s i j f
          /\ slice_inclusive_p s i j f
@@ -273,7 +273,7 @@ let slice_lemma #t s i j f =
    slice_inclusive_lemma s i j f;
    slice_preceeding_lemma s i j f
 
-// if the input sequence doesn't have an element that satisfies `f` then the 
+// if the input sequence doesn't have an element that satisfies `f` then the
 // output won't either.
 private val remove_from_not_found_lemma:
    #t:Type
@@ -286,17 +286,17 @@ private val remove_from_not_found_lemma:
 let remove_from_not_found_lemma #t s i f =
    ()
 
-// if an element in the input sequence that satisfies `f` can be found and the 
-// index of that element appears before the element being removed, the result of 
-// calling `find` on the output sequence won't be different from calling it on 
-// the input sequence.  
+// if an element in the input sequence that satisfies `f` can be found and the
+// index of that element appears before the element being removed, the result of
+// calling `find` on the output sequence won't be different from calling it on
+// the input sequence.
 private type remove_from_prefix_p
-   (#a_t:Type)
-   (s:seq a_t{length s > 0})
+   (#t:Type)
+   (s:seq t{length s > 0})
    (i:nat{i < length s})
-   (f:a_t -> Tot bool)
+   (f:t -> Tot bool)
 =
-   (   (found f s && (get (find f s) < i)) 
+   (   (found f s && (get (find f s) < i))
    ==> (find f (remove s i) = find f s)
    )
 
@@ -312,26 +312,26 @@ let remove_from_prefix_lemma #t s i f =
    let s' = remove s i in
    let a = find f s in
    let a' = find f s' in
-   if Some? a && get a < i then 
+   if Some? a && get a < i then
       begin
          assert (equal (slice s 0 i) (slice s' 0 i));
          slice_lemma s 0 i f;
          assert (Some? a')
       end
    else
-      () 
+      ()
 
-// if an element in the input sequence that satisfies `f` can be found and 
-// that element follows the element being removed from the sequence, the 
-// result of calling `find` on the output sequence will be one less than the 
+// if an element in the input sequence that satisfies `f` can be found and
+// that element follows the element being removed from the sequence, the
+// result of calling `find` on the output sequence will be one less than the
 // result of calling it on the input sequence.
 private type remove_from_suffix_p
-   (#a_t:Type)
-   (s:seq a_t{length s > 0})
+   (#t:Type)
+   (s:seq t{length s > 0})
    (i:nat{i < length s})
-   (f:a_t -> Tot bool)
+   (f:t -> Tot bool)
 =
-   (   (found f s && (get (find f s) > i)) 
+   (   (found f s && (get (find f s) > i))
    ==> (found f (remove s i) && (get (find f (remove s i)) = get (find f s) - 1))
    )
 
@@ -358,15 +358,15 @@ let remove_from_suffix_lemma #t s i f =
 
 // if an element in the input sequence that satisfies `f` can be
 // found and that element is not being removed from the sequence,
-// the output sequence will also have an element that satisfies 
-// `f`.  
+// the output sequence will also have an element that satisfies
+// `f`.
 private type remove_other_p
-   (#a_t:Type)
-   (s:seq a_t{length s > 0})
+   (#t:Type)
+   (s:seq t{length s > 0})
    (i:nat{i < length s})
-   (f:a_t -> Tot bool)
+   (f:t -> Tot bool)
 =
-   (found_p f s /\ get (find f s) <> i) ==> found_p f (remove s i)  
+   (found_p f s /\ get (find f s) <> i) ==> found_p f (remove s i)
 
 private val remove_other_lemma:
    #t:Type
@@ -382,20 +382,20 @@ let remove_other_lemma #t s i f =
    ()
 
 private type remove_found_p
-   (#a_t:Type)
-   (s:seq a_t{length s > 0})
+   (#t:Type)
+   (s:seq t{length s > 0})
    (i:nat{i < length s})
-   (f:a_t -> Tot bool)
+   (f:t -> Tot bool)
 =
-   (   (found_p f s /\ get (find f s) = i) 
+   (   (found_p f s /\ get (find f s) = i)
    ==> (
           (~ (found_p f (slice s (i + 1) (length s))) <==> ~ (found_p f (remove s i)))
        /\ (
-              (found_p f (slice s (i + 1) (length s))) 
+              (found_p f (slice s (i + 1) (length s)))
           ==> (get (find f (remove s i)) = i + get (find f (slice s (i + 1) (length s))))
           )
-       )    
-   )  
+       )
+   )
 
 private val remove_found_lemma:
    #t:Type
@@ -428,7 +428,7 @@ let remove_found_lemma #t s i f =
                   end
                else
                   ()
-            end   
+            end
          else
             begin
                assert (None? (find f prefix));
@@ -446,12 +446,12 @@ abstract val remove_lemma:
       (ensures
          (  // remove_from_not_found
             ((not (found f s)) ==> (not (found f (remove s i))))
-         /\ (remove_from_prefix_p s i f)  
+         /\ (remove_from_prefix_p s i f)
          /\ (remove_from_suffix_p s i f)
          /\ (remove_other_p s i f)
          /\ (remove_found_p s i f)
          )
-      ) 
+      )
 let remove_lemma #t s i f =
    begin
       if not (found f s) then
