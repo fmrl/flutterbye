@@ -21,17 +21,17 @@ open FStar.Seq
 open Flutterbye.Seq.Contains
 
 // the output sequence will not be longer than the input sequence.
-private type never_emits_longer_p (#t:Type) (s:seq t) (s':seq t) =
-   b2t (length s' <= length s)
+private type never_emits_longer_p (#t:Type) (s:seq t) (u:seq t) =
+   b2t (length u <= length s)
 
 // the output sequence is empty iff no element of `s` satisfies `f`.
 private type emits_empty_p
    (#t:Type)
    (f:(t -> Tot bool))
    (s:seq t)
-   (s':seq t)
+   (u:seq t)
 =
-   ~ (contains_p f s) <==> b2t (length s' = 0)
+   ~ (contains_p f s) <==> b2t (length u = 0)
 
 // the output sequence must be shorter than the input sequence iff
 // at least one element doesn't satisfy `f`.
@@ -39,24 +39,24 @@ private type emits_subset_p
    (#t:Type)
    (f:(t -> Tot bool))
    (s:seq t)
-   (s':seq t)
+   (u:seq t)
 =
-   contains_p (fun x -> not (f x)) s <==> b2t (length s' < length s)
+   contains_p (fun x -> not (f x)) s <==> b2t (length u < length s)
 
 // the output sequence only contains elements that satisfy `f`.
 private type emits_satisfying_p
    (#a_t:Type)
    (f:(a_t -> Tot bool))
-   (s':seq a_t)
+   (u:seq a_t)
 =
-   forall (i:nat{i < length s'}).
-      f (index s' i)
+   forall (i:nat{i < length u}).
+      f (index u i)
 
-type filter_p (#t:Type) (f:(t -> Tot bool)) (s:seq t) (s':seq t) =
-      never_emits_longer_p s s'
-   /\ emits_empty_p f s s'
-   /\ emits_subset_p f s s'
-   /\ emits_satisfying_p f s'
+type filter_p (#t:Type) (f:(t -> Tot bool)) (s:seq t) (u:seq t) =
+      never_emits_longer_p s u
+   /\ emits_empty_p f s u
+   /\ emits_subset_p f s u
+   /\ emits_satisfying_p f u
 
 private val filter_loop:
       t:Type
@@ -64,7 +64,7 @@ private val filter_loop:
    -> s:seq t
    -> i:nat{i <= length s}
    -> accum:seq t{filter_p f (slice s 0 i) accum}
-   -> Tot (s':seq t{filter_p f s s'})
+   -> Tot (u:seq t{filter_p f s u})
       (decreases (length s - i))
 let rec filter_loop t f s i accum =
    let s_0 = slice s 0 i in
@@ -105,7 +105,7 @@ val filter:
       #t:Type
    -> f:(t -> Tot bool)
    -> s:seq t
-   -> Tot (s':seq t{filter_p f s s'})
+   -> Tot (u:seq t{filter_p f s u})
 let filter #t f s =
    filter_loop t f s 0 createEmpty
 
@@ -117,20 +117,23 @@ abstract val append_lemma:
    -> Lemma
       (requires (True))
       (ensures (
-            length (filter f s_1) + length (filter f s_2)
-            = length (filter f (append s_1 s_2))
+            equal
+               (filter f (append s_1 s_2))
+               (append (filter f s_1) (filter f s_2))
          )
       )
 let append_lemma #t s_1 s_2 f =
-   let s' = append s_1 s_2 in
-   //assert (equal (slice s' 0 (length s_1)) s_1);
-   //assert (equal (slice s' (length s_1) (length s')) s_2);
+   let s_3 = append s_1 s_2 in
    if length s_1 = 0 then
-      assert (equal (append s_1 s_2) s_2)
+      assert (equal s_3 s_2)
    else begin
       if length s_2 = 0 then
-         assert (equal (append s_1 s_2) s_1)
+         assert (equal s_3 s_1)
       else begin
-         admit ()
+         let u_1 = filter f s_1 in
+         let u_2 = filter f s_2 in
+         let u_3 = append u_1 u_2 in
+         let v_3 = filter f s_3 in
+         admitP (equal v_3 u_3)
       end
    end
