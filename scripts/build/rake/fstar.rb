@@ -98,7 +98,17 @@ module Rake::FStar
                # bug: the version of f* that we're using doesn't validate all
                # modules if we pass them all on a single command line.
                #sh (format_command(modules, args[:timeout]))
-               modules.each { |m| sh (format_command([m], args[:z3rlimit])) }
+               modules.each { |m| sh (format_command([m], args[:z3rlimit], "--use_hints")) }
+            end
+
+            desc "record f* hints"
+            task :record, :modules, :z3rlimit do |t, args|
+               args.with_defaults(:modules => "*", :z3rlimit => @z3rlimit)
+               modules = @modules_found.keys.select { |m| File.fnmatch(args[:modules], m, File::FNM_CASEFOLD) }
+               # bug: the version of f* that we're using doesn't validate all
+               # modules if we pass them all on a single command line.
+               #sh (format_command(modules, args[:timeout]))
+               modules.each { |m| sh (format_command([m], args[:z3rlimit], "--record_hints")) }
             end
 
             desc "list F* modules found."
@@ -120,17 +130,20 @@ module Rake::FStar
       end
    end
 
-   def format_command(modules, z3rlimit)
+   def format_command(modules, z3rlimit, extra_flags)
       smt = Rake::FStar.SMT.to_s
       # on Windows, unless Z3's path is normalized, F* will fail.
       if ScriptUtils.is_windows? then
          smt.gsub!("/", "\\")
       end
       if z3rlimit.nil? then
-         z3rlimit_s = ""
+         z3rlimit = ""
       else
-         z3rlimit_s = " --z3rlimit #{z3rlimit.to_s}"
+         z3rlimit = " --z3rlimit #{z3rlimit.to_s}"
       end
-      return "#{Rake::FStar.FSTAR.to_s} --smt #{smt} #{Rake::FStar.FLAGS}#{z3rlimit_s} --include #{@include_paths.to_a.map {|p| p.to_s}.sort.join("--include ")} #{modules.sort.map {|m| "#{@modules_found[m].basename}"}.join(" ")}"
+      if extra_flags.nil? then
+         extra_flags = ""
+      end
+      return "#{Rake::FStar.FSTAR.to_s} --smt #{smt} #{z3rlimit} #{Rake::FStar.FLAGS} #{extra_flags} --include #{@include_paths.to_a.map {|p| p.to_s}.sort.join("--include ")} #{modules.sort.map {|m| "#{@modules_found[m]}"}.join(" ")}"
    end
 end
