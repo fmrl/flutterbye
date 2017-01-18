@@ -109,6 +109,71 @@ val filter:
 let filter #t f s =
    filter_loop t f s 0 createEmpty
 
+private type split_loop_p
+   (t:Type)
+   (s:seq t)
+   (i:nat{i <= length s})
+   (f:(t -> Tot bool))
+=
+   equal (filter_loop t f s 0 createEmpty) (
+         filter_loop t f s i
+            (filter_loop t f (slice s 0 i) 0 createEmpty)
+   )
+
+private val split_loop_lemma:
+   #t:Type
+   -> s:seq t
+   -> i:nat{i <= length s}
+   -> f:(t -> Tot bool)
+   -> Lemma
+      (requires (True))
+      (ensures (split_loop_p t s i f))
+let split_loop_lemma #t s i f =
+   if length s = 0 then
+      ()
+   else begin
+      if i = length s then begin
+         assert (equal s (slice s 0 i));
+         let a = filter_loop t f (slice s 0 i) 0 createEmpty in
+         assert (equal a (filter_loop t f s i a));
+         assert (split_loop_p t s i f)
+      end
+      else begin
+         let a = filter_loop t f (slice s 0 i) 0 createEmpty in
+         let a' = filter_loop t f s i a in
+         assert (equal (filter f s) a');
+         assert (split_loop_p t s i f)
+      end
+   end
+
+private val append_one_lemma:
+   #t:Type
+   -> s:seq t
+   -> x:t
+   -> f:(t -> Tot bool)
+   -> Lemma
+      (requires (True))
+      (ensures (
+            equal
+               (filter f (append s (create 1 x)))
+               (append (filter f s) (filter f (create 1 x)))
+         )
+      )
+let append_one_lemma #t s x f =
+   let s' = append s (create 1 x) in
+   if f x then
+      admit ()
+   else begin
+      assert (equal s (slice s' 0 (length s)));
+      let u_1 = filter_loop t f s 0 createEmpty in
+      let u_2 = filter_loop t f s' (length s) u_1 in
+      assert (equal u_1 u_2);
+      assert (equal u_1 (filter f s));
+      split_loop_lemma s' (length s) f;
+      assert (equal u_2 (filter f s'));
+      assert (equal (filter f s') (filter f s))
+   end
+
 abstract val append_lemma:
    #t:Type
    -> s_1:seq t
