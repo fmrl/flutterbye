@@ -37,7 +37,4 @@ abstract val append_lemma:
       (requires (True))
       (ensures (count f s_1 + count f s_2 = count f (append s_1 s_2)))
 let append_lemma #t s_1 s_2 f =
-   let s' = append s_1 s_2 in
-   assert (equal (slice s' 0 (length s_1)) s_1);
-   assert (equal (slice s' (length s_1) (length s')) s_2);
-   admit ()
+   Flutterbye.Seq.Filter.append_lemma s_1 s_2 f

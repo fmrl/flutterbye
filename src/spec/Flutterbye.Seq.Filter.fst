@@ -44,9 +44,9 @@ private type emits_subset_p
    contains_p (fun x -> not (f x)) s <==> b2t (length s' < length s)
 
 // the output sequence only contains elements that satisfy `f`.
-private type emits_satisfying_p 
-   (#a_t:Type) 
-   (f:(a_t -> Tot bool)) 
+private type emits_satisfying_p
+   (#a_t:Type)
+   (f:(a_t -> Tot bool))
    (s':seq a_t)
 =
    forall (i:nat{i < length s'}).
@@ -81,11 +81,11 @@ let rec filter_loop t f s i accum =
          assert (b2t (f (index s_1 i)));
          Flutterbye.Seq.Contains.slice_lemma s_1 0 i (fun x -> not (f x));
          assert (
-                contains_p (fun x -> not (f x)) s_0 
+                contains_p (fun x -> not (f x)) s_0
             ==> contains_p (fun x -> not (f x)) s_1
          );
          assert (
-                ~ (contains_p (fun x -> not (f x)) s_0) 
+                ~ (contains_p (fun x -> not (f x)) s_0)
             ==> ~ (contains_p (fun x -> not (f x)) s_1)
          );
          assert (filter_p f s_1 accum');
@@ -108,3 +108,29 @@ val filter:
    -> Tot (s':seq t{filter_p f s s'})
 let filter #t f s =
    filter_loop t f s 0 createEmpty
+
+abstract val append_lemma:
+   #t:Type
+   -> s_1:seq t
+   -> s_2:seq t
+   -> f:(t -> Tot bool)
+   -> Lemma
+      (requires (True))
+      (ensures (
+            length (filter f s_1) + length (filter f s_2)
+            = length (filter f (append s_1 s_2))
+         )
+      )
+let append_lemma #t s_1 s_2 f =
+   let s' = append s_1 s_2 in
+   //assert (equal (slice s' 0 (length s_1)) s_1);
+   //assert (equal (slice s' (length s_1) (length s')) s_2);
+   if length s_1 = 0 then
+      assert (equal (append s_1 s_2) s_2)
+   else begin
+      if length s_2 = 0 then
+         assert (equal (append s_1 s_2) s_1)
+      else begin
+         admit ()
+      end
+   end
