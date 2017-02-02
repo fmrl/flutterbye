@@ -27,6 +27,8 @@ set -e
 
 APT_PACKAGES="git build-essential mono-devel fsharp ruby python opam m4 libgmp-dev"
 
+apt-get update && apt-get -y upgrade
+
 # at the time of this commit, mono is broken in debian due to changes
 # in how certificates are obtained. we need to obtian mono directly from
 # the source if we want to use tools such as nuget (required for F*).
@@ -36,8 +38,11 @@ echo "deb http://download.mono-project.com/repo/debian wheezy main" | tee /etc/a
 
 distro=$(lsb_release -si)
 if [ "xUbuntu" = "x$distro" ]; then
+   # container-based distributions might not have `add-apt-repository`
+   # installed by default.
+   apt-get -y install software-properties-common
    # the ubuntu `opam` packages are too old to be useful to us.
-   apt-add-repository -y ppa:avsm/ppa
+   add-apt-repository -y ppa:avsm/ppa
 else
    # debian requires a special build of `libgdiplus`.
    echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
