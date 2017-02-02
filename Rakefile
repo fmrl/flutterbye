@@ -75,9 +75,9 @@ if has_rubrstmp then
       exclude "*.mdk"
       file_keywords \
          "legal" => "NOTICE",
-         "vim" => "etc/rubrstmp/vim/default",
-         "vim-rb" => "etc/rubrstmp/vim/ruby",
-         "vim-fst" => "etc/rubrstmp/vim/fstar"
+         "vim" => "scripts/build/settings/rubrstmp/vim/default",
+         "vim-rb" => "scripts/build/settings/rubrstmp/vim/ruby",
+         "vim-fst" => "scripts/build/settings/rubrstmp/vim/fstar"
    end
 end
 
