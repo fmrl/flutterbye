@@ -32,3 +32,10 @@ OPAM_PACKAGES="ocamlfind batteries stdint zarith yojson pprint"
 opam init --comp $OCAML_VERSION --auto-setup
 eval $(opam config env)
 opam install -y $OPAM_PACKAGES
+
+# this shouldn't do anything if we're using vagrant (see `/scripts/setup/vagrant.sh`).
+if [ "$(pwd)" != "/vagrant" ] && [ "$(whoami)" != "vagrant" ]; then
+   bundle install --path vendor/bundle
+else
+   bundle install --system
+fi
