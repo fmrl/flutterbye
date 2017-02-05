@@ -20,33 +20,33 @@ module Flutterbye.Concurrency.Thread
 open FStar.Seq
 open Flutterbye.Seq
 
-type ops_t (state_t:Type) = seq (state_t -> Tot state_t)
+type ops_t (state_t:Type{hasEq state_t}) = seq (state_t -> Tot state_t)
 
-type opcode_t (#state_t:Type) (ops:ops_t state_t) =
+type opcode_t (#state_t:Type{hasEq state_t}) (ops:ops_t state_t) =
    opcode:nat{opcode < length ops}
 
-val apply_op: 
-      ops:ops_t 'state 
-   -> opcode:opcode_t ops 
-   -> 'state 
-   -> Tot ('state)
-let apply_op ops opcode state =
+val apply_op:
+   #state_t:Type{hasEq state_t}
+   -> ops:ops_t state_t
+   -> opcode:opcode_t ops
+   -> state_t
+   -> Tot (state_t)
+let apply_op #state_t ops opcode state =
    let op = index ops opcode in
    op state
-   
-type transaction_t (#state_t:Type) (ops:ops_t state_t) =
-   {
-      txnid:nat;
-      opcode:opcode_t ops;
-      observation:state_t
-   }
 
-type step_t (#state_t:Type) (ops:ops_t state_t) =
+type transaction_t (#state_t:Type{hasEq state_t}) (ops:ops_t state_t) = {
+   txnid:nat;
+   opcode:opcode_t ops;
+   observation:state_t
+}
+
+type step_t (#state_t:Type{hasEq state_t}) (ops:ops_t state_t) =
    | Commit: transaction:transaction_t ops -> step_t #state_t ops
    | Stale: transaction:transaction_t ops -> step_t #state_t ops
 
-type thread_t (#state_t:Type) (ops:ops_t state_t) =
-   { 
-      steps:seq (step_t ops);
-      state:state_t
-   }
+type thread_t (#state_t:Type{hasEq state_t}) (ops:ops_t state_t) = {
+   pending:seq (transaction_t ops);
+   steps:seq (step_t ops);
+   state:state_t
+}

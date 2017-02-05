@@ -3,12 +3,11 @@
    "editor.tabSize": 3,
    "editor.insertSpaces": true,
    "editor.wrappingColumn": 78,
+   "files.trimTrailingWhitespace": true,
+   "files.insertFinalNewline": true,
    "files.exclude": {
       "**/.vagrant": true,
       "**/vendor": true,
       "**/node_modules": true
    }
-,
-"files.trimTrailingWhitespace": true,
-"files.insertFinalNewline": true
 }

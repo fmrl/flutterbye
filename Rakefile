@@ -43,6 +43,7 @@ directory MADOKO_ROOT
 Rake::FStar.module_path "src/spec"
 Rake::FStar.FSTAR = "./submodules/FStar/bin/fstar.exe"
 Rake::FStar.SMT = "./submodules/z3/build/z3#{ScriptUtils.exe_ext}"
+Rake::FStar.Z3RLIMIT = 30
 
 task default: [:verify]
 desc "verify sources"

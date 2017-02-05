@@ -21,65 +21,135 @@ open FStar.Seq
 open Flutterbye.Seq
 open Flutterbye.Concurrency.Thread
 
-val is_fresh:
-      #state_t:Type
+val is_transaction_fresh:
+      #state_t:Type{hasEq state_t}
    -> ops:ops_t state_t
    -> state_t
    -> transaction_t ops
    -> Tot bool
-let is_fresh #state_t ops state txn =
+let is_transaction_fresh #state_t ops state txn =
    txn.observation = state
 
+type one_transaction_is_fresh_p
+   (#state_t:Type{hasEq state_t})
+   (ops:ops_t state_t)
+   (state:state_t)
+   (txns:seq (transaction_t ops))
+=
+   contains_p (is_transaction_fresh ops state) txns
+
 val linearize_step_loop:
-      state_t:Type
+      state_t:Type{hasEq state_t}
    -> ops:ops_t state_t
-   -> pending:seq (transaction_t ops)
    -> accum:thread_t ops{
-            contains_p (is_Commit) accum.steps
-         \/ contains_p (is_fresh ops accum.state) pending
+            contains_p (Commit?) accum.steps
+         \/ one_transaction_is_fresh_p ops accum.state accum.pending
       }
-   -> Tot (accum':thread_t ops{contains_p (is_Commit) accum'.steps})
-      (decreases (length pending))
-let rec linearize_step_loop state_t ops pending accum =
-   if 0 = length pending then
+   -> Tot (accum':thread_t ops{contains_p (Commit?) accum'.steps})
+      (decreases (length accum.pending))
+let rec linearize_step_loop state_t ops accum =
+   if 0 = length accum.pending then
       accum
    else begin
       let i = 0 in
-      let picked = index pending i in
-      if picked.observation = accum.state then begin
+      let picked = index accum.pending i in
+      if is_transaction_fresh ops accum.state picked then begin
          // if the picked transaction is fresh, we can commit it.
          let step' = Commit picked in
-         let state' = apply_op ops picked.opcode accum.state in
-         let steps' = append accum.steps (create 1 step') in
-         let pending' = remove pending i in
-         let accum' = { state = state'; steps = steps' } in
-         Flutterbye.Seq.Contains.create_lemma 1 step';
-         assert (contains_p (is_Commit) (create 1 step'));
-         Flutterbye.Seq.Contains.append_lemma accum.steps (create 1 step');
-         assert (contains_p (is_Commit) steps');
-         linearize_step_loop state_t ops pending' accum'
+         let accum' = {
+            state = apply_op ops picked.opcode accum.state;
+            pending = remove accum.pending i;
+            steps = append accum.steps (create 1 step')
+         }
+         in
+         Flutterbye.Seq.Contains.create_lemma 1 step' (Commit?);
+         assert (contains_p (Commit?) (create 1 step'));
+         Flutterbye.Seq.Contains.append_lemma 
+            accum.steps (create 1 step') (Commit?);
+         assert (contains_p (Commit?) accum'.steps);
+         linearize_step_loop state_t ops accum'
       end
       else begin
          // otherwise, we mark the transaction as stale.
          let step' = Stale picked in
-         let steps' = append accum.steps (create 1 step') in
-         let pending' = remove pending i in
-         let accum' = { state = accum.state; steps = steps' } in
-         Flutterbye.Seq.Contains.append_lemma accum.steps (create 1 step');
-         assert (contains_p (is_Commit) accum.steps <==> contains_p (is_Commit)  steps');
-         Flutterbye.Seq.Contains.remove_lemma pending i (is_fresh ops accum.state);
-         assert (contains_p (is_fresh ops accum.state) pending ==> contains_p (is_fresh ops accum.state) pending');
-         linearize_step_loop state_t ops pending' accum'
+         let accum' = {
+            state = accum.state;
+            pending = remove accum.pending i;
+            steps = append accum.steps (create 1 step')
+         }
+         in
+         Flutterbye.Seq.Contains.append_lemma 
+            accum.steps (create 1 step') (Commit?);
+         assert (contains_p (Commit?) accum.steps <==> contains_p (Commit?) accum'.steps);
+         Flutterbye.Seq.Contains.remove_lemma accum.pending i (is_transaction_fresh ops accum.state);
+         assert (
+                one_transaction_is_fresh_p ops accum.state accum.pending
+            ==> one_transaction_is_fresh_p ops accum.state accum'.pending
+         );
+         linearize_step_loop state_t ops accum'
       end
    end
 
-val linearize_step:
-      state_t:Type
+type all_transactions_are_fresh_p
+   (#state_t:Type{hasEq state_t})
+   (ops:ops_t state_t)
+   (state:state_t)
+   (txns:seq (transaction_t ops))
+=
+   forall (i:nat{i < length txns}).
+      is_transaction_fresh ops state (index txns i)
+
+val refresh_loop:
+      #state_t:Type{hasEq state_t}
    -> ops:ops_t state_t
-   -> pending:seq (transaction_t ops)
-   -> state:state_t{contains_p (is_fresh ops state) pending}
-   -> Tot (thread':(thread_t ops){contains_p (is_Commit) thread'.steps})
-      (decreases (length pending))
-let linearize_step state_t ops pending state =
-   let thread = { state = state; steps = createEmpty } in
-   linearize_step_loop state_t ops pending thread
+   -> state:state_t
+   -> steps:seq (step_t ops)
+   -> i:nat{i <= length steps}
+   -> accum:seq (transaction_t ops){
+         all_transactions_are_fresh_p ops state accum
+      }
+   -> Tot (accum':seq (transaction_t ops){
+         all_transactions_are_fresh_p ops state accum'
+      })
+      (decreases (length steps - i))
+let rec refresh_loop #state_t ops state steps i accum =
+   if i = length steps then begin
+      accum
+   end
+   else begin
+      let step = index steps i in
+      if Stale? step then
+         let fresh_txn = {
+            txnid = (Stale?.transaction step).txnid;
+            opcode = (Stale?.transaction step).opcode;
+            observation = state
+         }
+         in
+         let accum' = append accum (create 1 fresh_txn) in
+         refresh_loop ops state steps (i + 1) accum'
+      else
+         refresh_loop ops state steps (i + 1) accum
+   end
+
+val linearize_step:
+      #state_t:Type{hasEq state_t}
+   -> ops:ops_t state_t
+   -> thread:thread_t ops{
+         one_transaction_is_fresh_p ops thread.state thread.pending
+      }
+   -> Tot (thread':thread_t ops{
+            length thread'.pending = 0
+         \/ all_transactions_are_fresh_p ops thread'.state thread'.pending
+      })
+let linearize_step #state_t ops thread =
+   let thread_1 = linearize_step_loop state_t ops thread in
+   let pending' =
+      refresh_loop ops thread_1.state thread_1.steps 0 createEmpty
+   in
+   let thread_2 = {
+         state = thread_1.state;
+         pending = pending';
+         steps = append thread.steps thread_1.steps
+   }
+   in
+   thread_2

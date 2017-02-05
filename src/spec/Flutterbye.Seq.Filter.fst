@@ -18,106 +18,93 @@
 
 module Flutterbye.Seq.Filter
 open FStar.Seq
-open Flutterbye.Seq.Mem
 open Flutterbye.Seq.Contains
 
-// todo: ordering?
-// todo: counting?
+// the output sequence will not be longer than the input sequence.
+private type never_emits_longer_p (#t:Type) (s:seq t) (s':seq t) =
+   b2t (length s' <= length s)
 
-// if the input sequence is empty, then the output sequence will also be.
-type empty_source_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
-   (length s = 0) ==> (length s' = 0)
+// the output sequence is empty iff no element of `s` satisfies `f`.
+private type emits_empty_p
+   (#t:Type)
+   (f:(t -> Tot bool))
+   (s:seq t)
+   (s':seq t)
+=
+   ~ (contains_p f s) <==> b2t (length s' = 0)
 
-// if the input sequence is not empty then the output sequence won't be larger than
-// the input sequence.
-type not_longer_than_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
-   (length s > 0) ==> (length s >= length s')
+// the output sequence must be shorter than the input sequence iff
+// at least one element doesn't satisfy `f`.
+private type emits_subset_p
+   (#t:Type)
+   (f:(t -> Tot bool))
+   (s:seq t)
+   (s':seq t)
+=
+   contains_p (fun x -> not (f x)) s <==> b2t (length s' < length s)
 
-// if the output sequence is empty, then the no element of `s` satisfies `f`.
-type when_nothing_satisfies_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
-   (
-       (length s' = 0)
-   //<==> (not (contains f s))
-   ==> (forall (x:nat{x < length s}).
-          not (f (index s x)))
-   )
+// the output sequence only contains elements that satisfy `f`.
+private type emits_satisfying_p 
+   (#a_t:Type) 
+   (f:(a_t -> Tot bool)) 
+   (s':seq a_t)
+=
+   forall (i:nat{i < length s'}).
+      f (index s' i)
 
-// the the output sequence is not empty, then every element must satisfy `f`
-type everything_satisfies_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
-   (
-       (length s' > 0)
-   ==> (forall (x:nat{x < length s'}).
-          f (index s' x))
-   )
-
-// the the output sequence is not empty, then every element must be a member of `s`.
-type shared_membership_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
-   (
-       (length s' > 0)
-   ==> (forall (x:nat{x < length s'}).
-          b2t (mem (index s' x) s))
-   )
-
-type filtered_p (#a_t:Type) (f:(a_t -> Tot bool)) (s:seq a_t) (s':seq a_t) =
-      empty_source_p f s s'
-   /\ not_longer_than_p f s s'
-   /\ everything_satisfies_p f s s'
-   /\ shared_membership_p f s s'
-   /\ when_nothing_satisfies_p f s s'
+type filter_p (#t:Type) (f:(t -> Tot bool)) (s:seq t) (s':seq t) =
+      never_emits_longer_p s s'
+   /\ emits_empty_p f s s'
+   /\ emits_subset_p f s s'
+   /\ emits_satisfying_p f s'
 
 private val filter_loop:
-      f:('a -> Tot bool)
-   -> s:seq 'a
+      t:Type
+   -> f:(t -> Tot bool)
+   -> s:seq t
    -> i:nat{i <= length s}
-   -> ac:seq 'a
-   -> Tot (ac':seq 'a)
+   -> accum:seq t{filter_p f (slice s 0 i) accum}
+   -> Tot (s':seq t{filter_p f s s'})
       (decreases (length s - i))
-let rec filter_loop f s i ac =
-   if i < length s then
-      let a = index s i in
-      let ac' =
-         if f a then
-            append ac (create 1 a)
-         else
-            ac in
-      filter_loop f s (i + 1) ac'
-   else
-      ac
-
-private val filter_loop_lemma:
-      f:('a -> Tot bool)
-   -> s:seq 'a
-   -> i:nat{i <= length s}
-   -> ac:seq 'a
-   -> Lemma
-      (requires (filtered_p f (slice s 0 i) ac))
-      (ensures (filtered_p f s (filter_loop f s i ac)))
-      (decreases (length s - i))
-let rec filter_loop_lemma f s i ac =
-   if i < length s then begin
-      let a = index s i in
-      let ac' =
-         if f a then
-            append ac (create 1 a)
-         else begin
-            let sl' = slice s 0 (i + 1) in
-            assert (equal sl' (append (slice s 0 i) (create 1 a)));
-            assert (when_nothing_satisfies_p f sl' ac);
-            ac
-         end
-      in
-      filter_loop_lemma f s (i + 1) ac'
+let rec filter_loop t f s i accum =
+   let s_0 = slice s 0 i in
+   if i = length s then begin
+      assert (equal s s_0);
+      accum
    end
    else begin
-      assert (when_nothing_satisfies_p f (slice s 0 i) ac);
-      assert (equal s (slice s 0 i)); // required
-      assert (equal (filter_loop f s i ac) ac) // required
+      let s_1 = slice s 0 (i + 1) in
+      assert (equal s_0 (slice s_1 0 i));
+      let x = index s i in
+      if f x then begin
+         let accum' = append accum (create 1 x) in
+         assert (b2t (f (index s_1 i)));
+         Flutterbye.Seq.Contains.slice_lemma s_1 0 i (fun x -> not (f x));
+         assert (
+                contains_p (fun x -> not (f x)) s_0 
+            ==> contains_p (fun x -> not (f x)) s_1
+         );
+         assert (
+                ~ (contains_p (fun x -> not (f x)) s_0) 
+            ==> ~ (contains_p (fun x -> not (f x)) s_1)
+         );
+         assert (filter_p f s_1 accum');
+         filter_loop t f s (i + 1) accum'
+      end
+      else begin
+         assert (b2t (not (f (index s_1 i))));
+         Flutterbye.Seq.Contains.slice_lemma s_1 0 i f;
+         assert (contains_p f s_0 ==> contains_p f s_1);
+         assert (~ (contains_p f s_0) ==> ~ (contains_p f s_1));
+         assert (filter_p f s_1 accum);
+         filter_loop t f s (i + 1) accum
+      end
    end
 
 val filter:
-   f:('a -> Tot bool) ->
-   s:seq 'a ->
-   Tot (s':seq 'a{filtered_p f s s'})
-let filter f s =
-   filter_loop_lemma f s 0 createEmpty;
-   filter_loop f s 0 createEmpty
+      #t:Type
+   -> f:(t -> Tot bool)
+   -> s:seq t
+   -> Tot (s':seq t{filter_p f s s'})
+let filter #t f s =
+   filter_loop t f s 0 createEmpty
