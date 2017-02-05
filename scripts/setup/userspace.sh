@@ -27,3 +27,7 @@ set -e
 
 $SHELL scripts/setup/opam.sh
 $SHELL scripts/setup/bundler.sh
+
+if ! grep -q 'cd /vagrant' $HOME/.profile; then
+   echo 'cd /vagrant' >> $HOME/.profile
+fi
