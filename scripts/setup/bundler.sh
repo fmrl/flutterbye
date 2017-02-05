@@ -18,12 +18,11 @@
 #
 #,$
 
-# userspace setup script
+# bundler setup script
 
 # show what's happening.
 set -x
 # exit on any unobserved failure.
 set -e
 
-$SHELL scripts/setup/opam.sh
-$SHELL scripts/setup/bundler.sh
+bundle install --system

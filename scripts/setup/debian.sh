@@ -25,7 +25,7 @@ set -x
 # exit on any unobserved failure.
 set -e
 
-APT_PACKAGES="git build-essential mono-devel fsharp ruby python opam m4 libgmp-dev"
+APT_PACKAGES="git build-essential mono-devel fsharp ruby python opam m4 libgmp-dev curl luarocks"
 
 apt-get update && apt-get -y upgrade
 
@@ -52,3 +52,4 @@ apt-get update && apt-get -y upgrade
 apt-get -y install $APT_PACKAGES
 
 gem install bundler
+
