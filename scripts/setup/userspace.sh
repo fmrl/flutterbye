@@ -25,10 +25,9 @@ set -x
 # exit on any unobserved failure.
 set -e
 
-OCAML_VERSION="4.02.3"
-OPAM_PACKAGES="ocamlfind batteries stdint zarith yojson pprint"
+$SHELL scripts/setup/opam.sh
+$SHELL scripts/setup/bundler.sh
 
-# setup opam
-opam init --comp $OCAML_VERSION --auto-setup
-eval $(opam config env)
-opam install -y $OPAM_PACKAGES
+if ! grep -q 'cd /vagrant' $HOME/.profile; then
+   echo 'cd /vagrant' >> $HOME/.profile
+fi

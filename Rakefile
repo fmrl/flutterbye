@@ -29,7 +29,7 @@ begin
    require "rubrstmp/rake_tasks"
 rescue LoadError
    has_rubrstmp = false
-   puts "warning: i was unable to find rubrstmp; related targets will be unavailable." 
+   puts "warning: i was unable to find rubrstmp; related targets will be unavailable."
 end
 
 require "rake/fstar"
@@ -43,6 +43,7 @@ directory MADOKO_ROOT
 Rake::FStar.module_path "src/spec"
 Rake::FStar.FSTAR = "./submodules/FStar/bin/fstar.exe"
 Rake::FStar.SMT = "./submodules/z3/build/z3#{ScriptUtils.exe_ext}"
+Rake::FStar.Z3RLIMIT = 30
 
 task default: [:verify]
 desc "verify sources"
@@ -74,9 +75,9 @@ if has_rubrstmp then
       exclude "*.mdk"
       file_keywords \
          "legal" => "NOTICE",
-         "vim" => "etc/rubrstmp/vim/default",
-         "vim-rb" => "etc/rubrstmp/vim/ruby",
-         "vim-fst" => "etc/rubrstmp/vim/fstar"
+         "vim" => "scripts/build/settings/rubrstmp/vim/default",
+         "vim-rb" => "scripts/build/settings/rubrstmp/vim/ruby",
+         "vim-fst" => "scripts/build/settings/rubrstmp/vim/fstar"
    end
 end
 

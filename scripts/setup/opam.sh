@@ -18,20 +18,18 @@
 #
 #,$
 
-# submodule setup script
+# opam setup script
 
 # show what's happening.
 set -x
 # exit on any unobserved failure.
 set -e
 
-git submodule init
-git submodule update
+OCAML_VERSION="4.02.3"
+OPAM_PACKAGES="ocamlfind batteries stdint zarith yojson pprint"
 
-# this shouldn't do anything if we're using vagrant (see `/scripts/setup/vagrant.sh`).
-if [ "$(pwd)" == "/vagrant" ] && [ "$(whoami)" == "vagrant" ]; then
-   git submodule foreach '$SHELL ../../scripts/setup/git.sh'
-fi
+# setup opam
+opam init --comp $OCAML_VERSION --auto-setup
+eval $(opam config env)
+opam install -y $OPAM_PACKAGES
 
-$SHELL scripts/setup/z3.sh
-$SHELL scripts/setup/fstar.sh

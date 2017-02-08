@@ -27,15 +27,29 @@ set -e
 
 APT_PACKAGES="git build-essential mono-devel fsharp ruby python opam m4 libgmp-dev"
 
+apt-get update && apt-get -y upgrade
+
 # at the time of this commit, mono is broken in debian due to changes
 # in how certificates are obtained. we need to obtian mono directly from
 # the source if we want to use tools such as nuget (required for F*).
 # from http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
 echo "deb http://download.mono-project.com/repo/debian wheezy main" | tee /etc/apt/sources.list.d/mono-xamarin.list
-echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
+
+distro=$(lsb_release -si)
+if [ "xUbuntu" = "x$distro" ]; then
+   # container-based distributions might not have `add-apt-repository`
+   # installed by default.
+   apt-get -y install software-properties-common
+   # the ubuntu `opam` packages are too old to be useful to us.
+   add-apt-repository -y ppa:avsm/ppa
+else
+   # debian requires a special build of `libgdiplus`.
+   echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
+fi
 
 apt-get update && apt-get -y upgrade
 apt-get -y install $APT_PACKAGES
 
 gem install bundler
+

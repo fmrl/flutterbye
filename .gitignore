@@ -4,8 +4,6 @@
 *~
 /.bundle/
 /.vagrant/
-/Vagrantfile
-/cache/
 /node_modules/
 /npm-debug.log
 /vendor/
