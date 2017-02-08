@@ -109,6 +109,24 @@ val filter:
 let filter #t f s =
    filter_loop t f s 0 createEmpty
 
+private val bisection_lemma:
+   t:Type
+   -> f:(t -> Tot bool)
+   -> s:seq t
+   -> i:nat{i <= length s}
+   -> Lemma
+      (requires (True))
+      (ensures (
+            equal
+               (filter f s)
+               (append
+                  (filter f (slice s 0 i))
+                  (filter f (slice s i (length s))))
+         )
+      )
+let bisection_lemma t f s i =
+   admit ()
+
 abstract val append_lemma:
    #t:Type
    -> s_1:seq t
@@ -134,6 +152,9 @@ let append_lemma #t s_1 s_2 f =
          let u_2 = filter f s_2 in
          let u_3 = append u_1 u_2 in
          let v_3 = filter f s_3 in
-         admitP (equal v_3 u_3)
+         bisection_lemma t f s_3 (length s_1);
+         assert (equal s_1 (slice s_3 0 (length s_1)));
+         assert (equal s_2 (slice s_3 (length s_1) (length s_3)));
+         assert (equal v_3 u_3)
       end
    end
