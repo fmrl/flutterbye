@@ -18,16 +18,18 @@
 #
 #,$
 
-# userspace setup script
+# opam setup script
 
 # show what's happening.
 set -x
 # exit on any unobserved failure.
 set -e
 
-$SHELL scripts/setup/opam.sh
-$SHELL scripts/setup/bundler.sh
+OCAML_VERSION="4.02.3"
+OPAM_PACKAGES="ocamlfind batteries stdint zarith yojson pprint"
 
-if ! grep -q 'cd /vagrant' $HOME/.profile; then
-   echo 'cd /vagrant' >> $HOME/.profile
-fi
+# setup opam
+opam init --comp $OCAML_VERSION --auto-setup
+eval $(opam config env)
+opam install -y $OPAM_PACKAGES
+

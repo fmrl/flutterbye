@@ -18,16 +18,11 @@
 #
 #,$
 
-# userspace setup script
+# bundler setup script
 
 # show what's happening.
 set -x
 # exit on any unobserved failure.
 set -e
 
-$SHELL scripts/setup/opam.sh
-$SHELL scripts/setup/bundler.sh
-
-if ! grep -q 'cd /vagrant' $HOME/.profile; then
-   echo 'cd /vagrant' >> $HOME/.profile
-fi
+bundle install --system
