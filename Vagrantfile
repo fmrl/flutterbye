@@ -7,10 +7,7 @@ require "rbconfig"
 
 Vagrant.configure("2") do |config|
 
-   config.vm.provider "docker" do |d, override|
-      override.vm.box = "tknerr/baseimage-ubuntu-16.04"
-   end
-
+   # the virtualbox provider will always work, so it's the default.
    config.vm.provider "virtualbox" do |vb, override|
       #vb.gui = true
       vb.memory = "2048"
@@ -19,6 +16,12 @@ Vagrant.configure("2") do |config|
       else
          override.vm.box = "debian/jessie64"
       end
+   end
+
+   # the docker provider is preferable to the virtualbox provider,
+   # but seems to only work properly on linux.
+   config.vm.provider "docker" do |d, override|
+      override.vm.box = "tknerr/baseimage-ubuntu-16.04"
    end
 
    config.vm.provision "shell", inline: <<-SHELL
