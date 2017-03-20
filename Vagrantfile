@@ -1,8 +1,6 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-require "rbconfig"
-
 # Vagrant configuration (https://docs.vagrantup.com)
 
 Vagrant.configure("2") do |config|
@@ -11,11 +9,7 @@ Vagrant.configure("2") do |config|
    config.vm.provider "virtualbox" do |vb, override|
       #vb.gui = true
       vb.memory = "2048"
-      if RbConfig::CONFIG['host_os'] =~ /mswin|msys|mingw|bccwin|wince|emc/
-         override.vm.box = "debian/contrib-jessie64"
-      else
-         override.vm.box = "debian/jessie64"
-      end
+      override.vm.box = "debian/contrib-jessie64"
    end
 
    # the docker provider is preferable to the virtualbox provider,
