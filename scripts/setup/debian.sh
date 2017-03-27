@@ -27,7 +27,14 @@ set -e
 
 APT_PACKAGES="vim-tiny git build-essential mono-devel fsharp ruby python opam m4 libgmp-dev"
 
-apt-get update && apt-get -y upgrade
+# compare version numbers (from https://stackoverflow.com/questions/4023830/how-compare-two-strings-in-dot-separated-version-format-in-bash#4024263)
+ver_lte() {
+    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+}
+
+# let's get security updates and nothing more.
+apt-get update && apt-get -y install unattended-upgrades
+unattended-upgrade
 
 # at the time of this commit, mono is broken in debian due to changes
 # in how certificates are obtained. we need to obtian mono directly from
@@ -36,11 +43,14 @@ apt-get update && apt-get -y upgrade
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
 echo "deb http://download.mono-project.com/repo/debian wheezy main" | tee /etc/apt/sources.list.d/mono-xamarin.list
 
-distro=$(lsb_release -si)
-if [ "xUbuntu" = "x$distro" ]; then
+lsb_id=$(lsb_release -si)
+if [ "xUbuntu" = "x$lsb_id" ]; then
    # container-based distributions might not have `add-apt-repository`
-   # installed by default.
-   apt-get -y install software-properties-common
+   # installed by default. older versions of ubuntu (e.g. precise)
+   # packaged this utility with `python-software-properties`. it has since
+   # been moved to `software-properties-common` but there's no harm in
+   # installing both.
+   apt-get -y install software-properties-common python-software-properties
    # the ubuntu `opam` packages are too old to be useful to us.
    add-apt-repository -y ppa:avsm/ppa
 else
