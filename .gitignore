@@ -4,6 +4,7 @@
 *~
 /.bundle/
 /.vagrant/
+/.vscode/launch.json
 /node_modules/
 /npm-debug.log
 /vendor/

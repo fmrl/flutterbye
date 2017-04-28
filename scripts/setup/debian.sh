@@ -25,7 +25,7 @@ set -x
 # exit on any unobserved failure.
 set -e
 
-APT_PACKAGES="git build-essential mono-devel fsharp ruby python opam m4 libgmp-dev"
+APT_PACKAGES="vim-tiny git build-essential mono-devel fsharp ruby python opam m4 libgmp-dev"
 
 apt-get update && apt-get -y upgrade
 
