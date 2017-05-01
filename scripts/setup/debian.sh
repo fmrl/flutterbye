@@ -32,8 +32,16 @@ ver_lte() {
     [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
 }
 
-# let's get security updates and nothing more.
-apt-get update && apt-get -y install unattended-upgrades
+# `apt-get clean` saves us from a long-standing concurrency bug in `apt`.
+# see https://askubuntu.com/questions/41605/trouble-downloading-packages-list-due-to-a-hash-sum-mismatch-error/
+# for more details.
+apt-get clean
+sudo rm -rf /var/lib/apt/lists/*
+sudo apt-get update -o Acquire::CompressionTypes::Order::=gz
+
+# let's get security updates and nothing more, to be safe.
+apt-get update
+apt-get -y install unattended-upgrades
 unattended-upgrade
 
 # at the time of this commit, mono is broken in debian due to changes
