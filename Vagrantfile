@@ -12,11 +12,13 @@ Vagrant.configure("2") do |config|
       override.vm.box = "debian/contrib-jessie64"
    end
 
-   # `hashicorp/precise64` hit a roadblock when trying to compile ocaml, so
-   # an alternative box with a newer distro needed to be used.
+   # WARNING: vagrant's hyper-v support appears to work infrequently. virtualbox
+   # integration is more reliable (ymmv).
    config.vm.provider "hyperv" do |hyperv, override|
       #hyperv.gui = true
       hyperv.memory = "2048"
+      # `hashicorp/precise64` hit a roadblock when trying to compile ocaml, so
+      # an alternative box with a newer distro needed to be used.
       override.vm.box = "nikel/xerus64"
    end
 
@@ -25,6 +27,8 @@ Vagrant.configure("2") do |config|
    # prefer the docker provider to more heavyweight virtualization providers,
    # however, but the docker provider seems to only work properly on linux.
    config.vm.provider "docker" do |d, override|
+      # NOTE: you may need to manually pull this box before issuing a
+      #`vagrant up --provider=docker` on older versions of vagrant.
       override.vm.box = "tknerr/baseimage-ubuntu-16.04"
    end
 
