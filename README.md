@@ -22,11 +22,11 @@ getting started
 
 ### setup
 
-creation of a development environment is fully automated using [vagrant](http://vagrantup.com). to get started:
+creation of a development environment is fully automated using [vagrant](http://vagrantup.com) and [virtualbox](http://virtualbox.org). to get started:
 
-1. install [vagrant](http://vagrantup.com).
-2. install [virtualbox](http://virtualbox.org).
-3. make a copy of `Vagrantfile.sample` and call it `Vagrantfile`. you may modify this file if you wish.
+1. download and install [vagrant](http://vagrantup.com).
+2. download and install [virtualbox](http://virtualbox.org).
+3. type `vagrant plugin install vagrant-vbguest` to install the [`vagrant-vbguest`](https://github.com/dotless-de/vagrant-vbguest) plugin (optional but recommended).
 4. type `vagrant up` to prepare a new development environment.
 
 #### alternatives to virtualbox
