@@ -13,6 +13,8 @@ another important motivation for *flutterbye* is to bring awareness to the commo
 introduction
 ------------
 
+*this section is a work in progress; please consider it incomplete and inaccurate while it is being written and edited.*
+
 ### software verification
 
 verified languages such as [dafny] attempt to reconcile the implementation of a program against a mathematical proof of its behavior through a concept called refinement. this is similar to the relationship between base classes and derived classes in object oriented methodology, where a base class provides an abstract representation of a type and a derived type implements concrete behavior.
