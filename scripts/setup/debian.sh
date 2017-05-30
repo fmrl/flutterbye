@@ -18,14 +18,14 @@
 #
 #,$
 
-# debian setup script
+# debian/ubuntu superuser setup script
 
 # show what's happening.
 set -x
 # exit on any unobserved failure.
 set -e
 
-APT_PACKAGES="git build-essential mono-devel fsharp ruby python opam m4 libgmp-dev"
+APT_PACKAGES="vim-tiny git build-essential mono-devel mono-complete mono-dbg ca-certificates-mono fsharp ruby python opam m4 libgmp-dev"
 
 # compare version numbers (from https://stackoverflow.com/questions/4023830/how-compare-two-strings-in-dot-separated-version-format-in-bash#4024263)
 ver_lte() {
@@ -41,11 +41,13 @@ ver_lt() {
 # the source if we want to use tools such as nuget (required for F*).
 # from http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-echo "deb http://download.mono-project.com/repo/debian wheezy main" | tee /etc/apt/sources.list.d/mono-xamarin.list
+echo "deb http://download.mono-project.com/repo/debian jessie main" | tee /etc/apt/sources.list.d/mono-xamarin.list
 
-# `apt-get clean` saves us from a long-standing concurrency bug in `apt`.
+# the following workaround saves us from a long-standing concurrency bug in `apt` that
+# i have observed when using vagrant on windows systems.
 # see https://stackoverflow.com/questions/15505775/debian-apt-packages-hash-sum-mismatch
-# for more details.
+# for more details. at some point, this will not be needed but that seems like a long
+# ways off still.
 rm -rf /var/lib/apt/lists/*
 apt-get clean
 apt_fix_path=/etc/apt/apt.conf.d/99fixbadproxy
@@ -69,17 +71,14 @@ if [ "xUbuntu" = "x$lsb_id" ]; then
       # the ubuntu `opam` packages are too old to be useful to us.
       add-apt-repository -y ppa:avsm/ppa
    fi
-else
-   # debian requires a special build of `libgdiplus`.
-   echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" | tee -a /etc/apt/sources.list.d/mono-xamarin.list
 fi
 
 # install all of the packages specified at the top of this script.
 apt-get update
 apt-get -y install $APT_PACKAGES
 
-# let's install security updates and ensure an editor is installed, to be safe.
-apt-get -y install unattended-upgrades vim-tiny
+# let's install security updates to be safe.
+apt-get -y install unattended-upgrades
 unattended-upgrade
 
 gem install bundler

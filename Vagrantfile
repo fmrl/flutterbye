@@ -10,6 +10,11 @@ Vagrant.configure("2") do |config|
       #vb.gui = true
       vb.memory = "2048"
       override.vm.box = "debian/contrib-jessie64"
+      # the `vagrant-vbguest` plugin can fail when the guest tools installation
+      # prompts for confirmation, so we need to ensure it's not interactive.
+      if Vagrant.has_plugin? "vagrant-vbguest" then
+         config.vbguest.installer_arguments = "--nox11 -- --force"
+      end
    end
 
    # WARNING: vagrant's hyper-v support appears to work infrequently. virtualbox
