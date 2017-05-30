@@ -97,9 +97,12 @@ this work is licensed under the *Apache License 2.0*. please see the [NOTICE] an
 
 [actor model on wikipedia]: https://en.wikipedia.org/wiki/Actor_model
 [concurrent computing on wikipedia]: https://en.wikipedia.org/wiki/Concurrent_computing
+[coverity]: https://www.coverity.com/
 [dafny]: https://github.com/Microsoft/dafny
+[design by contract on wikipedia]: https://en.wikipedia.org/wiki/Design_by_contract
 [docker]: https://www.docker.com/
 [f\*]: http://fstar-lang.org
+[ivy]: https://github.com/Microsoft/ivy
 [LICENSE]: ./LICENSE
 [NOTICE]: ./NOTICE
 [vagrant `docker` provider]: https://www.vagrantup.com/docs/docker/
@@ -107,7 +110,4 @@ this work is licensed under the *Apache License 2.0*. please see the [NOTICE] an
 [vagrant-vbguest]: https://github.com/dotless-de/vagrant-vbguest
 [vagrant]: http://vagrantup.com
 [virtualbox]: http://virtualbox.org
-[design by contract on wikipedia]: https://en.wikipedia.org/wiki/Design_by_contract
-[ivy]: https://github.com/Microsoft/ivy
 [z3]: https://github.com/Z3Prover/z3
-[coverity]: https://www.coverity.com/
