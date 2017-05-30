@@ -33,12 +33,14 @@ one unfamiliar with the internals of this new software stack can imagine it as a
 - contradictory facts about the program.
 - unpredictable ordering of operations in the program.
 
-the first two issues affect scalability of software verification and reasonable solutions exist to address these issues. the third issue, is particularly problematic because it is arguably impossible to make useful software without side effects. even if we were to be conservative with how side effects are used in a program (e.g. expressing a program in [haskell]), software verification systems still struggle to reason about:
+the first two issues affect scalability of software verification and reasonable solutions seem to exist to address these issues. the third issue, however, remains problematic because it is arguably impossible to reason about all possible orderings of actions taken by an arbitrary program (i.e. *side-effects*). this also is at the heart of the problem that concurrency presents in software and includes phenomena that we consider staples of familiar programming languages:
 
-- concurrency (e.g. co-routines, aliasing, parallelism).
-- mutable state (e.g. heap interactions).
+- shared state (e.g. heap interactions & aliasing).
+- mutable state.
+- parallelism.
+- co-routines.
 
-these concepts seem intuitive to us and we construct enormously complicated systems, despite their implicit presence in how modern programs are expressed. even the most skilled reasoning about these mechanism is error prone, however, as evidenced by the number of times concurrent systems tend to fail unexpectedly due to bugs in the code and the inability to predict when those failures will occur.
+these concepts seem unquestioningly intuitive to us and we actively construct enormously complicated systems, despite their troublingly implicit presence in how modern programs are expressed. even the most skilled reasoning about these mechanisms is error prone, however, as evidenced by the number of times concurrent systems tend to fail unexpectedly due to bugs in the code and the inability to predict when those failures will occur.
 
 ### thinking locally
 
