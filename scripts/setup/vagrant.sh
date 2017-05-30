@@ -32,5 +32,5 @@ set -e
 cd /vagrant
 
 $SHELL ./scripts/setup/debian.sh
-sudo -H -u vagrant -- $SHELL ./scripts/setup/userspace.sh
-sudo -H -u vagrant -- $SHELL ./scripts/setup/submodules.sh
+sudo -H -u vagrant -- $SHELL ./scripts/setup/userland.sh --vagrant
+sudo -H -u vagrant -- $SHELL ./scripts/setup/submodules.sh --vagrant
