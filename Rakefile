@@ -40,7 +40,7 @@ require "scriptutils"
 MADOKO_ROOT = Pathname.new "src/doc/madoko"
 directory MADOKO_ROOT
 
-Rake::FStar.module_path "src/spec"
+Rake::FStar.module_path "src/fstar/spec"
 Rake::FStar.FSTAR = "./submodules/FStar/bin/fstar.exe"
 Rake::FStar.SMT = "./submodules/z3/build/z3#{ScriptUtils.exe_ext}"
 Rake::FStar.Z3RLIMIT = 30
