@@ -18,7 +18,7 @@
 #
 #,$
 
-# userspace setup script
+# userland setup script
 
 # show what's happening.
 set -x
@@ -28,6 +28,8 @@ set -e
 $SHELL scripts/setup/opam.sh
 $SHELL scripts/setup/bundler.sh
 
-if ! grep -q 'cd /vagrant' $HOME/.profile; then
+if [ "x$1" = "x--vagrant" ] && ! grep -q 'cd /vagrant' $HOME/.profile; then
    echo 'cd /vagrant' >> $HOME/.profile
+   echo 'eval "export PATH=$HOME/.local/bin:$PATH"' >> $HOME/.profile
+   echo 'eval "$(sh /vagrant/scripts/setup/z3.sh env)"' >> $HOME/.profile
 fi
