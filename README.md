@@ -31,8 +31,8 @@ languages that support software verification can be thought of as using a sophis
 
 one unfamiliar with the internals of this new software stack can imagine it as a black box containing a special-purpose intelligence that reasons, through deduction, about a program's behavior and what things we can be certain about, given a set of statements that we assume to be true. while being the same kind of activity skilled programmers engage in, it is a common mistake to setting expectations that software verification reasons about everything as well as we could or in a manner that we find intuitive. given a correct and adequate set of inputs, a software verification stack can reason more precicely about a subset program's behavior than a human. it, however, does not reason well under the following conditions:
 
-- an excess of facts about the program.
 - contradictory facts about the program.
+- an excess of unnecessary facts about the program.
 - unpredictable ordering of operations in the program.
 
 the first two issues affect scalability of software verification and reasonable solutions seem to exist to address these issues. the third issue, however, remains problematic because it is arguably impossible to reason about all possible orderings of actions taken by an arbitrary program (i.e. *side-effects*). this also is at the heart of the problem that concurrency presents in software and includes phenomena that we consider staples of familiar programming languages:
