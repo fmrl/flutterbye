@@ -25,7 +25,7 @@ in an object-oriented language, one could imagine a base class that also defines
 
 the implications of this are important. one could begin with a simple implementation of a method that is not performant but satisfies the requirements of the specification and later provide an performant implementation that satisfies the requirements of the same specification. assuming the specification is sufficiently strong, a programmer can have an assurance that the new implementation behaves identically to the old code.
 
-languages that support software verification such as [dafny], [f\*], and [ivy], can be thought of as relying upon a sophisticated software stack that either enhances or replaces what we would normally categorize as a compiler's type system or static analysis (e.g. [coverity]). the base of this software stack for static analysis is some sort of constraint solver or theorem prover, such as [z3].
+languages that support software verification can be thought of as using a sophisticated software stack for code analysis that reasons about code without having to execute it, as type systems and static analysis tools such as [coverity] are known to do. a software verification stack may [compliment a type system][dafny], [extend a type system][f\*], or even [minimize the dogma imposed by a type system][ivy]. usually, the base layer of this software stack for static analysis is some sort of constraint solver or theorem prover, such as [z3].
 
 ### current limitations of software verification
 
