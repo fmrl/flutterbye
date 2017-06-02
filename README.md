@@ -19,9 +19,9 @@ introduction
 
 verified languages such as [dafny] attempt to reconcile the implementation of a program against a mathematical proof of its behavior through a concept called refinement. this is similar to the relationship between base classes and derived classes in object oriented methodology, where a base class provides an abstract representation of a type and a derived type implements concrete behavior.
 
-in an object-oriented language, one could imagine a base class that also defines semantics for a particular method (e.g. invoking `int Next(int x)` must result in a value that is one greater than `x`, but not exceed the maximum value of an `int`). simple interface definitions in popular languages cannot place (nor enforce) expectations on their implementations beyond what the type system permits and we must assume that any given implementation works as the interface documentation suggests.
+in an object-oriented language, one could imagine a base class that also defines semantics for a particular method (e.g. invoking `int Next(int x)` must result in a value that is one greater than `x`, but leave the value unchanged if the result would exceed the maximum permitted value of an `int`). simple interface definitions in popular languages cannot place (nor enforce) expectations on their implementations beyond what the type system permits and we must assume that any given implementation works as the interface documentation suggests.
 
-*refinment relationships* strengthen the *generalization relationship* between an abstract definition of program behavior (referred to as a *specification* or *proof*) and its concrete implementation. [dafny], for example, uses a constraint language based on [contract programming][design by contract on wikipedia] in definitions of abstract modules to declare and enforce semantics upon implementation modules declared to be refinements of the abstract module definition. continuing with the previous object-oriented example, a derived class that refines its base class would be required to implement some sort of method that satisfies the semantics defined by the constraint language.
+*refinment relationships* strengthen the more conventionally understood *generalization relationship* between an abstract definition of program behavior (referred to as a *specification* or *proof*) and its concrete implementation by including a description of semantics in the abstraction. [dafny], for example, uses a constraint language based on [contract programming][design by contract on wikipedia] in definitions of abstract modules to declare and enforce semantics upon implementation modules declared to be refinements of the abstract module definition. continuing with the previous object-oriented example, a derived class that refines its base class would be required to implement some sort of method that satisfies the semantics expressed within the constraint language. despite the simplicity of the operation described by `Next`, one can imagine a more than one concrete implementation, each preferable over the others within a particular context.
 
 the implications of this are important. one could begin with a simple implementation of a method that is not performant but satisfies the requirements of the specification and later provide an performant implementation that satisfies the requirements of the same specification. assuming the specification is sufficiently strong, a programmer can have an assurance that the new implementation behaves identically to the old code.
 
@@ -29,20 +29,20 @@ languages that support software verification can be thought of as using a sophis
 
 ### current limitations of software verification
 
-one unfamiliar with the internals of this new software stack can imagine it as a black box containing a special-purpose intelligence that reasons, through deduction, about a program's behavior and what things we can be certain about, given a set of statements that we assume to be true. while being the same kind of activity skilled programmers engage in, it is a common mistake to setting expectations that software verification reasons about everything as well as we could or in a manner that we find intuitive. given a correct and adequate set of inputs, a software verification stack can reason more precicely about a subset program's behavior than a human. it, however, does not reason well under the following conditions:
+one unfamiliar with the internals of this new software stack can imagine it as a black box containing a [special-purpose, reactive intelligence][myth of a superhuman ai] that reasons, through a portfolio of strategies that ultimately amount to a deduction process, about a program's behavior and what things we can be certain about, given a set of statements that we assume to be true and a set of statements that we hope to be true. while this reasoning process is similar to the kind of activity skilled programmers engage in, a software verification stack can reason more reliably about a program's behavior than a human could. it is a common mistake, however, to set expectations that the theorem prover reasons about everything as well as we could or in a manner that we find intuitive; for example, a theorem prover does not reason well about:
 
 - contradictory facts about the program.
 - an excess of unnecessary facts about the program.
 - unpredictable ordering of operations in the program.
 
-the first two issues affect scalability of software verification and reasonable solutions seem to exist to address these issues. the third issue, however, remains problematic because it is arguably impossible to reason about all possible orderings of actions taken by an arbitrary program (i.e. *side-effects*). this also is at the heart of the problem that concurrency presents in software and includes phenomena that we consider staples of familiar programming languages:
+the first two issues affect the scalability of software verification and reasonable solutions more-or-less exist to address these issues given sufficient effort (e.g. proper analysis feedback and module opacity). the third issue, however, remains problematic because it is arguably impossible to reason about all possible orderings of actions taken by an arbitrary program (i.e. reason about *side-effects*). this also is at the heart of the problem that concurrency presents to humans in software, even though we consider ourselves qualified, often uncritically, to reason about:
 
 - shared state (e.g. heap interactions & aliasing).
 - mutable state.
 - parallelism.
 - co-routines.
 
-these concepts seem unquestioningly intuitive to us and we actively construct enormously complicated systems, despite their troublingly implicit presence in how modern programs are expressed. even the most skilled reasoning about these mechanisms is error prone, however, as evidenced by the number of times concurrent systems tend to fail unexpectedly due to bugs in the code and the inability to predict when those failures will occur.
+herein lies to origins of the infamous, unpredictable concurrency bugs that computer scientists have yet to really find consensus regarding how to tame.
 
 ### thinking locally
 
@@ -113,3 +113,4 @@ this work is licensed under the *Apache License 2.0*. please see the [NOTICE] an
 [vagrant]: http://vagrantup.com
 [virtualbox]: http://virtualbox.org
 [z3]: https://github.com/Z3Prover/z3
+[myth of a superhuman ai]: https://backchannel.com/the-myth-of-a-superhuman-ai-59282b686c62
