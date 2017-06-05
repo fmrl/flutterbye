@@ -26,13 +26,14 @@ set -x
 set -e
 
 self=$(basename $0)
-target=$(readlink -m submodules/FStar/bin/fstar.exe)
-PATH=$PATH:submodules/FStar
+gitroot=$(git rev-parse --show-toplevel)
+target=$(readlink -m $gitroot/submodules/FStar/bin/fstar.exe)
+PATH=$PATH:$gitroot/submodules/FStar
 
 if [ ! -x "$target" ]; then
    echo "$self: i couldn't find the f* executable; rebuilding..."
    eval $(opam config env)
-   cd submodules/FStar
+   cd $gitroot/submodules/FStar
    git clean -fdx
    make -C src
    make -C src ocaml

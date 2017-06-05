@@ -25,7 +25,7 @@ set -x
 # exit on any unobserved failure.
 set -e
 
-APT_PACKAGES="vim-tiny git build-essential mono-devel mono-complete mono-dbg ca-certificates-mono fsharp ruby python-dev python-pip opam m4 libgmp-dev graphviz-dev"
+APT_PACKAGES="vim-tiny git build-essential mono-devel mono-complete mono-dbg ca-certificates-mono fsharp ruby opam m4 libgmp-dev"
 
 # compare version numbers (from https://stackoverflow.com/questions/4023830/how-compare-two-strings-in-dot-separated-version-format-in-bash#4024263)
 ver_lte() {
@@ -83,3 +83,4 @@ unattended-upgrade
 
 gem install bundler
 
+cd ./submodules/ivy && $SHELL ./scripts/setup/debian.sh

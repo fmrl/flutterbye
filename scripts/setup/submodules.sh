@@ -37,4 +37,5 @@ fi
 
 $SHELL $gitroot/scripts/setup/z3.sh build
 $SHELL $gitroot/scripts/setup/fstar.sh
-$SHELL $gitroot/scripts/setup/ivy.sh
+
+cd $gitroot/submodules/ivy && $SHELL ./scripts/setup/submodules.sh

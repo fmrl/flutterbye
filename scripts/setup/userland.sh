@@ -25,11 +25,9 @@ set -x
 # exit on any unobserved failure.
 set -e
 
-$SHELL scripts/setup/opam.sh
-$SHELL scripts/setup/bundler.sh
+gitroot=$(git rev-parse --show-toplevel)
 
-if [ "x$1" = "x--vagrant" ] && ! grep -q 'cd /vagrant' $HOME/.profile; then
-   echo 'cd /vagrant' >> $HOME/.profile
-   echo 'eval "export PATH=$HOME/.local/bin:$PATH"' >> $HOME/.profile
-   echo 'eval "$(sh /vagrant/scripts/setup/z3.sh env)"' >> $HOME/.profile
-fi
+$SHELL $gitroot/scripts/setup/opam.sh
+$SHELL $gitroot/scripts/setup/bundler.sh
+
+cd $gitroot/submodules/ivy && $SHELL ./scripts/setup/userland.sh
