@@ -19,15 +19,35 @@ introduction
 
 languages that support software verification can be thought of as using a sophisticated software stack for code analysis that reasons about code without having to execute it, as type systems and static analysis tools such as [coverity] are known to do. a software verification stack may [compliment a conventional type system][dafny], [extend a conventional type system][f\*], or even [displace conventional type systems][ivy]. usually, the base layer of this software stack for static analysis is some sort of constraint solver or theorem prover, such as [z3].
 
-[dafny], for example, attempts to reconcile the implementation of a program against a mathematical proof of its behavior through a concept called refinement. this is similar to the relationship between base classes and derived classes in object oriented methodology, where a base class provides an abstract representation of a type and a derived type implements concrete behavior.
+#### method of interaction
+
+the information consumed by the theorem prover is expressed in some sort or constraint language (usually predicate-based). this specification usually consists of:
+
+- statements that the constraint solver may take for granted (*axioms* about *assumed invariants*).
+- expectations that the constraint solver is expected to confirm or deny (*assertions* about *invariants*, or *verification conditions*)
+- connective statements that inform the constraint solver about how to deductively arrive at a decision about given assertions from provided assumtions.
+
+each stated invariant represents a [decision problem] that the constraint solver must solve, meaning that the constraint solver may answer each assertion with one of the three following answers:
+
+- "yes," meaning that there is suffient information to deduce that a given assertion is true.
+- "no," meaning that there is sufficient information to deduce that a given assertion is false.
+- "uncertain" (or "timeout"), meaning that there was either insufficient information to reason about the veracity of a given assertion within a specified time budget. this will always be the case if the decision problem presented is [undecidable].
+
+programmers spend a great amount of time and effort when working with languages such as [dafny] and [f\*] to convert results that are "uncertain" into results that are clearly "yes" or "no". we suppose that this is because these languages consider preserving expectations connected to a particular programming language (e.g. C# or Ocaml) to be the priority when integrating software verification into the language. these languages require the constraint solver to reason about undeciable problems, as best as it is able to, in order to preserve as much as possible of the status quo of programming language expectations. [ivy], on the other hand, is designed to prevent "uncertain" results from being a possiblity when reasoning about assertions, guaranting certainty in exchange for asking the programmer to adjust her expectations in a strategic way that empowers the theorem prover.
+
+#### refinement
+
+[dafny] attempts to reconcile the implementation of a program against a mathematical proof of its behavior through a concept called *refinement*. this is similar to the relationship between base classes and derived classes in object oriented methodology, where a base class provides an abstract representation of a type and a derived type implements concrete behavior.
 
 in an object-oriented language, one could imagine a base class that also defines semantics for a particular method (e.g. invoking `int Next(int x)` must result in a value that is one greater than `x`, but leave the value unchanged if the result would exceed the maximum permitted value of an `int`). simple interface definitions in popular languages cannot place (nor enforce) expectations on their implementations beyond what the type system permits and we must assume that any given implementation works as the interface documentation suggests.
 
 *refinment relationships* strengthen the more conventionally understood *generalization relationship* between an abstract definition of program behavior (referred to as a *specification* or *proof*) and its concrete implementation by including a description of semantics in the abstraction. [dafny], for example, uses a constraint language based on [contract programming][design by contract on wikipedia] in definitions of abstract modules to declare and enforce semantics upon implementation modules declared to be refinements of the abstract module definition. continuing with the previous object-oriented example, a derived class that refines its base class would be required to implement some sort of method that satisfies the semantics expressed within the constraint language. despite the simplicity of the operation described by `Next`, one can imagine a more than one concrete implementation, each preferable over the others within a particular context.
 
-the implications of this are important. one could begin with a simple implementation of a method that is not performant but satisfies the requirements of the specification and later provide an performant implementation that satisfies the requirements of the same specification. assuming the specification is sufficiently strong, a programmer can have an assurance that the new implementation behaves identically to the old code. software verification promises an increase in accountability for people who produce software: a manager, through this mechanism, can meaningfully elicit quality code from her team because there is a measurable standard of quality available before deployment; likewise, a programmer can credibly counter agressive and unrealistic requests to deliver results from management on the basis that the formal specification is not yet provably satisfied.
+#### raison d'être
 
-### current limitations of software verification
+the implications of availability of this kind of automated reasoning are significant. one could begin with a simple implementation of a method that is not performant but satisfies the requirements of the specification and later provide an performant implementation that satisfies the requirements of the same specification. assuming the specification is sufficiently strong, a programmer can have an assurance that the new implementation behaves identically to the old code. software verification promises an increase in accountability for people who produce software: a manager, through this mechanism, can meaningfully elicit quality code from her team because there is a measurable standard of quality available before deployment; likewise, a programmer can credibly counter agressive and unrealistic requests to deliver results from management on the basis that the formal specification is not yet provably satisfied.
+
+#### current limitations
 
 one unfamiliar with the internals of this alternative software stack for static analysis can imagine it as a black box containing a [special-purpose, reactive intelligence][myth of a superhuman ai] that reasons, through a portfolio of strategies that ultimately amount to a deduction process, about a program's behavior and what things we can be certain about, given a set of statements that we assume to be true and a set of statements that we hope to be true. while this reasoning process is similar to the kind of activity skilled programmers engage in, a software verification stack can reason more reliably about a program's behavior than a human could. it is a common mistake, however, to set expectations that the theorem prover reasons about everything as well as we could or in a manner that we find intuitive; for example, a theorem prover does not reason well about:
 
@@ -101,16 +121,18 @@ this work is licensed under the *Apache License 2.0*. please see the [NOTICE] an
 [concurrent computing on wikipedia]: https://en.wikipedia.org/wiki/Concurrent_computing
 [coverity]: https://www.coverity.com/
 [dafny]: https://github.com/Microsoft/dafny
+[decision problem]: https://en.wikipedia.org/wiki/Decision_problem
 [design by contract on wikipedia]: https://en.wikipedia.org/wiki/Design_by_contract
 [docker]: https://www.docker.com/
 [f\*]: http://fstar-lang.org
 [ivy]: https://github.com/Microsoft/ivy
 [LICENSE]: ./LICENSE
+[myth of a superhuman ai]: https://backchannel.com/the-myth-of-a-superhuman-ai-59282b686c62
 [NOTICE]: ./NOTICE
+[undecidable]: https://en.wikipedia.org/wiki/Undecidable_problem
 [vagrant `docker` provider]: https://www.vagrantup.com/docs/docker/
 [vagrant `hyperv` provider]: https://www.vagrantup.com/docs/hyperv/
 [vagrant-vbguest]: https://github.com/dotless-de/vagrant-vbguest
 [vagrant]: http://vagrantup.com
 [virtualbox]: http://virtualbox.org
 [z3]: https://github.com/Z3Prover/z3
-[myth of a superhuman ai]: https://backchannel.com/the-myth-of-a-superhuman-ai-59282b686c62
