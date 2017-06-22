@@ -29,11 +29,11 @@ the information consumed by the theorem prover is expressed in some sort or cons
 
 each stated invariant represents a [decision problem] that the constraint solver must solve, meaning that the constraint solver may answer each assertion with one of the three following answers:
 
-- "yes," meaning that there is suffient information to deduce that a given assertion is true.
-- "no," meaning that there is sufficient information to deduce that a given assertion is false.
-- "uncertain" (or "timeout"), meaning that there was either insufficient information to reason about the veracity of a given assertion within a specified time budget. this will always be the case if the decision problem presented is [undecidable].
+- *yes*, meaning that there is sufficient information to deduce that a given assertion is true.
+- *no*, meaning that there is sufficient information to deduce that a given assertion is false.
+- *uncertain* (or *timeout*), meaning that there was either insufficient information to reason about the veracity of a given assertion within a specified time budget. the possibility that no amount of time would be sufficient exists if the decision problem presented to the theorem prover is [undecidable].
 
-programmers spend a great amount of time and effort when working with languages such as [dafny] and [f\*] to convert results that are "uncertain" into results that are clearly "yes" or "no". we suppose that this is because these languages consider preserving expectations connected to a particular programming language (e.g. C# or Ocaml) to be the priority when integrating software verification into the language. these languages require the constraint solver to reason about undeciable problems, as best as it is able to, in order to preserve as much as possible of the status quo of programming language expectations. [ivy], on the other hand, is designed to prevent "uncertain" results from being a possiblity when reasoning about assertions, guaranting certainty in exchange for asking the programmer to adjust her expectations in a strategic way that empowers the theorem prover.
+programmers spend a considerable amount of time and effort, when working with languages such as [dafny] and [f\*], to convert results that are *uncertain* into results that are *yes* or *no*. we suppose that this is because these languages consider preserving expectations connected to a particular programming language (e.g. [C#] or [Ocaml]) to be the priority and that these languages require the constraint solver to reason about undeciable problems, as best as it is able to, in order to preserve as much as possible of the status quo of programming language expectations. [ivy] takes a different approach: it is designed to guarantee decision certainty in exchange for the programmer sacrificing specific expectations of a programming language.
 
 #### refinement
 
@@ -118,6 +118,7 @@ this work is licensed under the *Apache License 2.0*. please see the [NOTICE] an
 -----
 
 [actor model on wikipedia]: https://en.wikipedia.org/wiki/Actor_model
+[c#]: https://en.wikipedia.org/wiki/C_Sharp_(programming_language)
 [concurrent computing on wikipedia]: https://en.wikipedia.org/wiki/Concurrent_computing
 [coverity]: https://www.coverity.com/
 [dafny]: https://github.com/Microsoft/dafny
@@ -129,6 +130,7 @@ this work is licensed under the *Apache License 2.0*. please see the [NOTICE] an
 [LICENSE]: ./LICENSE
 [myth of a superhuman ai]: https://backchannel.com/the-myth-of-a-superhuman-ai-59282b686c62
 [NOTICE]: ./NOTICE
+[ocaml]: https://en.wikipedia.org/wiki/OCaml
 [undecidable]: https://en.wikipedia.org/wiki/Undecidable_problem
 [vagrant `docker` provider]: https://www.vagrantup.com/docs/docker/
 [vagrant `hyperv` provider]: https://www.vagrantup.com/docs/hyperv/
