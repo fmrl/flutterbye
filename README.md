@@ -64,7 +64,50 @@ the first two issues affect the scalability of software verification and reasona
 
 herein lies to origins of the infamous, unpredictable concurrency bugs that computer scientists have yet to really find consensus regarding how to tame.
 
-### thinking locally
+### side-effects and concurrency
+
+given that verification is known to have difficulty reasoning about the order of necessarily successive operations and that side-effects are the cause of such conditions, it is necessary to examine the gap that we wish to bridge.
+
+in mathematics, a function is understood to be a relationship between one set of values and another. for example, in the following function definition, we describe integers and their successors:
+
+```
+function increment(x:bigint) returns y:bigint
+{
+   y = x + 1;
+   return y;
+}
+```
+
+assuming that the type `bigint` can describe any integer value, this is categorized as a *total function* because there is always an output value `y` for a given input value `x`. this kind of function is the simplest kind of function for the theorem prover to reason about because it describes a direct, predictable relationship between the function's arguments and it's computed result.
+
+often, however, in programming we see functions such as the following:
+
+```
+function roll_die(sides:bigint) returns n:bigint
+{
+   bigint entropy = get_entropy();
+   n = (entropy mod sides) + 1;
+}
+```
+
+this function is *not* total and does not exhaustively describe an relation between the function's arguments and its computed result. additionally, the evaluation environment must perform actions in a specific order: first retrieve a random number, then transform the result that fits within the range of a die with the given number of sides.
+
+the second of these actions can be described with a total function:
+
+```
+function roll_die(sides:bigint, entropy:bigint) returns n:bigint
+{
+   n = (m mod sides) + 1;
+}
+```
+
+the first of these operation, however, is known as a *side-effect* and this kind of function is sometimes known as a *procedure* because of the side-effect's presence. the property of being a procedure is understandably transitive.
+
+often, people from the functional programming community will make a claim that functional programs are free of side-effects. this is misleading at best. computer programs do nothing without side-effects-- the illusion of a die rolling does not function without a model of entropy. instead, when we separate side-effects from total functions, we say that the computation is *isolated* from any side-effects, but side-effects do not magically cease to exist because we find it inconvenient to find the words for them.
+
+the functional programming community, however unaware of themselves they seem to be with statements declaring the non-existence of side-effects, have undergone a deeply beautiful effort to work out how to explicitly reason about side-effects and isolate them from computation. consider an idealized version of [erlang]: islands of state with event handlers, represented by total functions transforming an incoming message and the island's state into a list of outgoing messages and a state to succeed the input state. in this idealized model of erlang, the primitive used to express side-effects is the message. surely, erlang's proposition is that *side-effects are a model of communication with stateful entities* and that *this communication is the connective tissue between computations, represented by total functions*. [haskell], a more influential programming language, is better at isolating and specifying side-effects than the reality of erlang's programming model, but the primitive haskell uses for side-effects, the monad, is famous for being an elusive concept to grasp.
+
+furthermore, unlike haskell, erlang's model plainly communicates why it is useful for side-effects to be isolated from computation. the islands of state and computation are  ordered and deterministic. they float in a sea of chaos-- a series of events whose order is not fully determined. in fact, absent specific knowledge about the protocol, we cannot determine the ordering of these side-effects, nor the order in which any total functions would be evaluated. we have, therefore, uncovered a compelling model that shows that communicaton between stateful entities, when it is yet-to-be-observed, necessarily flows within a medium of what we have come to know as concurrency.
 
 development status
 ------------------
@@ -125,7 +168,9 @@ this work is licensed under the *Apache License 2.0*. please see the [NOTICE] an
 [decision problem]: https://en.wikipedia.org/wiki/Decision_problem
 [design by contract on wikipedia]: https://en.wikipedia.org/wiki/Design_by_contract
 [docker]: https://www.docker.com/
+[erlang]: https://www.erlang.org/
 [f\*]: http://fstar-lang.org
+[haskell]: https://www.haskell.org/
 [ivy]: https://github.com/Microsoft/ivy
 [LICENSE]: ./LICENSE
 [myth of a superhuman ai]: https://backchannel.com/the-myth-of-a-superhuman-ai-59282b686c62
