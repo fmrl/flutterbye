@@ -103,11 +103,22 @@ function roll_die(sides:bigint, entropy:bigint) returns n:bigint
 
 the first of these operation, however, is known as a *side-effect* and this kind of function is sometimes known as a *procedure* because of the side-effect's presence. the property of being a procedure is understandably transitive.
 
-often, people from the functional programming community will make a claim that functional programs are free of side-effects. this is misleading at best. computer programs do nothing without side-effects-- the illusion of a die rolling does not function without a model of entropy. instead, when we separate side-effects from total functions, we say that the computation is *isolated* from any side-effects, but side-effects do not magically cease to exist because we find it inconvenient to find the words for them.
+often, people from the functional programming community will make a claim that "pure" functional programs are free of side-effects. this is misleading at best. computer programs do nothing without side-effects-- the illusion of a die rolling does not function without a model of entropy. instead, when we separate side-effects from total functions, we say that the computation is *isolated* from any side-effects, but side-effects do not magically cease to exist because we find it inconvenient to find the words for them.
 
-the functional programming community, however unaware of themselves they seem to be with statements declaring the non-existence of side-effects, have undergone a deeply beautiful effort to work out how to explicitly reason about side-effects and isolate them from computation. consider an idealized version of [erlang]: islands of state with event handlers, represented by total functions transforming an incoming message and the island's state into a list of outgoing messages and a state to succeed the input state. in this idealized model of erlang, the primitive used to express side-effects is the message. surely, erlang's proposition is that *side-effects are a model of communication with stateful entities* and that *this communication is the connective tissue between computations, represented by total functions*. [haskell], a more influential programming language, is better at isolating and specifying side-effects than the reality of erlang's programming model, but the primitive haskell uses for side-effects, the monad, is famous for being an elusive concept to grasp.
+the functional programming community, however unaware of themselves they seem to be with statements declaring the non-existence of side-effects, have undergone a deeply beautiful effort to work out how to explicitly reason about side-effects and isolate them from computation. consider an idealized version of [erlang]: islands of device interfaces and state with event handlers, represented by total functions transforming an incoming message and the island's state into a list of outgoing messages and a state to succeed the input state. in this idealized model of erlang, the primitive used to express side-effects is the message. surely, erlang's proposition is that *side-effects are a model of communication with stateful entities* and that *this communication is the connective tissue between computations, represented by total functions*. [haskell], a more influential programming language, is better at isolating and specifying side-effects than the reality of erlang's programming model, but the primitive haskell uses for side-effects, the monad, is famous for being an elusive concept to grasp.
 
 furthermore, unlike haskell, erlang's model plainly communicates why it is useful for side-effects to be isolated from computation. the islands of state and computation are  ordered and deterministic. they float in a sea of chaos-- a series of events whose order is not fully determined. in fact, absent specific knowledge about the protocol, we cannot determine the ordering of these side-effects, nor the order in which any total functions would be evaluated. we have, therefore, uncovered a compelling model that shows that communicaton between stateful entities, when it is yet-to-be-observed, necessarily flows within a medium of what we have come to know as concurrency.
+
+### models
+
+having divided programs into two categories: deterministic computation and non-deterministic communication, we can readily match the first category with the total function definitions in a verified language. how do we express non-deterministic communication?
+
+like abstract class definitions, abstract specifications in verified languages aren't intended to directly used to generate code. unlike abstract class definitions, they often involve a programming primitive that has no parallel in traditional programming models: *models*.
+
+models are often used to express something that in vital to reasoning about the behavior of a program but doesn't end up reflected in code generated from the specification. there must be agreement amongst people regarding what the model represents and how the specification interacts with it. [ironfleet], for example, uses a somewhat literal model of the network to assist in reasoning about a distributed system. it's literalness aids in convincing those seeking to understand ironfleet's proof strategy that the strategy is sound.
+
+models need not be literal, however; they can be metaphorical. metaphorical models require more thought to both concieve and understand and for this reason, unlike literal models, metaphorical models are best kept as simple as possible.
+
 
 development status
 ------------------
@@ -171,6 +182,7 @@ this work is licensed under the *Apache License 2.0*. please see the [NOTICE] an
 [erlang]: https://www.erlang.org/
 [f\*]: http://fstar-lang.org
 [haskell]: https://www.haskell.org/
+[ironfleet]: https://www.microsoft.com/en-us/research/publication/ironfleet-proving-practical-distributed-systems-correct
 [ivy]: https://github.com/Microsoft/ivy
 [LICENSE]: ./LICENSE
 [myth of a superhuman ai]: https://backchannel.com/the-myth-of-a-superhuman-ai-59282b686c62
