@@ -113,12 +113,19 @@ furthermore, unlike haskell, erlang's model plainly communicates why it is usefu
 
 having divided programs into two categories: deterministic computation and non-deterministic communication, we can readily match the first category with the total function definitions in a verified language. how do we express non-deterministic communication?
 
-like abstract class definitions, abstract specifications in verified languages aren't intended to directly used to generate code. unlike abstract class definitions, they often involve a programming primitive that has no parallel in traditional programming models: *models*.
+like abstract class definitions, abstract specifications in verified languages aren't intended to directly used to generate code. unlike abstract class definitions, they often involve a programming primitive that has no parallel in traditional programming: *models*.
 
-models are often used to express something that in vital to reasoning about the behavior of a program but doesn't end up reflected in code generated from the specification. there must be agreement amongst people regarding what the model represents and how the specification interacts with it. [ironfleet], for example, uses a somewhat literal model of the network to assist in reasoning about a distributed system. it's literalness aids in convincing those seeking to understand ironfleet's proof strategy that the strategy is sound.
+models are often used to express an intangible mechanism that is vital to reasoning about the behavior of a program. there must be agreement amongst people regarding what the model represents and how the specification interacts with it. [ironfleet], for example, uses a somewhat literal model of a network to assist in reasoning about a distributed system. we do not generate code for the network-- just for interfacing with a network that we claim behaves like the model encoded into the specification. the literalness of ironfleet's network model aids in convincing those seeking to understand ironfleet's proof strategy that the strategy is sound.
 
 models need not be literal, however; they can be metaphorical. metaphorical models require more thought to both concieve and understand and for this reason, unlike literal models, metaphorical models are best kept as simple as possible.
 
+for example, a function call in a specification (e.g. `read_time()`) can be used as a metaphor for synchronous communication with something that provides the current time. two possible refinements of this abstraction are:
+
+  - reading a memory location that holds the current system's wall-clock time.
+  - sending a message to a time process and waiting for a reply message.
+  - sending a packet to a remote server and waiting for a reply packet.
+
+note that despite having a concrete implementation in mind that uses messaging (or packets), we need not specify this in an abstract specification to reason about the program's behavior. this is because a local function call (*actions* in [ivy]) is a valid metaphor for (or model of) synchronous communication. this kind of modeling and refinement does not fit within the parallel ironfleet draws between refinement and object-oriented polymorphism, yet remains an important strategy in the practice of verification.
 
 development status
 ------------------
@@ -195,3 +202,4 @@ this work is licensed under the *Apache License 2.0*. please see the [NOTICE] an
 [vagrant]: http://vagrantup.com
 [virtualbox]: http://virtualbox.org
 [z3]: https://github.com/Z3Prover/z3
+
