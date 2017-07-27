@@ -1,4 +1,4 @@
-flutterbye🦋
+flutterbye��
 ============
 
 goals and motiviation
@@ -63,6 +63,14 @@ the first two issues affect the scalability of software verification and reasona
 - co-routines.
 
 herein lies to origins of the infamous, unpredictable concurrency bugs that computer scientists have yet to really find consensus regarding how to tame.
+
+#### local vs. global reasoning
+
+there are opposing viewpoints regarding how to deal with the limitations of software verification. generally, these viewpoints can be separated into two categories: those who claim proof strategy should be based in *local reasoning* and those who advocate *global reasoning*.
+
+*local reasoning* advocates say that components of a proof should only reason about the minimum number of resources involved and nothing more. given that theorem provers reason most easily about total functions, this argument can be considered analogous to a software design principle that a program should be built using primitives that exploit what a given platform excells at. local reasoning, as one would expect, struggles to reason about side-effects.
+
+those that argue for *global reasoning*, on the other hand, argue that proofs must reason about everything that happens within the system being reasoned about. global reasoning is able to, at least in theory, reason about everything that happens within a process (including side-effects) but the complexity of doing so becomes impractical quickly. [ironfleet] is an example of global reasoning, though dafny's concept of module opacity brings a bit local reasoning methodology into [ironfleet].
 
 ### side-effects and concurrency
 
