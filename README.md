@@ -33,9 +33,9 @@ creation of a development environment is fully automated using [vagrant](http://
 
 using *virtualbox* is convenient but, of course, performs poorly compared to containers or bare-metal installation of tools.
 
-linux users may prefer to use the [`docker` provider](https://www.vagrantup.com/docs/docker/) instead, provided that [docker](https://www.docker.com/) is installed and functioning. alternatively, linux users can configure their system without the use of vagrant: studying the scripts in `scripts/setup` should provide sufficient documentation for this endeavor, starting with `scripts/setup/vagrant.sh`.
+linux users may prefer to use the [`docker` provider](https://www.vagrantup.com/docs/docker/) instead, provided that [docker](https://www.docker.com/) is installed and functioning. alternatively, linux users can configure their system without the use of vagrant: studying the scripts in `lib/flutterbye/setup` should provide sufficient documentation for this endeavor, starting with `lib/flutterbye/setup/vagrant.sh`.
 
-windows users, will have more difficulty configuring their system without using a virtual machine. the [`hyperv` provider](https://www.vagrantup.com/docs/hyperv/) is working, in theory, but i have found vagrant's hyper-v integration to be a work-in-progress. if neither hyper-v nor virtualbox are viable options, i recommend folowing the spirit of the setup scripts with windows equivalents. building the ocaml version of [f\*](http://fstar-lang.org) is not for the faint of heart, however, because ocaml support for windows is still very experimental. if you're feeling brave refer to the [f\*](http://fstar-lang.org) for guidance.
+windows users, will have more difficulty configuring their system without using a virtual machine. i have had little success in getting the [`hyperv` provider](https://www.vagrantup.com/docs/hyperv/) working. if virtualbox is not a viable option, i recommend installing the windows build of [ivy](https://microsoft.github.io/ivy/) manually.
 
 ### usage
 
@@ -44,15 +44,9 @@ windows users, will have more difficulty configuring their system without using 
 - `vagrant ssh` is used to access commands within the development environment.
 - once in the container, type `cd /vagrant` to place yourself in the project's root directory.
 
-#### build tool (rake)
-- type `rake` to build the project. currently, this just verifies what proofs have been written.
-- if you don't care to verify all modules, you can instead type `rake fstar:verify[MODULES]` where *MODULES* is a globbing pattern that will be used to constrain which modules are verified (e.g. `rake fstar:verify [*.Linear*]`).
-- you may also specify a timeout in seconds (e.g. `rake fstar:verify [*.Mem,10]`).
-
 #### shutdown
 - `exit` leaves the development environment.
 - `vagrant halt` will shut the environment down cleanly.
-
 
 license
 -------

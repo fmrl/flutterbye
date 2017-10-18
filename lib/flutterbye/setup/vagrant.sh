@@ -18,24 +18,21 @@
 #
 #,$
 
-# submodule setup script
+# vagrant bootstrap script
 
 # show what's happening.
 set -x
 # exit on any unobserved failure.
 set -e
 
-gitroot=$(git rev-parse --show-toplevel)
+# this solves a problem with upgrading the `grub-pc` package. see
+# https://github.com/mitchellh/vagrant/issues/289
+(echo "set grub-pc/install_devices /dev/sda" | debconf-communicate) || true > /dev/null
 
-git submodule init
-git submodule update
+$SHELL /vagrant/submodules/ivy/scripts/setup/debian.sh
 
-# this shouldn't do anything if we're using vagrant (see `/scripts/setup/vagrant.sh`).
-if [ "x$1" == "x--vagrant" ]; then
-   git submodule foreach '$SHELL ../../scripts/setup/git.sh'
-fi
+cd /vagrant/submodules/ivy
+sudo -H -u vagrant -- $SHELL ./scripts/setup/userland.sh --vagrant
+sudo -H -u vagrant -- $SHELL ./scripts/setup/submodules.sh --vagrant
 
-$SHELL $gitroot/scripts/setup/z3.sh build
-$SHELL $gitroot/scripts/setup/fstar.sh
-
-cd $gitroot/submodules/ivy && $SHELL ./scripts/setup/submodules.sh
+cd /vagrant
