@@ -1,0 +1,3 @@
+[submodule "submodules/ivy"]
+	path = submodules/ivy
+	url = ../ivy.git
