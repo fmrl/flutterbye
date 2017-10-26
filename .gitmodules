@@ -1,9 +1,0 @@
-[submodule "submodules/FStar"]
-	path = submodules/FStar
-	url = https://github.com/FStarLang/FStar.git
-[submodule "submodules/z3"]
-	path = submodules/z3
-	url = https://github.com/Z3Prover/z3.git
-[submodule "submodules/ivy"]
-	path = submodules/ivy
-	url = https://github.com/Microsoft/ivy.git
