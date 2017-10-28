@@ -25,14 +25,4 @@ set -x
 # exit on any unobserved failure.
 set -e
 
-# this solves a problem with upgrading the `grub-pc` package. see
-# https://github.com/mitchellh/vagrant/issues/289
-(echo "set grub-pc/install_devices /dev/sda" | debconf-communicate) || true > /dev/null
-
-$SHELL /vagrant/submodules/ivy/scripts/setup/debian.sh
-
-cd /vagrant/submodules/ivy
-sudo -H -u vagrant -- $SHELL ./scripts/setup/userland.sh --vagrant
-sudo -H -u vagrant -- $SHELL ./scripts/setup/submodules.sh --vagrant
-
-cd /vagrant
+$SHELL /vagrant/submodules/ivy/scripts/setup/vagrant.sh "$@"

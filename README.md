@@ -29,14 +29,6 @@ creation of a development environment is fully automated using [vagrant](http://
 3. type `vagrant plugin install vagrant-vbguest` to install the [`vagrant-vbguest`](https://github.com/dotless-de/vagrant-vbguest) plugin (optional but recommended).
 4. type `vagrant up` to prepare a new development environment.
 
-#### alternatives to virtualbox
-
-using *virtualbox* is convenient but, of course, performs poorly compared to containers or bare-metal installation of tools.
-
-linux users may prefer to use the [`docker` provider](https://www.vagrantup.com/docs/docker/) instead, provided that [docker](https://www.docker.com/) is installed and functioning. alternatively, linux users can configure their system without the use of vagrant: studying the scripts in `lib/flutterbye/setup` should provide sufficient documentation for this endeavor, starting with `lib/flutterbye/setup/vagrant.sh`.
-
-windows users, will have more difficulty configuring their system without using a virtual machine. i have had little success in getting the [`hyperv` provider](https://www.vagrantup.com/docs/hyperv/) working. if virtualbox is not a viable option, i recommend installing the windows build of [ivy](https://microsoft.github.io/ivy/) manually.
-
 ### usage
 
 #### startup
