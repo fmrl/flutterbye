@@ -147,20 +147,12 @@ getting started
 
 ### setup
 
-creation of a development environment is fully automated using [vagrant] and [virtualbox]. to get started:
+creation of a development environment is fully automated using [vagrant](http://vagrantup.com) and [virtualbox](http://virtualbox.org). to get started:
 
-1. download and install [vagrant].
-2. download and install [virtualbox].
-3. type `vagrant plugin install vagrant-vbguest` to install the [`vagrant-vbguest`][vagrant-vbguest] plugin (optional but recommended).
+1. download and install [vagrant](http://vagrantup.com).
+2. download and install [virtualbox](http://virtualbox.org).
+3. type `vagrant plugin install vagrant-vbguest` to install the [`vagrant-vbguest`](https://github.com/dotless-de/vagrant-vbguest) plugin (optional but recommended).
 4. type `vagrant up` to prepare a new development environment.
-
-#### alternatives to virtualbox
-
-using *virtualbox* is convenient but, of course, performs poorly compared to containers or bare-metal installation of tools.
-
-linux users may prefer to use the [vagrant `docker` provider] instead, provided that [docker] is installed and functioning. alternatively, linux users can configure their system without the use of vagrant: studying the scripts in `scripts/setup` should provide sufficient documentation for this endeavor, starting with `scripts/setup/vagrant.sh`.
-
-windows users, will have more difficulty configuring their system without using a virtual machine. the [vagrant `docker` provider] is working, in theory, but i have found vagrant's hyper-v integration to be a work-in-progress. if neither hyper-v nor virtualbox are viable options, i recommend folowing the spirit of the setup scripts with windows equivalents. building the ocaml version of [f\*] is not for the faint of heart, however, because ocaml support for windows is still very experimental. if you're feeling brave refer to the [f\*] for guidance.
 
 ### usage
 
@@ -169,15 +161,9 @@ windows users, will have more difficulty configuring their system without using 
 - `vagrant ssh` is used to access commands within the development environment.
 - once in the container, type `cd /vagrant` to place yourself in the project's root directory.
 
-#### build tool (rake)
-- type `rake` to build the project. currently, this just verifies what proofs have been written.
-- if you don't care to verify all modules, you can instead type `rake fstar:verify[MODULES]` where *MODULES* is a globbing pattern that will be used to constrain which modules are verified (e.g. `rake fstar:verify [*.Linear*]`).
-- you may also specify a timeout in seconds (e.g. `rake fstar:verify [*.Mem,10]`).
-
 #### shutdown
 - `exit` leaves the development environment.
 - `vagrant halt` will shut the environment down cleanly.
-
 
 license
 -------
