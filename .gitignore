@@ -1,20 +1,22 @@
 # general
+# -------
 *.bak
-*.swp
 *.tmp
 *~
 
+# vim
+# ---
+*.swp
+
 # vagrant
+# -------
 /.vagrant/
 
 # visual studio code
+# ------------------
 /.vscode/launch.json
 
-# node.js
-/node_modules/
-/npm-debug.log
-
-# ruby
-/.bundle/
-/vendor/
+# ivy examples
+# ------------
+/src/ivy/examples
 
